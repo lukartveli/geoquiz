@@ -15,15 +15,10 @@
     --accent: #4f7cff;
     --font: 'Segoe UI', system-ui, sans-serif;
     --radius: 10px;
-    /* Seterra-style score colors */
-    --gold:   #f5c518; /* 0 mistakes */
-    --green:  #2ec97a; /* 1 mistake  */
-    --orange: #f0a830; /* 2 mistakes */
-    --red:    #e85555; /* 3+ mistakes (gave up) */
-    --done-gold:   #3a3010;
-    --done-green:  #0f3320;
-    --done-orange: #3a2800;
-    --done-red:    #3a1010;
+    --gold:   #f5c518;
+    --green:  #2ec97a;
+    --orange: #f0a830;
+    --red:    #e85555;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100dvh; display: flex; flex-direction: column; }
@@ -31,7 +26,7 @@
   .screen { display: none; flex-direction: column; flex: 1; }
   .screen.active { display: flex; }
 
-  /* ── HOME ── */
+  /* HOME */
   #screen-home { padding: 2rem 1.25rem 1.5rem; gap: 1.5rem; overflow-y: auto; }
   .home-header { text-align: center; }
   .home-header h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.5px; }
@@ -59,7 +54,7 @@
   .btn-primary:hover { background: #3a6be0; }
   .import-note { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
 
-  /* ── MAP SELECT ── */
+  /* MAP SELECT */
   #screen-mapselect { padding: 1.5rem 1.25rem; gap: 1.25rem; }
   .back-row { display: flex; align-items: center; gap: 0.75rem; }
   .back-btn { background: none; border: none; color: var(--muted); font-size: 1.4rem; cursor: pointer; padding: 0; line-height: 1; }
@@ -74,8 +69,11 @@
   .mode-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; }
   .mode-card p { font-size: 0.82rem; color: var(--muted); }
   .mode-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+  .score-legend { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; }
+  .legend-item { display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: var(--muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
 
-  /* ── QUIZ ── */
+  /* QUIZ */
   #screen-quiz { flex-direction: column; overflow: hidden; }
   .quiz-header {
     padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.75rem;
@@ -89,12 +87,11 @@
   .pill-correct { background: #1a3d2b; color: var(--green); }
   .pill-wrong { background: #3d1a1a; color: var(--red); }
 
-  /* CLICK mode prompt */
   .quiz-prompt { padding: 0.9rem 1rem 0.6rem; text-align: center; flex-shrink: 0; }
   .quiz-prompt-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.3rem; }
   .quiz-prompt-name { font-size: 1.5rem; font-weight: 700; }
 
-  /* TYPE mode input bar */
+  /* Type-fill mode bar */
   .type-input-bar {
     padding: 0.6rem 1rem; display: flex; gap: 0.5rem; flex-shrink: 0;
     border-bottom: 1px solid var(--border); align-items: center;
@@ -102,13 +99,10 @@
   .type-input {
     flex: 1; background: var(--surface2); border: 1px solid var(--border);
     border-radius: 8px; color: var(--text); font-family: var(--font);
-    font-size: 1.05rem; padding: 0.55rem 0.8rem; outline: none;
-    transition: border-color 0.15s;
+    font-size: 1.05rem; padding: 0.55rem 0.8rem; outline: none; transition: border-color 0.15s;
   }
   .type-input:focus { border-color: var(--accent); }
-  .type-input.input-correct { border-color: var(--green) !important; background: #0f2a1a !important; }
-  .type-input.input-wrong { border-color: var(--red) !important; }
-  .type-hint { font-size: 0.8rem; color: var(--muted); flex-shrink: 0; }
+  .type-count { font-size: 0.8rem; color: var(--muted); flex-shrink: 0; white-space: nowrap; }
 
   .quiz-map-wrap {
     flex: 1; overflow: hidden; position: relative; padding: 0.5rem;
@@ -116,39 +110,37 @@
   }
   .quiz-map-wrap svg { width: 100%; height: 100%; max-height: 100%; display: block; }
 
-  /* default SVG region style */
+  /* Strip all inline fill/stroke from SVG so CSS controls everything */
   .quiz-map-wrap svg path,
   .quiz-map-wrap svg polygon,
   .quiz-map-wrap svg circle,
   .quiz-map-wrap svg ellipse {
-    fill: var(--surface2); stroke: var(--border); stroke-width: 1;
-    cursor: pointer; transition: fill 0.12s;
+    fill: var(--surface2) !important;
+    stroke: var(--border) !important;
+    stroke-width: 1 !important;
+    cursor: pointer;
+    transition: fill 0.12s;
   }
-  .quiz-map-wrap svg path:hover,
-  .quiz-map-wrap svg polygon:hover { fill: #2e3560; }
+  /* hover only on unfilled regions */
+  .quiz-map-wrap svg path:not([data-score]):not(.region-flashing):hover,
+  .quiz-map-wrap svg polygon:not([data-score]):not(.region-flashing):hover {
+    fill: #2e3560 !important;
+  }
 
-  /* ── SETERRA SCORE COLORS ──
-     Applied as data-score attribute on the SVG element after each question.
-     0 mistakes = gold, 1 = green, 2 = orange, 3+ = red (giveup)
-  */
-  [data-score="0"]  { fill: var(--gold)   !important; }
-  [data-score="1"]  { fill: var(--green)  !important; }
-  [data-score="2"]  { fill: var(--orange) !important; }
-  [data-score="giveup"] { fill: var(--red) !important; }
+  /* Seterra score colors — permanent after answering */
+  [data-score="0"]      { fill: var(--gold)   !important; }
+  [data-score="1"]      { fill: var(--green)  !important; }
+  [data-score="2"]      { fill: var(--orange) !important; }
+  [data-score="giveup"] { fill: var(--red)    !important; }
 
-  /* currently-being-asked highlight */
-  .region-active  { fill: #4f7cff !important; opacity: 0.9; }
-  /* wrong click flash */
-  .region-wrong-flash { fill: var(--red) !important; }
-  /* correct flash */
-  .region-correct-flash { fill: var(--gold) !important; }
+  /* Transient states */
+  .region-wrong-flash { fill: var(--red) !important; transition: none !important; }
 
-  /* flashing animation after 3 wrong */
   @keyframes flash-red {
-    0%, 100% { fill: var(--red); }
-    50%       { fill: #ff9900; }
+    0%, 100% { fill: var(--red) !important; }
+    50%       { fill: #ff9900  !important; }
   }
-  .region-flashing { animation: flash-red 0.5s infinite !important; fill: var(--red); }
+  .region-flashing { animation: flash-red 0.5s infinite; fill: var(--red) !important; cursor: pointer; }
 
   .quiz-feedback {
     height: 40px; display: flex; align-items: center; justify-content: center;
@@ -157,18 +149,17 @@
   .feedback-correct { color: var(--green); }
   .feedback-wrong   { color: var(--red); }
   .feedback-warn    { color: var(--orange); }
+  .feedback-gold    { color: var(--gold); }
 
-  /* give-up button */
   #btn-giveup {
     display: none; position: absolute; bottom: 48px; right: 12px;
     background: var(--surface2); border: 1px solid var(--border);
     border-radius: 8px; color: var(--muted); font-family: var(--font);
-    font-size: 0.78rem; padding: 0.4rem 0.7rem; cursor: pointer;
-    z-index: 10;
+    font-size: 0.78rem; padding: 0.4rem 0.7rem; cursor: pointer; z-index: 10;
   }
   #btn-giveup:hover { color: var(--red); border-color: var(--red); }
 
-  /* ── RESULTS ── */
+  /* RESULTS */
   #screen-results { padding: 2rem 1.25rem; gap: 1.25rem; overflow-y: auto; }
   .result-header { text-align: center; }
   .result-score { font-size: 3rem; font-weight: 700; }
@@ -182,16 +173,11 @@
   .wrong-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.7rem 1rem; font-size: 0.9rem; }
   .wrong-item span { margin-right: 0.5rem; }
   .result-actions { display: flex; flex-direction: column; gap: 0.6rem; }
-
-  /* legend */
-  .score-legend { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; }
-  .legend-item { display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: var(--muted); }
-  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
 </style>
 </head>
 <body>
 
-<!-- ═══ HOME ═══ -->
+<!-- HOME -->
 <div id="screen-home" class="screen active">
   <div class="home-header">
     <h1>🌍 GeoQuiz</h1>
@@ -214,7 +200,7 @@
   </div>
 </div>
 
-<!-- ═══ MAP SELECT ═══ -->
+<!-- MAP SELECT -->
 <div id="screen-mapselect" class="screen">
   <div style="padding:1.5rem 1.25rem;display:flex;flex-direction:column;gap:1.25rem;">
     <div class="back-row">
@@ -226,12 +212,12 @@
       <div class="mode-card" id="mode-click">
         <div class="mode-icon">🖱️</div>
         <h3>Click the region</h3>
-        <p>A name appears — tap the correct region on the map</p>
+        <p>A name appears — find and click the correct region on the map</p>
       </div>
       <div class="mode-card" id="mode-type">
         <div class="mode-icon">⌨️</div>
-        <h3>Type the names</h3>
-        <p>Regions highlight one by one — type the name to fill the map</p>
+        <h3>Fill the map</h3>
+        <p>Type any region name — it turns gold on the map as you get them right</p>
       </div>
     </div>
     <div class="score-legend">
@@ -243,30 +229,31 @@
   </div>
 </div>
 
-<!-- ═══ QUIZ ═══ -->
+<!-- QUIZ -->
 <div id="screen-quiz" class="screen">
   <div class="quiz-header">
     <button class="back-btn" id="back-to-select">←</button>
     <div class="quiz-progress-bar">
       <div class="quiz-progress-fill" id="quiz-progress-fill"></div>
     </div>
-    <div class="quiz-counter" id="quiz-counter">1/10</div>
+    <div class="quiz-counter" id="quiz-counter">0/0</div>
     <div class="quiz-score-pill">
       <span class="pill pill-correct" id="score-correct">0</span>
       <span class="pill pill-wrong" id="score-wrong">0</span>
     </div>
   </div>
 
-  <!-- Click mode prompt (shown in click mode) -->
+  <!-- Click mode prompt -->
   <div class="quiz-prompt" id="click-prompt">
-    <div class="quiz-prompt-label" id="prompt-mode-label">click the region</div>
+    <div class="quiz-prompt-label">find and click</div>
     <div class="quiz-prompt-name" id="quiz-prompt-name">—</div>
   </div>
 
-  <!-- Type mode input (shown in type mode) -->
+  <!-- Fill/type mode input -->
   <div class="type-input-bar" id="type-bar" style="display:none">
-    <input class="type-input" id="type-input" type="text" placeholder="Type a region name…" autocomplete="off" autocorrect="off" spellcheck="false" />
-    <span class="type-hint" id="type-hint"></span>
+    <input class="type-input" id="type-input" type="text" placeholder="Type a region name…"
+      autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+    <span class="type-count" id="type-count">0/0</span>
   </div>
 
   <div class="quiz-map-wrap" id="quiz-map-wrap" style="position:relative;">
@@ -276,7 +263,7 @@
   <div class="quiz-feedback" id="quiz-feedback"></div>
 </div>
 
-<!-- ═══ RESULTS ═══ -->
+<!-- RESULTS -->
 <div id="screen-results" class="screen">
   <div style="padding:2rem 1.25rem;display:flex;flex-direction:column;gap:1.25rem;overflow-y:auto;flex:1;">
     <div class="result-header">
@@ -284,10 +271,10 @@
       <div class="result-label" id="result-label"></div>
     </div>
     <div class="result-stats">
-      <div class="stat-card"><div class="stat-num" style="color:var(--gold)"  id="res-gold">0</div>  <div class="stat-lbl">Perfect</div></div>
-      <div class="stat-card"><div class="stat-num" style="color:var(--green)" id="res-green">0</div> <div class="stat-lbl">1 hint</div></div>
-      <div class="stat-card"><div class="stat-num" style="color:var(--orange)"id="res-orange">0</div><div class="stat-lbl">2 hints</div></div>
-      <div class="stat-card"><div class="stat-num" style="color:var(--red)"   id="res-red">0</div>   <div class="stat-lbl">Gave up</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--gold)"   id="res-gold">0</div>  <div class="stat-lbl">Perfect</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--green)"  id="res-green">0</div> <div class="stat-lbl">1 hint</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--orange)" id="res-orange">0</div><div class="stat-lbl">2 hints</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--red)"    id="res-red">0</div>   <div class="stat-lbl">Gave up</div></div>
     </div>
     <div class="wrong-list" id="wrong-list"></div>
     <div class="result-actions">
@@ -300,28 +287,36 @@
 
 <script>
 // ═══════════════════════════════════════════
-//  DATA & CONFIG
+//  CONFIG — add your built-in maps here
 // ═══════════════════════════════════════════
 const BUILT_IN_MAPS = [
-  { id: 'belgium-provinces', name: 'Belgian Provinces', svgFile: 'maps/belgium-provinces.svg', jsonFile: 'data/belgium-provinces.json' }
+  { id: 'belgium-provinces', name: 'Belgian Provinces',
+    svgFile: 'maps/belgium-provinces.svg', jsonFile: 'data/belgium-provinces.json' }
 ];
 
-let maps = [];
+// ═══════════════════════════════════════════
+//  APP STATE
+// ═══════════════════════════════════════════
+let maps        = [];
 let pendingImport = { svg: null, json: null };
-
-// ═══════════════════════════════════════════
-//  STATE
-// ═══════════════════════════════════════════
 let activeMap   = null;
-let quizMode    = 'click'; // 'click' | 'type'
+let quizMode    = 'click';   // 'click' | 'type'
+
+// Click mode state
 let quizQueue   = [];
 let quizIndex   = 0;
-let wrongIds    = [];      // ids to review
-let scoreMap    = {};      // regionId → 'gold'|'green'|'orange'|'giveup'
-let mistakeCount = 0;      // mistakes on current question
-let flashInterval = null;
+let mistakeCount = 0;
+let waitingForNext = false;
 let feedbackTimeout = null;
-let waitingForNext  = false;
+let flashInterval   = null;
+
+// Type/fill mode state
+let fillRemaining = [];   // region ids not yet found
+let fillScores    = {};   // id → score (same scheme as click mode)
+
+// Shared
+let scoreMap  = {};   // id → '0'|'1'|'2'|'giveup'  (used by click mode)
+let wrongIds  = [];
 
 // ═══════════════════════════════════════════
 //  SCREEN ROUTER
@@ -329,9 +324,6 @@ let waitingForNext  = false;
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + id).classList.add('active');
-  if (id === 'quiz' && quizMode === 'type') {
-    setTimeout(() => document.getElementById('type-input').focus(), 100);
-  }
 }
 
 // ═══════════════════════════════════════════
@@ -341,6 +333,18 @@ async function loadBuiltIn() {
   for (const m of BUILT_IN_MAPS) {
     try {
       const [svgR, jsonR] = await Promise.all([fetch(m.svgFile), fetch(m.jsonFile)]);
+      if (!svgR.ok || !jsonR.ok) continue;
+      maps.push({ id: m.id, name: (await jsonR.json()).name || m.name,
+        svgText: await svgR.text(),
+        regions: (await fetch(m.jsonFile).then(r=>r.json())).regions });
+    } catch(e) {}
+  }
+  // reload properly (two fetches above reuse — fix by doing it right)
+  maps = [];
+  for (const m of BUILT_IN_MAPS) {
+    try {
+      const svgR  = await fetch(m.svgFile);
+      const jsonR = await fetch(m.jsonFile);
       if (!svgR.ok || !jsonR.ok) continue;
       const svgText  = await svgR.text();
       const jsonData = await jsonR.json();
@@ -354,7 +358,7 @@ function renderMapList() {
   const list = document.getElementById('map-list');
   list.innerHTML = '';
   if (!maps.length) {
-    list.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;text-align:center;padding:1rem 0">No maps loaded yet.<br>Import an SVG + JSON below.</p>';
+    list.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;text-align:center;padding:1rem 0">No maps loaded.<br>Import an SVG + JSON below.</p>';
     return;
   }
   maps.forEach(m => {
@@ -378,8 +382,8 @@ function openMapSelect(mapId) {
 }
 
 document.getElementById('back-to-home').addEventListener('click', () => showScreen('home'));
-document.getElementById('mode-click').addEventListener('click', () => { quizMode = 'click'; startQuiz(Object.keys(activeMap.regions)); });
-document.getElementById('mode-type').addEventListener('click',  () => { quizMode = 'type';  startQuiz(Object.keys(activeMap.regions)); });
+document.getElementById('mode-click').addEventListener('click', () => { quizMode = 'click'; startClickQuiz(Object.keys(activeMap.regions)); });
+document.getElementById('mode-type').addEventListener('click',  () => { quizMode = 'type';  startFillQuiz(Object.keys(activeMap.regions)); });
 
 // ═══════════════════════════════════════════
 //  HELPERS
@@ -395,84 +399,80 @@ function shuffle(arr) {
 
 function normalize(s) {
   return s.toLowerCase().trim()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // strip accents
-    .replace(/[^a-z0-9\s]/g, '').replace(/\s+/g,' ');
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ');
 }
 
-function getSvg() { return document.querySelector('#quiz-map-wrap svg'); }
+function getSvg()  { return document.querySelector('#quiz-map-wrap svg'); }
+function getEl(id) { return getSvg()?.getElementById(id); }
 
-function setRegionClass(id, cls) {
-  const el = getSvg()?.getElementById(id);
-  if (!el) return;
-  el.classList.remove('region-active','region-wrong-flash','region-correct-flash','region-flashing');
-  if (cls) el.classList.add(cls);
+// Strip all inline style/fill attributes from imported SVG so CSS rules win
+function sanitizeSvg() {
+  const svg = getSvg();
+  if (!svg) return;
+  svg.querySelectorAll('path, polygon, circle, ellipse').forEach(el => {
+    el.removeAttribute('style');
+    el.removeAttribute('fill');
+    el.removeAttribute('stroke');
+    el.removeAttribute('stroke-width');
+  });
 }
 
-// Apply the permanent score color (data-score attribute)
 function applyScore(id, score) {
-  const el = getSvg()?.getElementById(id);
+  const el = getEl(id);
   if (!el) return;
+  el.classList.remove('region-wrong-flash', 'region-flashing');
   el.removeAttribute('data-score');
-  el.classList.remove('region-active','region-wrong-flash','region-correct-flash','region-flashing');
   el.setAttribute('data-score', score);
 }
 
-function stopFlash() {
-  clearInterval(flashInterval);
-  flashInterval = null;
-}
+function stopFlash() { clearInterval(flashInterval); flashInterval = null; }
 
 function startFlash(id) {
   stopFlash();
-  const el = getSvg()?.getElementById(id);
+  const el = getEl(id);
   if (!el) return;
   el.classList.add('region-flashing');
 }
 
+function loadMapIntoQuiz() {
+  const wrap   = document.getElementById('quiz-map-wrap');
+  const giveup = document.getElementById('btn-giveup');
+  wrap.innerHTML = activeMap.svgText;
+  wrap.appendChild(giveup);
+  sanitizeSvg();  // ← this is the blue-flash fix: strips all inline fill attrs
+}
+
 // ═══════════════════════════════════════════
-//  QUIZ START
+//  CLICK MODE
 // ═══════════════════════════════════════════
-function startQuiz(regionIds) {
-  quizQueue   = shuffle(regionIds);
-  quizIndex   = 0;
-  wrongIds    = [];
-  scoreMap    = {};
-  mistakeCount = 0;
+function startClickQuiz(regionIds) {
+  quizQueue      = shuffle(regionIds);
+  quizIndex      = 0;
+  wrongIds       = [];
+  scoreMap       = {};
+  mistakeCount   = 0;
   waitingForNext = false;
   stopFlash();
   clearTimeout(feedbackTimeout);
 
   loadMapIntoQuiz();
 
-  // show/hide mode-specific UI
-  document.getElementById('click-prompt').style.display = quizMode === 'click' ? '' : 'none';
-  document.getElementById('type-bar').style.display     = quizMode === 'type'  ? '' : 'none';
-  document.getElementById('prompt-mode-label').textContent = quizMode === 'click' ? 'click the region' : 'highlighted region';
-
-  showScreen('quiz');
-  renderQuestion();
-}
-
-function loadMapIntoQuiz() {
-  const wrap = document.getElementById('quiz-map-wrap');
-  // preserve give-up button
-  const giveup = document.getElementById('btn-giveup');
-  wrap.innerHTML = activeMap.svgText;
-  wrap.appendChild(giveup);
-
-  const svg = getSvg();
-  if (!svg) return;
-  svg.querySelectorAll('path, polygon, circle, ellipse').forEach(el => {
+  // attach click listeners
+  getSvg()?.querySelectorAll('path, polygon, circle, ellipse').forEach(el => {
     if (!el.id) return;
-    el.addEventListener('click',    () => handleClickMode(el.id));
-    el.addEventListener('touchend', e  => { e.preventDefault(); handleClickMode(el.id); });
+    el.addEventListener('click',    () => handleClick(el.id));
+    el.addEventListener('touchend', e  => { e.preventDefault(); handleClick(el.id); });
   });
+
+  document.getElementById('click-prompt').style.display = '';
+  document.getElementById('type-bar').style.display     = 'none';
+  document.getElementById('btn-giveup').style.display   = 'none';
+  showScreen('quiz');
+  renderClickQuestion();
 }
 
-// ═══════════════════════════════════════════
-//  RENDER QUESTION
-// ═══════════════════════════════════════════
-function renderQuestion() {
+function renderClickQuestion() {
   stopFlash();
   clearTimeout(feedbackTimeout);
   waitingForNext = false;
@@ -482,76 +482,65 @@ function renderQuestion() {
 
   const regionId = quizQueue[quizIndex];
   const name     = activeMap.regions[regionId] || regionId;
+  const total    = quizQueue.length;
 
   document.getElementById('quiz-prompt-name').textContent = name;
-  document.getElementById('quiz-counter').textContent = (quizIndex + 1) + '/' + quizQueue.length;
-  document.getElementById('quiz-progress-fill').style.width = (quizIndex / quizQueue.length * 100) + '%';
-  updateScorePills();
-  document.getElementById('quiz-feedback').textContent = '';
-  document.getElementById('quiz-feedback').className = 'quiz-feedback';
+  document.getElementById('quiz-counter').textContent     = (quizIndex + 1) + '/' + total;
+  document.getElementById('quiz-progress-fill').style.width = (quizIndex / total * 100) + '%';
+  document.getElementById('quiz-feedback').textContent    = '';
+  document.getElementById('quiz-feedback').className      = 'quiz-feedback';
+  document.getElementById('btn-giveup').style.display     = 'none';
+  updateClickPills();
 
-  if (quizMode === 'type') {
-    const inp = document.getElementById('type-input');
-    inp.value = '';
-    inp.className = 'type-input';
-    inp.disabled = false;
-    document.getElementById('type-hint').textContent = '';
-    inp.focus();
-  }
-
-  // restore already-scored regions; only highlight current region in type mode
-  recolorMap();
-  if (quizMode === 'type') setRegionClass(regionId, 'region-active');
-
-  // give-up button: show after 1 wrong
-  document.getElementById('btn-giveup').style.display = 'none';
-}
-
-function recolorMap() {
+  // recolor map — already-scored regions get their color back, rest are neutral
   const svg = getSvg();
-  if (!svg) return;
-  svg.querySelectorAll('path, polygon, circle, ellipse').forEach(el => {
-    el.classList.remove('region-active','region-wrong-flash','region-correct-flash','region-flashing');
-    el.removeAttribute('data-score');
-    if (scoreMap[el.id]) el.setAttribute('data-score', scoreMap[el.id]);
-  });
+  if (svg) {
+    svg.querySelectorAll('path, polygon, circle, ellipse').forEach(el => {
+      el.classList.remove('region-wrong-flash', 'region-flashing');
+      el.removeAttribute('data-score');
+      if (scoreMap[el.id]) el.setAttribute('data-score', scoreMap[el.id]);
+    });
+  }
 }
 
-function updateScorePills() {
-  const scores = Object.values(scoreMap);
-  const gold   = scores.filter(s => s === '0').length;
-  const good   = scores.filter(s => s !== 'giveup').length;
-  document.getElementById('score-correct').textContent = good;
-  document.getElementById('score-wrong').textContent   = scores.filter(s => s === 'giveup').length;
-}
-
-// ═══════════════════════════════════════════
-//  CLICK MODE
-// ═══════════════════════════════════════════
-function handleClickMode(clickedId) {
-  if (quizMode !== 'click') return;
-  if (waitingForNext) { advance(); return; }
+function handleClick(clickedId) {
+  if (waitingForNext) { advanceClick(); return; }
 
   const correctId = quizQueue[quizIndex];
-  const fb = document.getElementById('quiz-feedback');
+  const fb        = document.getElementById('quiz-feedback');
 
   if (clickedId === correctId) {
-    markCorrect(correctId);
+    // correct
+    const score = mistakeCount === 0 ? '0' : mistakeCount === 1 ? '1' : mistakeCount === 2 ? '2' : 'giveup';
+    scoreMap[correctId] = score;
+    stopFlash();
+    applyScore(correctId, score);
+    if (score !== 'giveup') wrongIds = wrongIds.filter(i => i !== correctId);
+
+    if (score === '0')      { fb.textContent = '✓ Perfect!';          fb.className = 'quiz-feedback feedback-gold'; }
+    else if (score === '1') { fb.textContent = '✓ Got it (1 wrong)';  fb.className = 'quiz-feedback feedback-correct'; }
+    else if (score === '2') { fb.textContent = '✓ Got it (2 wrong)';  fb.className = 'quiz-feedback feedback-warn'; }
+    else                    { fb.textContent = '✓ Got it';            fb.className = 'quiz-feedback feedback-warn'; }
+
+    waitingForNext = true;
+    clearTimeout(feedbackTimeout);
+    feedbackTimeout = setTimeout(() => advanceClick(), 900);
   } else {
+    // wrong
     mistakeCount++;
+    if (!wrongIds.includes(correctId)) wrongIds.push(correctId);
     document.getElementById('btn-giveup').style.display = '';
 
-    // flash wrong click briefly
-    const wrongEl = getSvg()?.getElementById(clickedId);
+    const wrongEl = getEl(clickedId);
     if (wrongEl && !wrongEl.getAttribute('data-score')) {
       wrongEl.classList.add('region-wrong-flash');
       setTimeout(() => wrongEl.classList.remove('region-wrong-flash'), 350);
     }
 
-    const clickedName = activeMap.regions[clickedId] || clickedId || '?';
+    const clickedName = activeMap.regions[clickedId] || '?';
     if (mistakeCount >= 3) {
       startFlash(correctId);
-      fb.textContent = `✗ ${clickedName} — keep trying, answer is flashing!`;
+      fb.textContent = `✗ ${clickedName} — it's flashing!`;
     } else {
       fb.textContent = `✗ That was ${clickedName}`;
     }
@@ -559,62 +548,15 @@ function handleClickMode(clickedId) {
   }
 }
 
-// ═══════════════════════════════════════════
-//  TYPE MODE
-// ═══════════════════════════════════════════
-document.getElementById('type-input').addEventListener('input', function() {
-  if (quizMode !== 'type') return;
-  if (waitingForNext) return;
+function advanceClick() { quizIndex++; renderClickQuestion(); }
 
-  const correctId   = quizQueue[quizIndex];
-  const correctName = activeMap.regions[correctId] || correctId;
-  const typed       = this.value;
-
-  if (normalize(typed) === normalize(correctName)) {
-    this.value = correctName; // snap to correct spelling
-    markCorrect(correctId);
-  } else {
-    this.className = 'type-input';
-  }
-});
-
-document.getElementById('type-input').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' && waitingForNext) advance();
-});
-
-// ═══════════════════════════════════════════
-//  MARK CORRECT (shared)
-// ═══════════════════════════════════════════
-function markCorrect(regionId) {
-  stopFlash();
-  const score = mistakeCount === 0 ? '0' : mistakeCount === 1 ? '1' : mistakeCount === 2 ? '2' : 'giveup';
-  scoreMap[regionId] = score;
-
-  const fb = document.getElementById('quiz-feedback');
-  if (score === '0')      { fb.textContent = '✓ Perfect!';            fb.className = 'quiz-feedback feedback-correct'; }
-  else if (score === '1') { fb.textContent = '✓ Correct (1 hint)';    fb.className = 'quiz-feedback feedback-warn'; }
-  else if (score === '2') { fb.textContent = '✓ Correct (2 hints)';   fb.className = 'quiz-feedback feedback-warn'; }
-  else                    { fb.textContent = '✓ Answered after hints'; fb.className = 'quiz-feedback feedback-warn'; }
-
-  applyScore(regionId, score);
-
-  if (quizMode === 'type') {
-    const inp = document.getElementById('type-input');
-    inp.className = 'type-input input-correct';
-    inp.disabled  = true;
-  }
-
-  document.getElementById('btn-giveup').style.display = 'none';
-  waitingForNext = true;
-  if (score !== 'giveup') wrongIds = wrongIds.filter(id => id !== regionId);
-
-  clearTimeout(feedbackTimeout);
-  feedbackTimeout = setTimeout(() => advance(), quizMode === 'type' ? 700 : 900);
+function updateClickPills() {
+  const scores = Object.values(scoreMap);
+  document.getElementById('score-correct').textContent = scores.filter(s => s !== 'giveup').length;
+  document.getElementById('score-wrong').textContent   = scores.filter(s => s === 'giveup').length;
 }
 
-// ═══════════════════════════════════════════
-//  GIVE UP
-// ═══════════════════════════════════════════
+// Give up — click mode
 document.getElementById('btn-giveup').addEventListener('click', () => {
   if (waitingForNext) return;
   const correctId   = quizQueue[quizIndex];
@@ -625,28 +567,13 @@ document.getElementById('btn-giveup').addEventListener('click', () => {
   applyScore(correctId, 'giveup');
 
   document.getElementById('quiz-feedback').textContent = `→ It was: ${correctName}`;
-  document.getElementById('quiz-feedback').className = 'quiz-feedback feedback-wrong';
-  document.getElementById('btn-giveup').style.display = 'none';
-
-  if (quizMode === 'type') {
-    const inp = document.getElementById('type-input');
-    inp.value    = correctName;
-    inp.disabled = true;
-    inp.className = 'type-input input-wrong';
-  }
+  document.getElementById('quiz-feedback').className   = 'quiz-feedback feedback-wrong';
+  document.getElementById('btn-giveup').style.display  = 'none';
 
   waitingForNext = true;
   clearTimeout(feedbackTimeout);
-  feedbackTimeout = setTimeout(() => advance(), 1600);
+  feedbackTimeout = setTimeout(() => advanceClick(), 1600);
 });
-
-// ═══════════════════════════════════════════
-//  ADVANCE
-// ═══════════════════════════════════════════
-function advance() {
-  quizIndex++;
-  renderQuestion();
-}
 
 document.getElementById('back-to-select').addEventListener('click', () => {
   stopFlash(); clearTimeout(feedbackTimeout);
@@ -654,7 +581,114 @@ document.getElementById('back-to-select').addEventListener('click', () => {
 });
 
 // ═══════════════════════════════════════════
-//  RESULTS
+//  FILL / TYPE MODE
+//  No queue — type any name, map fills as you go
+// ═══════════════════════════════════════════
+function startFillQuiz(regionIds) {
+  fillRemaining = [...regionIds];
+  fillScores    = {};
+  wrongIds      = [];
+
+  loadMapIntoQuiz();
+
+  const total = regionIds.length;
+  document.getElementById('click-prompt').style.display = 'none';
+  document.getElementById('type-bar').style.display     = '';
+  document.getElementById('btn-giveup').style.display   = 'none';
+  document.getElementById('quiz-progress-fill').style.width = '0%';
+  document.getElementById('quiz-counter').textContent   = '0/' + total;
+  document.getElementById('score-correct').textContent  = '0';
+  document.getElementById('score-wrong').textContent    = '0';
+  document.getElementById('type-count').textContent     = '0/' + total;
+  document.getElementById('quiz-feedback').textContent  = '';
+  document.getElementById('quiz-feedback').className    = 'quiz-feedback';
+
+  const inp = document.getElementById('type-input');
+  inp.value     = '';
+  inp.className = 'type-input';
+  inp.disabled  = false;
+
+  showScreen('quiz');
+  setTimeout(() => inp.focus(), 100);
+}
+
+// Build a lookup: normalized name → region id
+function buildNameLookup(regionIds) {
+  const map = {};
+  regionIds.forEach(id => {
+    const name = activeMap.regions[id] || id;
+    map[normalize(name)] = id;
+  });
+  return map;
+}
+
+document.getElementById('type-input').addEventListener('input', function() {
+  if (quizMode !== 'type') return;
+
+  const typed = this.value;
+  const lookup = buildNameLookup(fillRemaining);
+  const matchId = lookup[normalize(typed)];
+
+  if (matchId) {
+    // correct match — fill it gold
+    fillScores[matchId] = '0';
+    applyScore(matchId, '0');
+    fillRemaining = fillRemaining.filter(id => id !== matchId);
+
+    const total   = Object.keys(activeMap.regions).length;
+    const done    = total - fillRemaining.length;
+    const name    = activeMap.regions[matchId] || matchId;
+
+    document.getElementById('type-count').textContent             = done + '/' + total;
+    document.getElementById('quiz-counter').textContent           = done + '/' + total;
+    document.getElementById('quiz-progress-fill').style.width     = (done / total * 100) + '%';
+    document.getElementById('score-correct').textContent          = done;
+    document.getElementById('quiz-feedback').textContent          = '✓ ' + name;
+    document.getElementById('quiz-feedback').className            = 'quiz-feedback feedback-gold';
+
+    this.value     = '';
+    this.className = 'type-input';
+
+    if (fillRemaining.length === 0) {
+      setTimeout(() => showFillResults(), 800);
+    }
+  }
+});
+
+function showFillResults() {
+  const total  = Object.keys(activeMap.regions).length;
+  const done   = Object.keys(fillScores).length;
+  const missed = total - done;
+
+  // everything not found counts as missed
+  wrongIds = fillRemaining.slice(); // anything still remaining = not found
+
+  document.getElementById('result-score').textContent  = Math.round(done / total * 100) + '%';
+  document.getElementById('result-label').textContent  = activeMap.name;
+  document.getElementById('res-gold').textContent      = done;
+  document.getElementById('res-green').textContent     = 0;
+  document.getElementById('res-orange').textContent    = 0;
+  document.getElementById('res-red').textContent       = missed;
+
+  const wrongSection = document.getElementById('wrong-list');
+  if (wrongIds.length) {
+    wrongSection.innerHTML = '<h3>Not found</h3>';
+    wrongIds.forEach(id => {
+      const d = document.createElement('div');
+      d.className = 'wrong-item';
+      d.innerHTML = `<span>🔴</span>${activeMap.regions[id] || id}`;
+      wrongSection.appendChild(d);
+    });
+  } else {
+    wrongSection.innerHTML = '<p style="color:var(--gold);text-align:center;font-weight:600;font-size:1.1rem">🏆 Perfect score!</p>';
+  }
+
+  document.getElementById('btn-review').style.display = wrongIds.length ? '' : 'none';
+  showScreen('results');
+}
+
+// ═══════════════════════════════════════════
+//  RESULTS (click mode)
 // ═══════════════════════════════════════════
 function showResults() {
   const total  = quizQueue.length;
@@ -663,14 +697,13 @@ function showResults() {
   const green  = scores.filter(s => s === '1').length;
   const orange = scores.filter(s => s === '2').length;
   const red    = scores.filter(s => s === 'giveup').length;
-  const pct    = Math.round((total - red) / total * 100);
 
-  document.getElementById('result-score').textContent  = pct + '%';
+  document.getElementById('result-score').textContent  = Math.round((total - red) / total * 100) + '%';
   document.getElementById('result-label').textContent  = activeMap.name;
-  document.getElementById('res-gold').textContent   = gold;
-  document.getElementById('res-green').textContent  = green;
-  document.getElementById('res-orange').textContent = orange;
-  document.getElementById('res-red').textContent    = red;
+  document.getElementById('res-gold').textContent      = gold;
+  document.getElementById('res-green').textContent     = green;
+  document.getElementById('res-orange').textContent    = orange;
+  document.getElementById('res-red').textContent       = red;
 
   const wrongSection = document.getElementById('wrong-list');
   if (wrongIds.length) {
@@ -691,9 +724,15 @@ function showResults() {
   showScreen('results');
 }
 
-document.getElementById('btn-review').addEventListener('click',  () => startQuiz(wrongIds));
-document.getElementById('btn-restart').addEventListener('click', () => startQuiz(Object.keys(activeMap.regions)));
-document.getElementById('btn-home').addEventListener('click',    () => showScreen('home'));
+document.getElementById('btn-review').addEventListener('click', () => {
+  if (quizMode === 'click') startClickQuiz(wrongIds);
+  else startFillQuiz(wrongIds);
+});
+document.getElementById('btn-restart').addEventListener('click', () => {
+  if (quizMode === 'click') startClickQuiz(Object.keys(activeMap.regions));
+  else startFillQuiz(Object.keys(activeMap.regions));
+});
+document.getElementById('btn-home').addEventListener('click', () => showScreen('home'));
 
 // ═══════════════════════════════════════════
 //  IMPORT
@@ -714,16 +753,14 @@ function checkImportReady() {
 document.getElementById('import-svg').addEventListener('change', async function() {
   if (!this.files[0]) return;
   pendingImport.svg     = await readFile(this.files[0]);
-  pendingImport.svgName = this.files[0].name.replace('.svg','');
+  pendingImport.svgName = this.files[0].name.replace('.svg', '');
   checkImportReady();
 });
 
 document.getElementById('import-json').addEventListener('change', async function() {
   if (!this.files[0]) return;
-  try {
-    pendingImport.json = JSON.parse(await readFile(this.files[0]));
-    checkImportReady();
-  } catch(e) { alert('Invalid JSON file.'); }
+  try { pendingImport.json = JSON.parse(await readFile(this.files[0])); checkImportReady(); }
+  catch(e) { alert('Invalid JSON file.'); }
 });
 
 document.getElementById('btn-add-import').addEventListener('click', () => {
@@ -742,12 +779,12 @@ document.getElementById('btn-add-import').addEventListener('click', () => {
   const matched   = regionIds.filter(id => svgIds.includes(id));
 
   if (!matched.length) {
-    alert(`No JSON IDs match SVG IDs.\n\nSVG has: ${svgIds.slice(0,5).join(', ')}\nJSON has: ${regionIds.slice(0,5).join(', ')}\n\nFix IDs in Inkscape: Object → Object Properties → ID`);
+    alert(`No JSON IDs match SVG IDs.\nSVG: ${svgIds.slice(0,5).join(', ')}\nJSON: ${regionIds.slice(0,5).join(', ')}\n\nFix in Inkscape: Object → Object Properties → ID`);
     return;
   }
   if (matched.length < regionIds.length) {
     const unmatched = regionIds.filter(id => !svgIds.includes(id));
-    if (!confirm(`${matched.length}/${regionIds.length} IDs matched.\nUnmatched: ${unmatched.slice(0,5).join(', ')}\nContinue anyway?`)) return;
+    if (!confirm(`${matched.length}/${regionIds.length} matched. Unmatched: ${unmatched.slice(0,5).join(', ')}. Continue?`)) return;
   }
 
   maps.push(newMap);
@@ -766,3 +803,5 @@ loadBuiltIn();
 </script>
 </body>
 </html>
+HTMLEOF
+echo "done"
