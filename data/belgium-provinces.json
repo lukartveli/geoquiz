@@ -1,0 +1,16 @@
+{
+  "name": "Belgian Provinces",
+  "regions": {
+    "BE-VWV": "West Flanders",
+    "BE-VOV": "East Flanders",
+    "BE-VAN": "Antwerp",
+    "BE-VLI": "Limburg",
+    "BE-VBR": "Flemish Brabant",
+    "BE-BRU": "Brussels",
+    "BE-WBR": "Walloon Brabant",
+    "BE-WHT": "Hainaut",
+    "BE-WNA": "Namur",
+    "BE-WLG": "Liège",
+    "BE-WLX": "Luxembourg"
+  }
+}
