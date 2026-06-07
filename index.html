@@ -499,9 +499,9 @@ function renderQuestion() {
     inp.focus();
   }
 
-  // restore already-scored regions, highlight current
+  // restore already-scored regions; only highlight current region in type mode
   recolorMap();
-  setRegionClass(regionId, 'region-active');
+  if (quizMode === 'type') setRegionClass(regionId, 'region-active');
 
   // give-up button: show after 1 wrong
   document.getElementById('btn-giveup').style.display = 'none';
@@ -553,7 +553,6 @@ function handleClickMode(clickedId) {
       startFlash(correctId);
       fb.textContent = `✗ ${clickedName} — keep trying, answer is flashing!`;
     } else {
-      setRegionClass(correctId, 'region-active'); // re-highlight correct
       fb.textContent = `✗ That was ${clickedName}`;
     }
     fb.className = 'quiz-feedback feedback-wrong';
