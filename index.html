@@ -1,210 +1,208 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
 <title>GeoQuiz</title>
 <style>
-  :root {
-    --bg: #0f1117;
-    --surface: #1a1d27;
-    --surface2: #232635;
-    --border: #2e3248;
-    --text: #e8eaf0;
-    --muted: #7b80a0;
-    --accent: #4f7cff;
-    --font: 'Segoe UI', system-ui, sans-serif;
-    --radius: 10px;
-    --gold:        #f5c518;
-    --orange:      #f0821e;
-    --darkorange:  #c94a00;
-    --red:         #e85555;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100dvh; display: flex; flex-direction: column; }
+:root {
+  --bg:#0f1117; --surface:#1a1d27; --surface2:#232635; --border:#2e3248;
+  --text:#e8eaf0; --muted:#7b80a0; --accent:#4f7cff; --font:'Segoe UI',system-ui,sans-serif;
+  --radius:10px;
+  --gold:#f5c518; --orange:#f0821e; --darkorange:#c94a00; --red:#e85555;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100dvh;display:flex;flex-direction:column;}
+.screen{display:none;flex-direction:column;flex:1;}
+.screen.active{display:flex;}
 
-  .screen { display: none; flex-direction: column; flex: 1; }
-  .screen.active { display: flex; }
+/* HOME */
+#screen-home{padding:2rem 1.25rem 1.5rem;gap:1.25rem;overflow-y:auto;}
+.home-header{text-align:center;}
+.home-header h1{font-size:2rem;font-weight:700;letter-spacing:-0.5px;}
+.home-header p{color:var(--muted);margin-top:.35rem;font-size:.9rem;}
+.section-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.35rem;}
+.map-list{display:flex;flex-direction:column;gap:.5rem;}
+.map-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.9rem 1rem;display:flex;justify-content:space-between;align-items:center;transition:border-color .15s,background .15s;}
+.map-item-inner{flex:1;min-width:0;cursor:pointer;}
+.map-item:hover{border-color:var(--accent);background:var(--surface2);}
+.map-item-title{font-weight:600;font-size:.95rem;}
+.map-item-meta{font-size:.75rem;color:var(--muted);margin-top:2px;display:flex;gap:.5rem;align-items:center;}
+.badge{font-size:.65rem;padding:1px 6px;border-radius:99px;border:1px solid var(--border);color:var(--muted);}
+.badge-saved{border-color:#2a3d5c;color:#6aa3d4;background:rgba(106,163,212,.08);}
+.badge-community{border-color:#3d2a5c;color:#a06ad4;background:rgba(160,106,212,.08);}
+.map-item-actions{display:flex;align-items:center;gap:.3rem;flex-shrink:0;}
+.icon-btn{background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;padding:.25rem .4rem;border-radius:6px;line-height:1;transition:color .15s,background .15s;}
+.icon-btn:hover{color:var(--text);background:var(--border);}
+.icon-btn.del:hover{color:var(--red);background:rgba(232,85,85,.12);}
+.map-item-arrow{color:var(--muted);font-size:1.2rem;cursor:pointer;}
 
-  /* HOME */
-  #screen-home { padding: 2rem 1.25rem 1.5rem; gap: 1.5rem; overflow-y: auto; }
-  .home-header { text-align: center; }
-  .home-header h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.5px; }
-  .home-header p { color: var(--muted); margin-top: 0.35rem; font-size: 0.9rem; }
-  .map-list { display: flex; flex-direction: column; gap: 0.6rem; }
-  .map-item {
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 1rem 1.1rem; cursor: pointer; display: flex; justify-content: space-between;
-    align-items: center; transition: border-color 0.15s, background 0.15s;
-  }
-  .map-item:hover, .map-item:active { border-color: var(--accent); background: var(--surface2); }
-  .map-item-title { font-weight: 600; font-size: 1rem; }
-  .map-item-count { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
-  .map-item-arrow { color: var(--muted); font-size: 1.2rem; }
-  .map-item-delete {
-    background: none; border: none; color: var(--muted); font-size: 1.1rem;
-    cursor: pointer; padding: 0.2rem 0.4rem; border-radius: 6px; line-height: 1;
-    flex-shrink: 0; transition: color 0.15s, background 0.15s;
-  }
-  .map-item-delete:hover { color: var(--red); background: rgba(232,85,85,0.12); }
-  .import-section { border-top: 1px solid var(--border); padding-top: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; }
-  .import-row { display: flex; gap: 0.5rem; }
-  .import-row input[type=file] { display: none; }
-  .btn {
-    background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
-    color: var(--text); font-family: var(--font); font-size: 0.9rem; padding: 0.65rem 1rem;
-    cursor: pointer; flex: 1; text-align: center; transition: background 0.15s; white-space: nowrap;
-  }
-  .btn:hover, .btn:active { background: var(--border); }
-  .btn-primary { background: var(--accent); border-color: var(--accent); font-weight: 600; color: #fff; }
-  .btn-primary:hover { background: #3a6be0; }
-  .import-note { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+.import-section{border-top:1px solid var(--border);padding-top:1rem;display:flex;flex-direction:column;gap:.5rem;}
+.import-row{display:flex;gap:.5rem;}
+.import-row input[type=file]{display:none;}
+.btn{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:.9rem;padding:.65rem 1rem;cursor:pointer;flex:1;text-align:center;transition:background .15s;white-space:nowrap;}
+.btn:hover,.btn:active{background:var(--border);}
+.btn-primary{background:var(--accent);border-color:var(--accent);font-weight:600;color:#fff;}
+.btn-primary:hover{background:#3a6be0;}
+.btn:disabled{opacity:.4;cursor:default;}
+.btn:disabled:hover{background:var(--surface2);}
+.import-note{font-size:.75rem;color:var(--muted);line-height:1.6;}
 
-  /* MAP SELECT */
-  #screen-mapselect { padding: 1.5rem 1.25rem; gap: 1.25rem; }
-  .back-row { display: flex; align-items: center; gap: 0.75rem; }
-  .back-btn { background: none; border: none; color: var(--muted); font-size: 1.4rem; cursor: pointer; padding: 0; line-height: 1; }
-  .back-btn:hover { color: var(--text); }
-  .screen-title { font-size: 1.3rem; font-weight: 700; }
-  .mode-cards { display: flex; flex-direction: column; gap: 0.75rem; }
-  .mode-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 1rem 1.2rem; cursor: pointer; transition: border-color 0.15s;
-  }
-  .mode-card:hover { border-color: var(--accent); }
-  .mode-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; }
-  .mode-card p { font-size: 0.82rem; color: var(--muted); }
-  .mode-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
-  .score-legend { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; }
-  .legend-item { display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: var(--muted); }
-  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+/* COMMUNITY */
+.community-section{border-top:1px solid var(--border);padding-top:1rem;display:flex;flex-direction:column;gap:.5rem;}
+.community-empty{color:var(--muted);font-size:.85rem;text-align:center;padding:.75rem 0;}
 
-  /* QUIZ */
-  #screen-quiz { flex-direction: column; overflow: hidden; }
-  .quiz-header {
-    padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.75rem;
-    border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--bg);
-  }
-  .quiz-progress-bar { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
-  .quiz-progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.3s; }
-  .quiz-counter { font-size: 0.82rem; color: var(--muted); white-space: nowrap; }
-  .quiz-score-pill { display: flex; gap: 0.4rem; font-size: 0.8rem; white-space: nowrap; }
-  .pill { padding: 2px 7px; border-radius: 99px; font-weight: 600; }
-  .pill-correct { background: #1a3d2b; color: #2ec97a; }
-  .pill-wrong { background: #3d1a1a; color: var(--red); }
+/* MAP SELECT */
+#screen-mapselect{padding:1.5rem 1.25rem;gap:1.25rem;overflow-y:auto;}
+.back-row{display:flex;align-items:center;gap:.75rem;}
+.back-btn{background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;padding:0;line-height:1;}
+.back-btn:hover{color:var(--text);}
+.screen-title{font-size:1.3rem;font-weight:700;}
+.mode-cards{display:flex;flex-direction:column;gap:.75rem;}
+.mode-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.2rem;cursor:pointer;transition:border-color .15s;}
+.mode-card:hover{border-color:var(--accent);}
+.mode-card h3{font-size:1rem;font-weight:600;margin-bottom:.25rem;}
+.mode-card p{font-size:.82rem;color:var(--muted);}
+.mode-icon{font-size:1.5rem;margin-bottom:.5rem;}
+.score-legend{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;}
+.legend-item{display:flex;align-items:center;gap:.3rem;font-size:.75rem;color:var(--muted);}
+.legend-dot{width:10px;height:10px;border-radius:50%;}
 
-  .quiz-prompt { padding: 0.9rem 1rem 0.6rem; text-align: center; flex-shrink: 0; }
-  .quiz-prompt-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.3rem; }
-  .quiz-prompt-name { font-size: 1.5rem; font-weight: 700; }
+/* QUIZ layout */
+#screen-quiz{flex-direction:column;overflow:hidden;}
+.quiz-header{padding:.75rem 1rem;display:flex;align-items:center;gap:.75rem;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg);}
+.quiz-progress-bar{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+.quiz-progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .3s;}
+.quiz-counter{font-size:.82rem;color:var(--muted);white-space:nowrap;}
+.quiz-score-pill{display:flex;gap:.4rem;font-size:.8rem;white-space:nowrap;}
+.pill{padding:2px 7px;border-radius:99px;font-weight:600;}
+.pill-correct{background:#1a3d2b;color:#2ec97a;}
+.pill-wrong{background:#3d1a1a;color:var(--red);}
 
-  .type-input-bar {
-    padding: 0.6rem 1rem; display: flex; gap: 0.5rem; flex-shrink: 0;
-    border-bottom: 1px solid var(--border); align-items: center;
-  }
-  .type-input {
-    flex: 1; background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 8px; color: var(--text); font-family: var(--font);
-    font-size: 1.05rem; padding: 0.55rem 0.8rem; outline: none; transition: border-color 0.15s;
-  }
-  .type-input:focus { border-color: var(--accent); }
-  .type-count { font-size: 0.8rem; color: var(--muted); flex-shrink: 0; white-space: nowrap; }
+.quiz-prompt{padding:.9rem 1rem .6rem;text-align:center;flex-shrink:0;}
+.quiz-prompt-label{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.3rem;}
+.quiz-prompt-name{font-size:1.5rem;font-weight:700;}
 
-  .quiz-map-wrap {
-    flex: 1; overflow: hidden; position: relative; padding: 0.5rem;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .quiz-map-wrap svg { width: 100%; height: 100%; max-height: 100%; display: block; }
+.type-input-bar{padding:.6rem 1rem;display:flex;gap:.5rem;flex-shrink:0;border-bottom:1px solid var(--border);align-items:center;}
+.type-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:1.05rem;padding:.55rem .8rem;outline:none;transition:border-color .15s;}
+.type-input:focus{border-color:var(--accent);}
+.type-count{font-size:.8rem;color:var(--muted);flex-shrink:0;white-space:nowrap;}
 
-  /* ── THE CRITICAL FIX ──
-     Force ALL svg shape elements to use our colors, overriding any inline attrs.
-     !important wins over inline style/fill attributes. */
-  .quiz-map-wrap svg path,
-  .quiz-map-wrap svg polygon,
-  .quiz-map-wrap svg circle,
-  .quiz-map-wrap svg ellipse,
-  .quiz-map-wrap svg rect {
-    fill: var(--surface2) !important;
-    stroke: var(--border) !important;
-    stroke-width: 0.8 !important;
-    cursor: pointer;
-    transition: fill 0.1s;
-  }
-  /* Hover only on unscored regions */
-  .quiz-map-wrap svg path:not([data-score]):hover,
-  .quiz-map-wrap svg polygon:not([data-score]):hover {
-    fill: #2e3560 !important;
-  }
+/* Quiz body: map + guessed list side by side in fill mode */
+.quiz-body{flex:1;overflow:hidden;display:flex;gap:0;}
+.quiz-map-wrap{flex:1;overflow:hidden;position:relative;padding:.5rem;display:flex;align-items:center;justify-content:center;}
+.quiz-map-wrap svg{width:100%;height:100%;max-height:100%;display:block;}
 
-  /* Score colors — applied as data-score attribute */
-  [data-score="0"]      { fill: var(--gold)       !important; }
-  [data-score="1"]      { fill: var(--orange)     !important; }
-  [data-score="2"]      { fill: var(--darkorange) !important; }
-  [data-score="giveup"] { fill: var(--red)        !important; }
+/* Guessed names panel (fill mode) */
+.guessed-panel{width:140px;flex-shrink:0;border-left:1px solid var(--border);overflow-y:auto;padding:.5rem .4rem;display:flex;flex-direction:column;gap:.25rem;}
+.guessed-panel-title{font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:.25rem .35rem;flex-shrink:0;}
+.guessed-item{font-size:.75rem;padding:.3rem .5rem;border-radius:6px;background:rgba(245,197,24,.1);color:var(--gold);border:1px solid rgba(245,197,24,.2);animation:slideIn .2s ease;}
+@keyframes slideIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:none;}}
 
-  /* Transient flash states */
-  .region-wrong-flash  { fill: var(--red) !important; transition: none !important; }
+/* ── COLOR FIX: base rule gives default fill ── */
+.quiz-map-wrap svg path,
+.quiz-map-wrap svg polygon,
+.quiz-map-wrap svg circle,
+.quiz-map-wrap svg ellipse,
+.quiz-map-wrap svg rect {
+  fill: var(--surface2) !important;
+  stroke: var(--border) !important;
+  stroke-width: 0.8 !important;
+  cursor: pointer;
+  transition: fill 0.1s;
+}
+/* Hover — unscored only */
+.quiz-map-wrap svg path:not([data-score]):hover,
+.quiz-map-wrap svg polygon:not([data-score]):hover {
+  fill: #2e3560 !important;
+}
+/* ── COLOR FIX: score selectors match the SAME specificity chain ── */
+.quiz-map-wrap svg [data-score="0"]      { fill: var(--gold)       !important; }
+.quiz-map-wrap svg [data-score="1"]      { fill: var(--orange)     !important; }
+.quiz-map-wrap svg [data-score="2"]      { fill: var(--darkorange) !important; }
+.quiz-map-wrap svg [data-score="giveup"] { fill: var(--red)        !important; }
 
-  @keyframes flash-answer {
-    0%, 100% { fill: var(--red)    !important; }
-    50%       { fill: #ff7700      !important; }
-  }
-  .region-flashing { animation: flash-answer 0.5s infinite; fill: var(--red) !important; }
+.quiz-map-wrap svg .region-wrong-flash { fill: var(--red) !important; transition: none !important; }
+@keyframes flash-answer {
+  0%,100%{ fill: var(--red)   !important; }
+  50%    { fill: #ff7700      !important; }
+}
+.quiz-map-wrap svg .region-flashing { animation: flash-answer .5s infinite; }
 
-  .quiz-feedback {
-    height: 40px; display: flex; align-items: center; justify-content: center;
-    font-size: 0.92rem; font-weight: 600; flex-shrink: 0; padding: 0 1rem; text-align: center;
-  }
-  .feedback-correct { color: #2ec97a; }
-  .feedback-wrong   { color: var(--red); }
-  .feedback-warn    { color: var(--orange); }
-  .feedback-gold    { color: var(--gold); }
+.quiz-feedback{height:38px;display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:600;flex-shrink:0;padding:0 1rem;text-align:center;}
+.feedback-correct{color:#2ec97a;} .feedback-wrong{color:var(--red);} .feedback-warn{color:var(--orange);} .feedback-gold{color:var(--gold);}
 
-  #btn-giveup {
-    display: none; position: absolute; bottom: 48px; right: 12px;
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 8px; color: var(--muted); font-family: var(--font);
-    font-size: 0.78rem; padding: 0.4rem 0.7rem; cursor: pointer; z-index: 10;
-  }
-  #btn-giveup:hover { color: var(--red); border-color: var(--red); }
+#btn-giveup{display:none;position:absolute;bottom:44px;right:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:var(--font);font-size:.78rem;padding:.4rem .7rem;cursor:pointer;z-index:10;}
+#btn-giveup:hover{color:var(--red);border-color:var(--red);}
 
-  /* RESULTS */
-  #screen-results { padding: 2rem 1.25rem; gap: 1.25rem; overflow-y: auto; }
-  .result-header { text-align: center; }
-  .result-score { font-size: 3rem; font-weight: 700; }
-  .result-label { color: var(--muted); font-size: 0.9rem; margin-top: 0.25rem; }
-  .result-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
-  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.7rem 0.5rem; text-align: center; }
-  .stat-num { font-size: 1.4rem; font-weight: 700; }
-  .stat-lbl { font-size: 0.65rem; color: var(--muted); margin-top: 2px; line-height: 1.3; }
-  .wrong-list { display: flex; flex-direction: column; gap: 0.5rem; }
-  .wrong-list h3 { font-size: 0.85rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.25rem; }
-  .wrong-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.7rem 1rem; font-size: 0.9rem; }
-  .wrong-item span { margin-right: 0.5rem; }
-  .result-actions { display: flex; flex-direction: column; gap: 0.6rem; }
+/* RESULTS */
+#screen-results{overflow-y:auto;}
+#screen-results > div{padding:2rem 1.25rem;display:flex;flex-direction:column;gap:1.25rem;}
+.result-header{text-align:center;}
+.result-score{font-size:3rem;font-weight:700;}
+.result-label{color:var(--muted);font-size:.9rem;margin-top:.25rem;}
+.result-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.7rem .5rem;text-align:center;}
+.stat-num{font-size:1.4rem;font-weight:700;}
+.stat-lbl{font-size:.65rem;color:var(--muted);margin-top:2px;line-height:1.3;}
+.wrong-list{display:flex;flex-direction:column;gap:.4rem;}
+.wrong-list h3{font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.2rem;}
+.wrong-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.65rem 1rem;font-size:.88rem;}
+.wrong-item span{margin-right:.5rem;}
+.result-actions{display:flex;flex-direction:column;gap:.6rem;}
+
+/* SHARE modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;padding:1rem;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.5rem;width:100%;max-width:420px;display:flex;flex-direction:column;gap:1rem;}
+.modal h2{font-size:1.1rem;font-weight:700;}
+.modal p{font-size:.85rem;color:var(--muted);line-height:1.6;}
+.modal input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:.95rem;padding:.6rem .8rem;outline:none;}
+.modal input:focus{border-color:var(--accent);}
+.modal-row{display:flex;gap:.5rem;}
+.modal-status{font-size:.8rem;color:var(--muted);text-align:center;min-height:1.2em;}
 </style>
 </head>
 <body>
 
 <!-- HOME -->
 <div id="screen-home" class="screen active">
-  <div class="home-header">
+  <div class="home-header" style="padding-top:1.5rem">
     <h1>🌍 GeoQuiz</h1>
     <p>Click a map to start, or import your own</p>
   </div>
-  <div class="map-list" id="map-list"></div>
-  <div class="import-section">
-    <p style="font-size:0.85rem;font-weight:600;margin-bottom:0.25rem;">Import your own map</p>
-    <div class="import-row">
-      <label class="btn" for="import-svg">📂 SVG file</label>
-      <input type="file" id="import-svg" accept=".svg" />
-      <label class="btn" for="import-json">📋 JSON data</label>
-      <input type="file" id="import-json" accept=".json" />
+
+  <div style="padding:0 1.25rem;display:flex;flex-direction:column;gap:1.25rem;padding-bottom:1.5rem;">
+    <!-- Built-in + saved -->
+    <div>
+      <div class="section-label">My Maps</div>
+      <div class="map-list" id="map-list"></div>
     </div>
-    <button class="btn btn-primary" id="btn-add-import" disabled>Add imported map</button>
-    <p class="import-note">
-      In Inkscape: select region → Object → Object Properties → set <strong>ID</strong> to match JSON key.<br>
-      JSON format: <code>{"name":"My Map","regions":{"id1":"Name 1","id2":"Name 2"}}</code>
-    </p>
+
+    <!-- Community maps -->
+    <div class="community-section">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="section-label" style="margin-bottom:0">🌐 Community Maps</div>
+        <button class="btn" id="btn-refresh-community" style="flex:none;padding:.35rem .7rem;font-size:.75rem;">↺ Refresh</button>
+      </div>
+      <div class="map-list" id="community-list"><div class="community-empty">Loading…</div></div>
+    </div>
+
+    <!-- Import -->
+    <div class="import-section">
+      <div class="section-label" style="margin-bottom:.1rem;">Import your own map</div>
+      <div class="import-row">
+        <label class="btn" for="import-svg" id="lbl-svg">📂 SVG file</label>
+        <input type="file" id="import-svg" accept=".svg"/>
+        <label class="btn" for="import-json" id="lbl-json">📋 JSON data</label>
+        <input type="file" id="import-json" accept=".json"/>
+      </div>
+      <button class="btn btn-primary" id="btn-add-import" disabled>Add map locally</button>
+      <p class="import-note">
+        In Inkscape: select region → <strong>Object → Object Properties → ID</strong> = JSON key.<br>
+        JSON: <code>{"name":"My Map","regions":{"id1":"Name 1"}}</code>
+      </p>
+    </div>
   </div>
 </div>
 
@@ -215,24 +213,27 @@
       <button class="back-btn" id="back-to-home">←</button>
       <h2 class="screen-title" id="mapselect-title">Choose mode</h2>
     </div>
-    <p id="mapselect-sub" style="color:var(--muted);font-size:0.85rem;"></p>
+    <p id="mapselect-sub" style="color:var(--muted);font-size:.85rem;"></p>
     <div class="mode-cards">
       <div class="mode-card" id="mode-click">
         <div class="mode-icon">🖱️</div>
         <h3>Click the region</h3>
-        <p>A name appears — find and click the correct region on the map</p>
+        <p>A name appears — find and click the correct region on the map. Wrong clicks count against you.</p>
       </div>
       <div class="mode-card" id="mode-type">
         <div class="mode-icon">⌨️</div>
         <h3>Fill the map</h3>
-        <p>Type any region name — it fills gold on the map as you get it right</p>
+        <p>Type any region name freely — it fills gold as you get it. See your list grow on the side.</p>
       </div>
     </div>
-    <div class="score-legend">
-      <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div> Perfect</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div> 1 wrong</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--darkorange)"></div> 2 wrong</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Gave up</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
+      <div class="score-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div>Perfect</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div>1 wrong</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--darkorange)"></div>2 wrong</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Gave up</div>
+      </div>
+      <button class="btn" id="btn-share-map" style="flex:none;padding:.4rem .8rem;font-size:.78rem;display:none;">🌐 Share online</button>
     </div>
   </div>
 </div>
@@ -245,7 +246,7 @@
     <div class="quiz-counter" id="quiz-counter">0/0</div>
     <div class="quiz-score-pill">
       <span class="pill pill-correct" id="score-correct">0</span>
-      <span class="pill pill-wrong" id="score-wrong">0</span>
+      <span class="pill pill-wrong"   id="score-wrong">0</span>
     </div>
   </div>
 
@@ -256,31 +257,38 @@
 
   <div class="type-input-bar" id="type-bar" style="display:none">
     <input class="type-input" id="type-input" type="text" placeholder="Type a region name…"
-      autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+      autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
     <span class="type-count" id="type-count">0/0</span>
   </div>
 
-  <div class="quiz-map-wrap" id="quiz-map-wrap" style="position:relative;">
-    <button id="btn-giveup">Give up</button>
+  <div class="quiz-body">
+    <div class="quiz-map-wrap" id="quiz-map-wrap">
+      <button id="btn-giveup">Give up</button>
+    </div>
+    <!-- Guessed panel shown only in fill mode -->
+    <div class="guessed-panel" id="guessed-panel" style="display:none">
+      <div class="guessed-panel-title">Guessed</div>
+      <div id="guessed-list"></div>
+    </div>
   </div>
   <div class="quiz-feedback" id="quiz-feedback"></div>
 </div>
 
 <!-- RESULTS -->
 <div id="screen-results" class="screen">
-  <div style="padding:2rem 1.25rem;display:flex;flex-direction:column;gap:1.25rem;overflow-y:auto;flex:1;">
+  <div>
     <div class="result-header">
       <div class="result-score" id="result-score">0%</div>
       <div class="result-label" id="result-label"></div>
     </div>
-    <div class="result-stats">
+    <div class="result-stats" style="margin-top:1rem;">
       <div class="stat-card"><div class="stat-num" style="color:var(--gold)"       id="res-gold">0</div><div class="stat-lbl">Perfect</div></div>
       <div class="stat-card"><div class="stat-num" style="color:var(--orange)"     id="res-orange">0</div><div class="stat-lbl">1 wrong</div></div>
       <div class="stat-card"><div class="stat-num" style="color:var(--darkorange)" id="res-dark">0</div><div class="stat-lbl">2 wrong</div></div>
       <div class="stat-card"><div class="stat-num" style="color:var(--red)"        id="res-red">0</div><div class="stat-lbl">Gave up</div></div>
     </div>
-    <div class="wrong-list" id="wrong-list"></div>
-    <div class="result-actions">
+    <div class="wrong-list" id="wrong-list" style="margin-top:.75rem;"></div>
+    <div class="result-actions" style="margin-top:.5rem;">
       <button class="btn btn-primary" id="btn-review">🔁 Review wrong answers</button>
       <button class="btn" id="btn-restart">↺ Play again (all regions)</button>
       <button class="btn" id="btn-home">⌂ Home</button>
@@ -288,595 +296,495 @@
   </div>
 </div>
 
+<!-- SHARE MODAL -->
+<div class="modal-bg" id="share-modal">
+  <div class="modal">
+    <h2>🌐 Share map online</h2>
+    <p>Give your map a name and upload it so anyone with this app can play it. It will appear in the Community Maps section.</p>
+    <input type="text" id="share-name" placeholder="Map name (e.g. Regions of Georgia)"/>
+    <input type="text" id="share-author" placeholder="Your name / nickname (optional)"/>
+    <div class="modal-status" id="share-status"></div>
+    <div class="modal-row">
+      <button class="btn" id="share-cancel">Cancel</button>
+      <button class="btn btn-primary" id="share-confirm">Upload</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ════════════════════════════════════════════
-//  CONFIG — add built-in maps here
+//  CONFIG
 // ════════════════════════════════════════════
 const BUILT_IN_MAPS = [
-  { id: 'belgium-provinces',       name: 'Belgian Provinces',           svgFile: 'maps/belgium-provinces.svg',        jsonFile: 'data/belgium-provinces.json' },
-  { id: 'regions-georgia',         name: 'Regions of Georgia',          svgFile: 'maps/regionsgeorgia.svg',           jsonFile: 'data/regionsgeorgia.json' },
-  { id: 'municipalities-georgia',  name: 'Municipalities of Georgia',   svgFile: 'maps/municipalitiesgeorgia.svg',    jsonFile: 'data/municipalitiesgeorgia.json' },
+  { id:'belgium-provinces',      name:'Belgian Provinces',         svgFile:'maps/belgium-provinces.svg',     jsonFile:'data/belgium-provinces.json' },
+  { id:'regions-georgia',        name:'Regions of Georgia',        svgFile:'maps/regionsgeorgia.svg',        jsonFile:'data/regionsgeorgia.json' },
+  { id:'municipalities-georgia', name:'Municipalities of Georgia', svgFile:'maps/municipalitiesgeorgia.svg', jsonFile:'data/municipalitiesgeorgia.json' },
 ];
 
+// Free JSONBin.io — public bin for community maps
+// Create your own free bin at jsonbin.io and paste the bin ID + API key below.
+// Steps: 1) sign up free at jsonbin.io  2) create a bin with content []
+//        3) paste the bin ID and your API key here.
+// Until then community sharing shows instructions.
+const JSONBIN_BIN_ID  = '';   // e.g. '664abc123def456789012345'
+const JSONBIN_API_KEY = '';   // e.g. '$2a$10$...'
+const JSONBIN_URL     = JSONBIN_BIN_ID ? `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}` : '';
+
 // ════════════════════════════════════════════
-//  INDEXEDDB — persist imported maps across sessions
+//  INDEXEDDB
 // ════════════════════════════════════════════
-const DB_NAME    = 'geoquiz';
-const DB_VERSION = 1;
-const STORE      = 'saved_maps';
-let db = null;
-
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, DB_VERSION);
-    req.onupgradeneeded = e => {
-      const d = e.target.result;
-      if (!d.objectStoreNames.contains(STORE)) {
-        d.createObjectStore(STORE, { keyPath: 'id' });
-      }
-    };
-    req.onsuccess = e => { db = e.target.result; resolve(db); };
-    req.onerror   = e => reject(e.target.error);
+const DB_NAME='geoquiz', DB_VER=1, STORE='saved_maps';
+let db=null;
+function openDB(){
+  return new Promise((res,rej)=>{
+    const r=indexedDB.open(DB_NAME,DB_VER);
+    r.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains(STORE))d.createObjectStore(STORE,{keyPath:'id'});};
+    r.onsuccess=e=>{db=e.target.result;res(db);};
+    r.onerror=e=>rej(e.target.error);
   });
 }
-
-function dbSaveMap(map) {
-  return new Promise((resolve, reject) => {
-    const tx  = db.transaction(STORE, 'readwrite');
-    const req = tx.objectStore(STORE).put({ id: map.id, name: map.name, svgText: map.svgText, regions: map.regions });
-    req.onsuccess = () => resolve();
-    req.onerror   = e => reject(e.target.error);
-  });
-}
-
-function dbDeleteMap(id) {
-  return new Promise((resolve, reject) => {
-    const tx  = db.transaction(STORE, 'readwrite');
-    const req = tx.objectStore(STORE).delete(id);
-    req.onsuccess = () => resolve();
-    req.onerror   = e => reject(e.target.error);
-  });
-}
-
-function dbLoadAllMaps() {
-  return new Promise((resolve, reject) => {
-    const tx  = db.transaction(STORE, 'readonly');
-    const req = tx.objectStore(STORE).getAll();
-    req.onsuccess = e => resolve(e.target.result);
-    req.onerror   = e => reject(e.target.error);
-  });
-}
+function dbSave(m){return new Promise((res,rej)=>{const tx=db.transaction(STORE,'readwrite');const r=tx.objectStore(STORE).put({id:m.id,name:m.name,svgText:m.svgText,regions:m.regions});r.onsuccess=res;r.onerror=e=>rej(e.target.error);});}
+function dbDel(id){return new Promise((res,rej)=>{const tx=db.transaction(STORE,'readwrite');const r=tx.objectStore(STORE).delete(id);r.onsuccess=res;r.onerror=e=>rej(e.target.error);});}
+function dbAll(){return new Promise((res,rej)=>{const tx=db.transaction(STORE,'readonly');const r=tx.objectStore(STORE).getAll();r.onsuccess=e=>res(e.target.result);r.onerror=e=>rej(e.target.error);});}
 
 // ════════════════════════════════════════════
 //  STATE
 // ════════════════════════════════════════════
-let maps         = [];   // all maps (built-in + saved)
-let savedMapIds  = new Set();   // IDs that came from IndexedDB (can be deleted)
-let pendingImport = { svg: null, json: null };
-let activeMap   = null;
-let quizMode    = 'click';
-
-// Click mode
-let quizQueue      = [];
-let quizIndex      = 0;
-let mistakeCount   = 0;
-let waitingForNext = false;
-let feedbackTimeout = null;
-let flashInterval   = null;
-let scoreMap  = {};
-let wrongIds  = [];
-
-// Fill mode
-let fillRemaining = [];
-let fillScores    = {};
+let maps=[], savedIds=new Set(), pendingImport={svg:null,json:null};
+let activeMap=null, quizMode='click';
+// click mode
+let quizQueue=[], quizIndex=0, mistakeCount=0, waitingForNext=false;
+let feedbackTimeout=null, scoreMap={}, wrongIds=[];
+// fill mode
+let fillRemaining=[], fillScores={}, guessedNames=[];
 
 // ════════════════════════════════════════════
-//  SCREEN ROUTER
+//  SCREEN
 // ════════════════════════════════════════════
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('screen-' + id).classList.add('active');
-}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');}
 
 // ════════════════════════════════════════════
-//  LOAD BUILT-IN MAPS
+//  LOAD BUILT-IN
 // ════════════════════════════════════════════
-async function loadBuiltIn() {
-  for (const m of BUILT_IN_MAPS) {
-    try {
-      const [svgR, jsonR] = await Promise.all([fetch(m.svgFile), fetch(m.jsonFile)]);
-      if (!svgR.ok || !jsonR.ok) continue;
-      const svgText  = await svgR.text();
-      const jsonData = await jsonR.json();
-      maps.push({ id: m.id, name: jsonData.name || m.name, svgText, regions: jsonData.regions });
-    } catch(e) {}
+async function loadBuiltIn(){
+  for(const m of BUILT_IN_MAPS){
+    try{
+      const [sr,jr]=await Promise.all([fetch(m.svgFile),fetch(m.jsonFile)]);
+      if(!sr.ok||!jr.ok)continue;
+      const svgText=await sr.text(), jd=await jr.json();
+      maps.push({id:m.id,name:jd.name||m.name,svgText,regions:jd.regions,builtin:true});
+    }catch(e){}
   }
   renderMapList();
 }
 
-function renderMapList() {
-  const list = document.getElementById('map-list');
-  list.innerHTML = '';
-  if (!maps.length) {
-    list.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;text-align:center;padding:1rem 0">No maps loaded.<br>Import an SVG + JSON below.</p>';
+// ════════════════════════════════════════════
+//  MAP LIST
+// ════════════════════════════════════════════
+function renderMapList(){
+  const list=document.getElementById('map-list');
+  list.innerHTML='';
+  const myMaps=maps.filter(m=>!m.community);
+  if(!myMaps.length){list.innerHTML='<p style="color:var(--muted);font-size:.85rem;text-align:center;padding:.75rem 0">No maps yet. Import below.</p>';return;}
+  myMaps.forEach(m=>list.appendChild(makeMapItem(m)));
+}
+
+function makeMapItem(m){
+  const count=Object.keys(m.regions).length;
+  const isSaved=savedIds.has(m.id);
+  const div=document.createElement('div');
+  div.className='map-item';
+  div.innerHTML=`
+    <div class="map-item-inner">
+      <div class="map-item-title">${m.name}</div>
+      <div class="map-item-meta">
+        <span>${count} regions</span>
+        ${isSaved?'<span class="badge badge-saved">saved</span>':''}
+        ${m.community?'<span class="badge badge-community">community</span>':''}
+        ${m.author?`<span style="color:var(--muted);font-size:.7rem;">by ${m.author}</span>`:''}
+      </div>
+    </div>
+    <div class="map-item-actions">
+      ${isSaved?`<button class="icon-btn del" title="Delete">🗑</button>`:''}
+      <div class="map-item-arrow">›</div>
+    </div>`;
+  div.querySelector('.map-item-inner').addEventListener('click',()=>openMapSelect(m.id));
+  div.querySelector('.map-item-arrow').addEventListener('click',()=>openMapSelect(m.id));
+  const del=div.querySelector('.icon-btn.del');
+  if(del)del.addEventListener('click',async e=>{
+    e.stopPropagation();
+    if(!confirm(`Delete "${m.name}"?`))return;
+    await dbDel(m.id);savedIds.delete(m.id);
+    maps=maps.filter(x=>x.id!==m.id);renderMapList();
+  });
+  return div;
+}
+
+// ════════════════════════════════════════════
+//  COMMUNITY MAPS
+// ════════════════════════════════════════════
+async function loadCommunityMaps(){
+  const list=document.getElementById('community-list');
+  if(!JSONBIN_URL){
+    list.innerHTML=`<div class="community-empty" style="text-align:left;line-height:1.8;">
+      To enable community sharing:<br>
+      1. Sign up free at <strong>jsonbin.io</strong><br>
+      2. Create a bin with content <code>[]</code><br>
+      3. Paste your <strong>Bin ID</strong> and <strong>API key</strong> into the two constants at the top of this file's &lt;script&gt; tag.
+    </div>`;
     return;
   }
-  maps.forEach(m => {
-    const count   = Object.keys(m.regions).length;
-    const isSaved = savedMapIds.has(m.id);
-    const div = document.createElement('div');
-    div.className = 'map-item';
-    div.innerHTML = `
-      <div style="flex:1;min-width:0;cursor:pointer" class="map-item-inner">
-        <div class="map-item-title">${m.name}${isSaved ? ' <span style="font-size:0.7rem;color:var(--muted);font-weight:400">(saved)</span>' : ''}</div>
-        <div class="map-item-count">${count} regions</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:0.4rem;flex-shrink:0">
-        ${isSaved ? `<button class="map-item-delete" data-id="${m.id}" title="Delete saved map">🗑</button>` : ''}
-        <div class="map-item-arrow">›</div>
-      </div>`;
-
-    div.querySelector('.map-item-inner').addEventListener('click', () => openMapSelect(m.id));
-    div.querySelector('.map-item-arrow').addEventListener('click', () => openMapSelect(m.id));
-
-    const delBtn = div.querySelector('.map-item-delete');
-    if (delBtn) {
-      delBtn.addEventListener('click', async e => {
-        e.stopPropagation();
-        if (!confirm(`Delete "${m.name}"?`)) return;
-        await dbDeleteMap(m.id);
-        savedMapIds.delete(m.id);
-        maps = maps.filter(x => x.id !== m.id);
-        renderMapList();
-      });
-    }
-
-    list.appendChild(div);
-  });
+  list.innerHTML='<div class="community-empty">Loading…</div>';
+  try{
+    const r=await fetch(JSONBIN_URL+'/latest',{headers:{'X-Master-Key':JSONBIN_API_KEY}});
+    const data=await r.json();
+    const entries=data.record||[];
+    if(!entries.length){list.innerHTML='<div class="community-empty">No community maps yet. Be the first to share!</div>';return;}
+    list.innerHTML='';
+    entries.slice().reverse().forEach(e=>{
+      const m={id:'comm-'+e.id,name:e.name,svgText:e.svgText,regions:e.regions,community:true,author:e.author||''};
+      const existing=maps.find(x=>x.id===m.id);
+      if(!existing)maps.push(m);
+      list.appendChild(makeMapItem(m));
+    });
+  }catch(err){
+    list.innerHTML='<div class="community-empty">Could not load community maps.</div>';
+  }
 }
+
+document.getElementById('btn-refresh-community').addEventListener('click',loadCommunityMaps);
+
+// ════════════════════════════════════════════
+//  SHARE MODAL
+// ════════════════════════════════════════════
+document.getElementById('btn-share-map').addEventListener('click',()=>{
+  if(!JSONBIN_URL){
+    alert('Community sharing is not configured yet.\nSee the instructions in the Community Maps section on the home screen.');
+    return;
+  }
+  document.getElementById('share-name').value=activeMap?.name||'';
+  document.getElementById('share-author').value='';
+  document.getElementById('share-status').textContent='';
+  document.getElementById('share-modal').classList.add('open');
+});
+document.getElementById('share-cancel').addEventListener('click',()=>document.getElementById('share-modal').classList.remove('open'));
+document.getElementById('share-confirm').addEventListener('click',async()=>{
+  const name=document.getElementById('share-name').value.trim()||activeMap.name;
+  const author=document.getElementById('share-author').value.trim();
+  const status=document.getElementById('share-status');
+  const btn=document.getElementById('share-confirm');
+  status.textContent='Uploading…';btn.disabled=true;
+  try{
+    // 1. fetch current list
+    const r=await fetch(JSONBIN_URL+'/latest',{headers:{'X-Master-Key':JSONBIN_API_KEY}});
+    const data=await r.json();
+    const list=data.record||[];
+    const entry={id:Date.now(),name,author,regions:activeMap.regions,svgText:activeMap.svgText};
+    list.push(entry);
+    // 2. write updated list
+    const w=await fetch(JSONBIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_API_KEY},body:JSON.stringify(list)});
+    if(!w.ok)throw new Error('Write failed');
+    status.textContent='✓ Uploaded! It will appear in Community Maps.';
+    setTimeout(()=>{document.getElementById('share-modal').classList.remove('open');loadCommunityMaps();},1500);
+  }catch(e){
+    status.textContent='Upload failed. Check your API key / bin ID.';
+  }
+  btn.disabled=false;
+});
 
 // ════════════════════════════════════════════
 //  MAP SELECT
 // ════════════════════════════════════════════
-function openMapSelect(mapId) {
-  activeMap = maps.find(m => m.id === mapId);
-  document.getElementById('mapselect-title').textContent = activeMap.name;
-  document.getElementById('mapselect-sub').textContent = Object.keys(activeMap.regions).length + ' regions';
+function openMapSelect(mapId){
+  activeMap=maps.find(m=>m.id===mapId);
+  document.getElementById('mapselect-title').textContent=activeMap.name;
+  document.getElementById('mapselect-sub').textContent=Object.keys(activeMap.regions).length+' regions';
+  // show share button only for local/saved maps (not community, not built-in)
+  document.getElementById('btn-share-map').style.display=(savedIds.has(activeMap.id)||(!activeMap.builtin&&!activeMap.community))?'':'none';
   showScreen('mapselect');
 }
-
-document.getElementById('back-to-home').addEventListener('click', () => showScreen('home'));
-document.getElementById('mode-click').addEventListener('click', () => { quizMode = 'click'; startClickQuiz(Object.keys(activeMap.regions)); });
-document.getElementById('mode-type').addEventListener('click',  () => { quizMode = 'type';  startFillQuiz(Object.keys(activeMap.regions)); });
+document.getElementById('back-to-home').addEventListener('click',()=>showScreen('home'));
+document.getElementById('mode-click').addEventListener('click',()=>{quizMode='click';startClickQuiz(Object.keys(activeMap.regions));});
+document.getElementById('mode-type').addEventListener('click', ()=>{quizMode='type'; startFillQuiz(Object.keys(activeMap.regions));});
 
 // ════════════════════════════════════════════
 //  HELPERS
 // ════════════════════════════════════════════
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
+function normalize(s){return s.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ');}
+function getSvg(){return document.querySelector('#quiz-map-wrap svg');}
+function getEl(id){return getSvg()?.getElementById(id);}
+
+// Strip ALL inline fill/stroke/style from every SVG element so CSS wins
+function sanitizeSvg(){
+  const svg=getSvg();if(!svg)return;
+  const STRIP=['fill','fill-opacity','stroke','stroke-width','stroke-opacity','stroke-linecap','stroke-linejoin','style'];
+  svg.querySelectorAll('*').forEach(el=>STRIP.forEach(a=>el.removeAttribute(a)));
 }
 
-function normalize(s) {
-  return s.toLowerCase().trim()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ');
+function applyScore(id,score){
+  const el=getEl(id);if(!el)return;
+  el.classList.remove('region-wrong-flash','region-flashing');
+  el.setAttribute('data-score',score);
 }
 
-function getSvg()  { return document.querySelector('#quiz-map-wrap svg'); }
-function getEl(id) { return getSvg()?.getElementById(id); }
-
-// ── THE CORE FIX ──
-// Strip every inline fill/stroke/style attribute from every element in the SVG
-// so CSS rules (especially the !important ones above) can take control.
-// Without this, inline attrs on <path> and <g> silently override CSS.
-function sanitizeSvg() {
-  const svg = getSvg();
-  if (!svg) return;
-  const STRIP = ['fill','fill-opacity','stroke','stroke-width','stroke-opacity',
-                 'stroke-linecap','stroke-linejoin','style'];
-  svg.querySelectorAll('*').forEach(el => {
-    STRIP.forEach(a => el.removeAttribute(a));
-  });
+function stopFlash(){
+  const el=getSvg()?.querySelector('.region-flashing');
+  if(el)el.classList.remove('region-flashing');
 }
 
-function applyScore(id, score) {
-  const el = getEl(id);
-  if (!el) return;
-  el.classList.remove('region-wrong-flash', 'region-flashing');
-  el.removeAttribute('data-score');
-  el.setAttribute('data-score', score);
-}
+function startFlash(id){stopFlash();getEl(id)?.classList.add('region-flashing');}
 
-function stopFlash() { clearInterval(flashInterval); flashInterval = null; }
-
-function startFlash(id) {
-  stopFlash();
-  const el = getEl(id);
-  if (el) el.classList.add('region-flashing');
-}
-
-function loadMapIntoQuiz() {
-  const wrap   = document.getElementById('quiz-map-wrap');
-  const giveup = document.getElementById('btn-giveup');
-  wrap.innerHTML = activeMap.svgText;
+function loadMapIntoQuiz(){
+  const wrap=document.getElementById('quiz-map-wrap');
+  const giveup=document.getElementById('btn-giveup');
+  wrap.innerHTML=activeMap.svgText;
   wrap.appendChild(giveup);
-  sanitizeSvg();   // ← strips all inline fills so CSS wins
+  sanitizeSvg();
 }
 
 // ════════════════════════════════════════════
 //  CLICK MODE
 // ════════════════════════════════════════════
-function startClickQuiz(regionIds) {
-  quizQueue      = shuffle(regionIds);   // ← shuffled every time
-  quizIndex      = 0;
-  wrongIds       = [];
-  scoreMap       = {};
-  mistakeCount   = 0;
-  waitingForNext = false;
-  stopFlash();
-  clearTimeout(feedbackTimeout);
-
+function startClickQuiz(regionIds){
+  quizQueue=shuffle(regionIds);quizIndex=0;wrongIds=[];scoreMap={};mistakeCount=0;waitingForNext=false;
+  stopFlash();clearTimeout(feedbackTimeout);
   loadMapIntoQuiz();
-
-  getSvg()?.querySelectorAll('path, polygon, circle, ellipse').forEach(el => {
-    if (!el.id) return;
-    el.addEventListener('click',    () => handleClick(el.id));
-    el.addEventListener('touchend', e  => { e.preventDefault(); handleClick(el.id); });
+  getSvg()?.querySelectorAll('path,polygon,circle,ellipse').forEach(el=>{
+    if(!el.id)return;
+    el.addEventListener('click',()=>handleClick(el.id));
+    el.addEventListener('touchend',e=>{e.preventDefault();handleClick(el.id);});
   });
-
-  document.getElementById('click-prompt').style.display = '';
-  document.getElementById('type-bar').style.display     = 'none';
-  document.getElementById('btn-giveup').style.display   = 'none';
+  document.getElementById('click-prompt').style.display='';
+  document.getElementById('type-bar').style.display='none';
+  document.getElementById('guessed-panel').style.display='none';
+  document.getElementById('btn-giveup').style.display='none';
   showScreen('quiz');
   renderClickQuestion();
 }
 
-function renderClickQuestion() {
-  stopFlash();
-  clearTimeout(feedbackTimeout);
-  waitingForNext = false;
-  mistakeCount   = 0;
-
-  if (quizIndex >= quizQueue.length) { showClickResults(); return; }
-
-  const regionId = quizQueue[quizIndex];
-  const name     = activeMap.regions[regionId] || regionId;
-  const total    = quizQueue.length;
-
-  document.getElementById('quiz-prompt-name').textContent   = name;
-  document.getElementById('quiz-counter').textContent       = (quizIndex + 1) + '/' + total;
-  document.getElementById('quiz-progress-fill').style.width = (quizIndex / total * 100) + '%';
-  document.getElementById('quiz-feedback').textContent      = '';
-  document.getElementById('quiz-feedback').className        = 'quiz-feedback';
-  document.getElementById('btn-giveup').style.display       = 'none';
+function renderClickQuestion(){
+  stopFlash();clearTimeout(feedbackTimeout);waitingForNext=false;mistakeCount=0;
+  if(quizIndex>=quizQueue.length){showClickResults();return;}
+  const id=quizQueue[quizIndex],name=activeMap.regions[id]||id,total=quizQueue.length;
+  document.getElementById('quiz-prompt-name').textContent=name;
+  document.getElementById('quiz-counter').textContent=(quizIndex+1)+'/'+total;
+  document.getElementById('quiz-progress-fill').style.width=(quizIndex/total*100)+'%';
+  document.getElementById('quiz-feedback').textContent='';
+  document.getElementById('quiz-feedback').className='quiz-feedback';
+  document.getElementById('btn-giveup').style.display='none';
   updateClickPills();
-
-  // Restore scored regions; clear everything else
-  const svg = getSvg();
-  if (svg) {
-    svg.querySelectorAll('path, polygon, circle, ellipse').forEach(el => {
-      el.classList.remove('region-wrong-flash', 'region-flashing');
-      el.removeAttribute('data-score');
-      if (scoreMap[el.id]) el.setAttribute('data-score', scoreMap[el.id]);
-    });
-  }
+  // restore scored, clear rest
+  getSvg()?.querySelectorAll('path,polygon,circle,ellipse').forEach(el=>{
+    el.classList.remove('region-wrong-flash','region-flashing');
+    el.removeAttribute('data-score');
+    if(scoreMap[el.id])el.setAttribute('data-score',scoreMap[el.id]);
+  });
 }
 
-function handleClick(clickedId) {
-  if (waitingForNext) { advanceClick(); return; }
-
-  const correctId = quizQueue[quizIndex];
-  const fb        = document.getElementById('quiz-feedback');
-
-  if (clickedId === correctId) {
-    const score = mistakeCount === 0 ? '0' : mistakeCount === 1 ? '1' : mistakeCount === 2 ? '2' : 'giveup';
-    scoreMap[correctId] = score;
-    stopFlash();
-    applyScore(correctId, score);
-    if (score !== 'giveup') wrongIds = wrongIds.filter(i => i !== correctId);
-
-    const msgs = { '0': ['✓ Perfect!', 'feedback-gold'], '1': ['✓ Got it (1 wrong)', 'feedback-warn'],
-                   '2': ['✓ Got it (2 wrong)', 'feedback-warn'], 'giveup': ['✓ Got it', 'feedback-warn'] };
-    [fb.textContent, fb.className] = ['quiz-feedback ' + msgs[score][1], msgs[score][0]];
-    fb.textContent = msgs[score][0];
-    fb.className   = 'quiz-feedback ' + msgs[score][1];
-
-    waitingForNext = true;
-    clearTimeout(feedbackTimeout);
-    feedbackTimeout = setTimeout(() => advanceClick(), 900);
-  } else {
-    mistakeCount++;
-    if (!wrongIds.includes(correctId)) wrongIds.push(correctId);
-    document.getElementById('btn-giveup').style.display = '';
-
-    const wrongEl = getEl(clickedId);
-    if (wrongEl && !wrongEl.getAttribute('data-score')) {
+function handleClick(cid){
+  if(waitingForNext){advanceClick();return;}
+  const correctId=quizQueue[quizIndex];
+  const fb=document.getElementById('quiz-feedback');
+  if(cid===correctId){
+    const score=mistakeCount===0?'0':mistakeCount===1?'1':mistakeCount===2?'2':'giveup';
+    scoreMap[correctId]=score;stopFlash();applyScore(correctId,score);
+    if(score!=='giveup')wrongIds=wrongIds.filter(i=>i!==correctId);
+    const msgs={'0':['✓ Perfect!','feedback-gold'],'1':['✓ Got it (1 wrong)','feedback-warn'],'2':['✓ Got it (2 wrong)','feedback-warn'],'giveup':['✓ Got it','feedback-warn']};
+    fb.textContent=msgs[score][0];fb.className='quiz-feedback '+msgs[score][1];
+    waitingForNext=true;clearTimeout(feedbackTimeout);
+    feedbackTimeout=setTimeout(()=>advanceClick(),900);
+  }else{
+    mistakeCount++;if(!wrongIds.includes(correctId))wrongIds.push(correctId);
+    document.getElementById('btn-giveup').style.display='';
+    const wrongEl=getEl(cid);
+    if(wrongEl&&!wrongEl.getAttribute('data-score')){
       wrongEl.classList.add('region-wrong-flash');
-      setTimeout(() => wrongEl.classList.remove('region-wrong-flash'), 350);
+      setTimeout(()=>wrongEl.classList.remove('region-wrong-flash'),350);
     }
-
-    const clickedName = activeMap.regions[clickedId] || '?';
-    if (mistakeCount >= 3) {
-      startFlash(correctId);
-      fb.textContent = `✗ ${clickedName} — it's flashing!`;
-    } else {
-      fb.textContent = `✗ That was ${clickedName}`;
-    }
-    fb.className = 'quiz-feedback feedback-wrong';
+    const clickedName=activeMap.regions[cid]||'?';
+    fb.className='quiz-feedback feedback-wrong';
+    fb.textContent=mistakeCount>=3?`✗ ${clickedName} — it's flashing!`:`✗ That was ${clickedName}`;
+    if(mistakeCount>=3)startFlash(correctId);
   }
 }
-
-function advanceClick() { quizIndex++; renderClickQuestion(); }
-
-function updateClickPills() {
-  const scores = Object.values(scoreMap);
-  document.getElementById('score-correct').textContent = scores.filter(s => s !== 'giveup').length;
-  document.getElementById('score-wrong').textContent   = scores.filter(s => s === 'giveup').length;
+function advanceClick(){quizIndex++;renderClickQuestion();}
+function updateClickPills(){
+  const sc=Object.values(scoreMap);
+  document.getElementById('score-correct').textContent=sc.filter(s=>s!=='giveup').length;
+  document.getElementById('score-wrong').textContent=sc.filter(s=>s==='giveup').length;
 }
-
-document.getElementById('btn-giveup').addEventListener('click', () => {
-  if (waitingForNext) return;
-  const correctId   = quizQueue[quizIndex];
-  const correctName = activeMap.regions[correctId] || correctId;
-  stopFlash();
-  scoreMap[correctId] = 'giveup';
-  if (!wrongIds.includes(correctId)) wrongIds.push(correctId);
-  applyScore(correctId, 'giveup');
-
-  const fb = document.getElementById('quiz-feedback');
-  fb.textContent = `→ It was: ${correctName}`;
-  fb.className   = 'quiz-feedback feedback-wrong';
-  document.getElementById('btn-giveup').style.display = 'none';
-
-  waitingForNext = true;
-  clearTimeout(feedbackTimeout);
-  feedbackTimeout = setTimeout(() => advanceClick(), 1600);
+document.getElementById('btn-giveup').addEventListener('click',()=>{
+  if(waitingForNext)return;
+  const id=quizQueue[quizIndex],name=activeMap.regions[id]||id;
+  stopFlash();scoreMap[id]='giveup';if(!wrongIds.includes(id))wrongIds.push(id);
+  applyScore(id,'giveup');
+  const fb=document.getElementById('quiz-feedback');
+  fb.textContent=`→ It was: ${name}`;fb.className='quiz-feedback feedback-wrong';
+  document.getElementById('btn-giveup').style.display='none';
+  waitingForNext=true;clearTimeout(feedbackTimeout);
+  feedbackTimeout=setTimeout(()=>advanceClick(),1600);
 });
-
-document.getElementById('back-to-select').addEventListener('click', () => {
-  stopFlash(); clearTimeout(feedbackTimeout);
-  showScreen('mapselect');
-});
+document.getElementById('back-to-select').addEventListener('click',()=>{stopFlash();clearTimeout(feedbackTimeout);showScreen('mapselect');});
 
 // ════════════════════════════════════════════
 //  FILL / TYPE MODE
-//  Free-type: blank map, type any name, it fills gold
 // ════════════════════════════════════════════
-function startFillQuiz(regionIds) {
-  fillRemaining = [...regionIds];
-  fillScores    = {};
-  wrongIds      = [];
-
+function startFillQuiz(regionIds){
+  fillRemaining=[...regionIds];fillScores={};wrongIds=[];guessedNames=[];
   loadMapIntoQuiz();
-
-  const total = regionIds.length;
-  document.getElementById('click-prompt').style.display = 'none';
-  document.getElementById('type-bar').style.display     = '';
-  document.getElementById('btn-giveup').style.display   = 'none';
-  document.getElementById('quiz-progress-fill').style.width = '0%';
-  document.getElementById('quiz-counter').textContent   = '0/' + total;
-  document.getElementById('score-correct').textContent  = '0';
-  document.getElementById('score-wrong').textContent    = '0';
-  document.getElementById('type-count').textContent     = '0/' + total;
-  document.getElementById('quiz-feedback').textContent  = '';
-  document.getElementById('quiz-feedback').className    = 'quiz-feedback';
-
-  const inp = document.getElementById('type-input');
-  inp.value     = '';
-  inp.className = 'type-input';
-  inp.disabled  = false;
-
+  const total=regionIds.length;
+  document.getElementById('click-prompt').style.display='none';
+  document.getElementById('type-bar').style.display='';
+  document.getElementById('guessed-panel').style.display='';
+  document.getElementById('guessed-list').innerHTML='';
+  document.getElementById('btn-giveup').style.display='none';
+  document.getElementById('quiz-progress-fill').style.width='0%';
+  document.getElementById('quiz-counter').textContent='0/'+total;
+  document.getElementById('score-correct').textContent='0';
+  document.getElementById('score-wrong').textContent='0';
+  document.getElementById('type-count').textContent='0/'+total;
+  document.getElementById('quiz-feedback').textContent='';
+  document.getElementById('quiz-feedback').className='quiz-feedback';
+  const inp=document.getElementById('type-input');
+  inp.value='';inp.disabled=false;
   showScreen('quiz');
-  setTimeout(() => inp.focus(), 100);
+  setTimeout(()=>inp.focus(),100);
 }
 
-document.getElementById('type-input').addEventListener('input', function() {
-  if (quizMode !== 'type') return;
+document.getElementById('type-input').addEventListener('input',function(){
+  if(quizMode!=='type')return;
+  const lookup={};
+  fillRemaining.forEach(id=>{lookup[normalize(activeMap.regions[id]||id)]=id;});
+  const matchId=lookup[normalize(this.value)];
+  if(!matchId)return;
+  fillScores[matchId]='0';applyScore(matchId,'0');
+  fillRemaining=fillRemaining.filter(id=>id!==matchId);
+  const name=activeMap.regions[matchId]||matchId;
+  guessedNames.unshift(name);  // prepend so newest is at top
 
-  const typed = this.value;
+  // update guessed panel
+  const gl=document.getElementById('guessed-list');
+  const item=document.createElement('div');
+  item.className='guessed-item';item.textContent=name;
+  gl.insertBefore(item,gl.firstChild);
 
-  // Build lookup from remaining regions only
-  const lookup = {};
-  fillRemaining.forEach(id => {
-    const name = activeMap.regions[id] || id;
-    lookup[normalize(name)] = id;
-  });
-
-  const matchId = lookup[normalize(typed)];
-  if (!matchId) return;
-
-  // Match found — fill it gold and clear input
-  fillScores[matchId] = '0';
-  applyScore(matchId, '0');
-  fillRemaining = fillRemaining.filter(id => id !== matchId);
-
-  const total = Object.keys(activeMap.regions).length;
-  const done  = total - fillRemaining.length;
-  const name  = activeMap.regions[matchId] || matchId;
-
-  document.getElementById('type-count').textContent             = done + '/' + total;
-  document.getElementById('quiz-counter').textContent           = done + '/' + total;
-  document.getElementById('quiz-progress-fill').style.width     = (done / total * 100) + '%';
-  document.getElementById('score-correct').textContent          = done;
-  document.getElementById('quiz-feedback').textContent          = '✓ ' + name;
-  document.getElementById('quiz-feedback').className            = 'quiz-feedback feedback-gold';
-
-  this.value = '';
-
-  if (fillRemaining.length === 0) {
-    setTimeout(() => showFillResults(), 800);
-  }
+  const total=Object.keys(activeMap.regions).length;
+  const done=total-fillRemaining.length;
+  document.getElementById('type-count').textContent=done+'/'+total;
+  document.getElementById('quiz-counter').textContent=done+'/'+total;
+  document.getElementById('quiz-progress-fill').style.width=(done/total*100)+'%';
+  document.getElementById('score-correct').textContent=done;
+  document.getElementById('quiz-feedback').textContent='✓ '+name;
+  document.getElementById('quiz-feedback').className='quiz-feedback feedback-gold';
+  this.value='';
+  if(fillRemaining.length===0)setTimeout(()=>showFillResults(),800);
 });
 
-function showFillResults() {
-  const total  = Object.keys(activeMap.regions).length;
-  const done   = Object.keys(fillScores).length;
-  const missed = total - done;
-  wrongIds = fillRemaining.slice();
-
-  document.getElementById('result-score').textContent   = Math.round(done / total * 100) + '%';
-  document.getElementById('result-label').textContent   = activeMap.name;
-  document.getElementById('res-gold').textContent       = done;
-  document.getElementById('res-orange').textContent     = 0;
-  document.getElementById('res-dark').textContent       = 0;
-  document.getElementById('res-red').textContent        = missed;
-
-  const wrongSection = document.getElementById('wrong-list');
-  if (wrongIds.length) {
-    wrongSection.innerHTML = '<h3>Not found</h3>';
-    wrongIds.forEach(id => {
-      const d = document.createElement('div');
-      d.className = 'wrong-item';
-      d.innerHTML = `<span>🔴</span>${activeMap.regions[id] || id}`;
-      wrongSection.appendChild(d);
-    });
-  } else {
-    wrongSection.innerHTML = '<p style="color:var(--gold);text-align:center;font-weight:600;font-size:1.1rem">🏆 Perfect score!</p>';
-  }
-
-  document.getElementById('btn-review').style.display = wrongIds.length ? '' : 'none';
+function showFillResults(){
+  const total=Object.keys(activeMap.regions).length;
+  const done=Object.keys(fillScores).length;
+  wrongIds=fillRemaining.slice();
+  document.getElementById('result-score').textContent=Math.round(done/total*100)+'%';
+  document.getElementById('result-label').textContent=activeMap.name;
+  document.getElementById('res-gold').textContent=done;
+  document.getElementById('res-orange').textContent=0;
+  document.getElementById('res-dark').textContent=0;
+  document.getElementById('res-red').textContent=total-done;
+  const ws=document.getElementById('wrong-list');
+  if(wrongIds.length){
+    ws.innerHTML='<h3>Not found</h3>';
+    wrongIds.forEach(id=>{const d=document.createElement('div');d.className='wrong-item';d.innerHTML=`<span>🔴</span>${activeMap.regions[id]||id}`;ws.appendChild(d);});
+  }else{ws.innerHTML='<p style="color:var(--gold);text-align:center;font-weight:600;font-size:1.1rem">🏆 Perfect score!</p>';}
+  document.getElementById('btn-review').style.display=wrongIds.length?'':'none';
   showScreen('results');
 }
 
 // ════════════════════════════════════════════
-//  RESULTS (click mode)
+//  RESULTS — click mode
 // ════════════════════════════════════════════
-function showClickResults() {
-  const total  = quizQueue.length;
-  const scores = Object.values(scoreMap);
-  const gold   = scores.filter(s => s === '0').length;
-  const orange = scores.filter(s => s === '1').length;
-  const dark   = scores.filter(s => s === '2').length;
-  const red    = scores.filter(s => s === 'giveup').length;
-
-  document.getElementById('result-score').textContent  = Math.round((total - red) / total * 100) + '%';
-  document.getElementById('result-label').textContent  = activeMap.name;
-  document.getElementById('res-gold').textContent      = gold;
-  document.getElementById('res-orange').textContent    = orange;
-  document.getElementById('res-dark').textContent      = dark;
-  document.getElementById('res-red').textContent       = red;
-
-  const wrongSection = document.getElementById('wrong-list');
-  if (wrongIds.length) {
-    wrongSection.innerHTML = '<h3>Missed regions</h3>';
-    wrongIds.forEach(id => {
-      const score = scoreMap[id] || 'giveup';
-      const dot   = score === 'giveup' ? '🔴' : score === '2' ? '🟠' : '🟡';
-      const d = document.createElement('div');
-      d.className = 'wrong-item';
-      d.innerHTML = `<span>${dot}</span>${activeMap.regions[id] || id}`;
-      wrongSection.appendChild(d);
+function showClickResults(){
+  const total=quizQueue.length,sc=Object.values(scoreMap);
+  const gold=sc.filter(s=>s==='0').length,orange=sc.filter(s=>s==='1').length;
+  const dark=sc.filter(s=>s==='2').length,red=sc.filter(s=>s==='giveup').length;
+  document.getElementById('result-score').textContent=Math.round((total-red)/total*100)+'%';
+  document.getElementById('result-label').textContent=activeMap.name;
+  document.getElementById('res-gold').textContent=gold;
+  document.getElementById('res-orange').textContent=orange;
+  document.getElementById('res-dark').textContent=dark;
+  document.getElementById('res-red').textContent=red;
+  const ws=document.getElementById('wrong-list');
+  if(wrongIds.length){
+    ws.innerHTML='<h3>Missed regions</h3>';
+    wrongIds.forEach(id=>{
+      const s=scoreMap[id]||'giveup';
+      const dot=s==='giveup'?'🔴':s==='2'?'🟠':'🟡';
+      const d=document.createElement('div');d.className='wrong-item';
+      d.innerHTML=`<span>${dot}</span>${activeMap.regions[id]||id}`;ws.appendChild(d);
     });
-  } else {
-    wrongSection.innerHTML = '<p style="color:var(--gold);text-align:center;font-weight:600;font-size:1.1rem">🏆 Perfect score!</p>';
-  }
-
-  document.getElementById('btn-review').style.display = wrongIds.length ? '' : 'none';
+  }else{ws.innerHTML='<p style="color:var(--gold);text-align:center;font-weight:600;font-size:1.1rem">🏆 Perfect score!</p>';}
+  document.getElementById('btn-review').style.display=wrongIds.length?'':'none';
   showScreen('results');
 }
-
-document.getElementById('btn-review').addEventListener('click', () => {
-  if (quizMode === 'click') startClickQuiz(wrongIds);
-  else startFillQuiz(wrongIds);
-});
-document.getElementById('btn-restart').addEventListener('click', () => {
-  if (quizMode === 'click') startClickQuiz(Object.keys(activeMap.regions));
-  else startFillQuiz(Object.keys(activeMap.regions));
-});
-document.getElementById('btn-home').addEventListener('click', () => showScreen('home'));
+document.getElementById('btn-review').addEventListener('click',()=>{if(quizMode==='click')startClickQuiz(wrongIds);else startFillQuiz(wrongIds);});
+document.getElementById('btn-restart').addEventListener('click',()=>{if(quizMode==='click')startClickQuiz(Object.keys(activeMap.regions));else startFillQuiz(Object.keys(activeMap.regions));});
+document.getElementById('btn-home').addEventListener('click',()=>showScreen('home'));
 
 // ════════════════════════════════════════════
 //  IMPORT
 // ════════════════════════════════════════════
-function readFile(file) {
-  return new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload = () => res(r.result);
-    r.onerror = rej;
-    r.readAsText(file);
-  });
-}
+function readFile(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsText(f);});}
+function checkImportReady(){document.getElementById('btn-add-import').disabled=!(pendingImport.svg&&pendingImport.json);}
 
-function checkImportReady() {
-  document.getElementById('btn-add-import').disabled = !(pendingImport.svg && pendingImport.json);
-}
-
-document.getElementById('import-svg').addEventListener('change', async function() {
-  if (!this.files[0]) return;
-  pendingImport.svg     = await readFile(this.files[0]);
-  pendingImport.svgName = this.files[0].name.replace('.svg', '');
+document.getElementById('import-svg').addEventListener('change',async function(){
+  if(!this.files[0])return;
+  pendingImport.svg=await readFile(this.files[0]);
+  pendingImport.svgName=this.files[0].name.replace('.svg','');
+  document.getElementById('lbl-svg').textContent='✓ '+this.files[0].name;
   checkImportReady();
 });
-
-document.getElementById('import-json').addEventListener('change', async function() {
-  if (!this.files[0]) return;
-  try { pendingImport.json = JSON.parse(await readFile(this.files[0])); checkImportReady(); }
-  catch(e) { alert('Invalid JSON file.'); }
+document.getElementById('import-json').addEventListener('change',async function(){
+  if(!this.files[0])return;
+  try{pendingImport.json=JSON.parse(await readFile(this.files[0]));document.getElementById('lbl-json').textContent='✓ '+this.files[0].name;checkImportReady();}
+  catch(e){alert('Invalid JSON file.');}
 });
 
-document.getElementById('btn-add-import').addEventListener('click', async () => {
-  const id     = 'custom-' + Date.now();
-  const newMap = {
-    id,
-    name:    pendingImport.json.name    || pendingImport.svgName || 'Custom Map',
-    svgText: pendingImport.svg,
-    regions: pendingImport.json.regions || {}
-  };
-
-  const parser    = new DOMParser();
-  const doc       = parser.parseFromString(pendingImport.svg, 'image/svg+xml');
-  const svgIds    = [...doc.querySelectorAll('[id]')].map(e => e.id);
-  const regionIds = Object.keys(newMap.regions);
-  const matched   = regionIds.filter(id => svgIds.includes(id));
-
-  if (!matched.length) {
-    alert(`No JSON IDs match SVG IDs.\nSVG: ${svgIds.slice(0,5).join(', ')}\nJSON: ${regionIds.slice(0,5).join(', ')}\n\nFix in Inkscape: Object → Object Properties → ID`);
-    return;
+document.getElementById('btn-add-import').addEventListener('click',async()=>{
+  const id='custom-'+Date.now();
+  const newMap={id,name:pendingImport.json.name||pendingImport.svgName||'Custom Map',svgText:pendingImport.svg,regions:pendingImport.json.regions||{}};
+  const parser=new DOMParser();
+  const doc=parser.parseFromString(pendingImport.svg,'image/svg+xml');
+  const svgIds=[...doc.querySelectorAll('[id]')].map(e=>e.id);
+  const regionIds=Object.keys(newMap.regions);
+  const matched=regionIds.filter(id=>svgIds.includes(id));
+  if(!matched.length){alert(`No JSON IDs match SVG IDs.\nSVG: ${svgIds.slice(0,5).join(', ')}\nJSON: ${regionIds.slice(0,5).join(', ')}\n\nFix: Inkscape → Object Properties → ID`);return;}
+  if(matched.length<regionIds.length){
+    const unmatched=regionIds.filter(id=>!svgIds.includes(id));
+    if(!confirm(`${matched.length}/${regionIds.length} matched. Unmatched: ${unmatched.slice(0,5).join(', ')}. Continue?`))return;
   }
-  if (matched.length < regionIds.length) {
-    const unmatched = regionIds.filter(id => !svgIds.includes(id));
-    if (!confirm(`${matched.length}/${regionIds.length} matched. Unmatched: ${unmatched.slice(0,5).join(', ')}. Continue?`)) return;
-  }
-
-  // Save to IndexedDB so it persists across page reloads
-  try {
-    await dbSaveMap(newMap);
-    savedMapIds.add(newMap.id);
-  } catch(e) {
-    console.warn('Could not save to IndexedDB:', e);
-  }
-
-  maps.push(newMap);
-  renderMapList();
-  pendingImport = { svg: null, json: null };
-  document.getElementById('import-svg').value  = '';
-  document.getElementById('import-json').value = '';
-  document.getElementById('btn-add-import').disabled = true;
-  alert(`"${newMap.name}" added and saved! It will still be here next time you open the app.`);
+  try{await dbSave(newMap);savedIds.add(newMap.id);}catch(e){console.warn('IndexedDB save failed:',e);}
+  maps.push(newMap);renderMapList();
+  pendingImport={svg:null,json:null};
+  document.getElementById('import-svg').value='';
+  document.getElementById('import-json').value='';
+  document.getElementById('lbl-svg').textContent='📂 SVG file';
+  document.getElementById('lbl-json').textContent='📋 JSON data';
+  document.getElementById('btn-add-import').disabled=true;
+  alert(`"${newMap.name}" saved! It will still be here next time you open the app.`);
 });
 
 // ════════════════════════════════════════════
-//  INIT — open DB, restore saved maps, then load built-ins
+//  INIT
 // ════════════════════════════════════════════
-async function init() {
-  try {
+async function init(){
+  try{
     await openDB();
-    const saved = await dbLoadAllMaps();
-    saved.forEach(m => {
-      savedMapIds.add(m.id);
-      maps.push(m);
-    });
-  } catch(e) {
-    console.warn('IndexedDB unavailable — saved maps will not persist:', e);
-  }
+    const saved=await dbAll();
+    saved.forEach(m=>{savedIds.add(m.id);maps.push(m);});
+  }catch(e){console.warn('IndexedDB unavailable:',e);}
   await loadBuiltIn();
+  loadCommunityMaps();
 }
-
 init();
 </script>
 </body>
