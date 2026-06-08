@@ -515,31 +515,53 @@ document.getElementById('btn-share-map').addEventListener('click',()=>{
   document.getElementById('share-modal').classList.add('open');
 });
 document.getElementById('share-cancel').addEventListener('click',()=>document.getElementById('share-modal').classList.remove('open'));
-document.getElementById('share-confirm').addEventListener('click',async()=>{
-  const name=document.getElementById('share-name').value.trim()||activeMap.name;
-  const author=document.getElementById('share-author').value.trim();
-  const status=document.getElementById('share-status');
-  const btn=document.getElementById('share-confirm');
-  status.textContent='Uploading…';btn.disabled=true;
-  try{
-    // 1. fetch current list
-    const r=await fetch(JSONBIN_URL+'/latest',{headers:{'X-Master-Key':JSONBIN_API_KEY}});
+document.getElementById('share-confirm').addEventListener('click', async () => {
+  const name = document.getElementById('share-name').value.trim() || activeMap.name;
+  const author = document.getElementById('share-author').value.trim();
+  const status = document.getElementById('share-status');
+  const btn = document.getElementById('share-confirm');
+
+  status.textContent = 'Uploading…';
+  btn.disabled = true;
+
+  try {
+    const r = await fetch(JSONBIN_URL + '/latest', {
+      headers: {
+        'X-Master-Key': JSONBIN_API_KEY
+      }
+    });
+
     const data = await r.json();
     const list = data.record.data || [];
-    const entry={id:Date.now(),name,author,regions:activeMap.regions,svgText:activeMap.svgText};
-    list.push(entry);
-    // 2. write updated list
-    const w=await fetch(JSONBIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_API_KEY},body: JSON.stringify({
-  data: list
-})
-});
-    if(!w.ok)throw new Error('Write failed');
-    status.textContent='✓ Uploaded! It will appear in Community Maps.';
-    setTimeout(()=>{document.getElementById('share-modal').classList.remove('open');loadCommunityMaps();},1500);
-  }catch(e){
-    status.textContent='Upload failed. Check your API key / bin ID.';
+
+    list.push({
+      id: Date.now(),
+      name,
+      author,
+      regions: activeMap.regions,
+      svgText: activeMap.svgText
+    });
+
+    const w = await fetch(JSONBIN_URL, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': JSONBIN_API_KEY
+      },
+      body: JSON.stringify({
+        data: list
+      })
+    });
+
+    if (!w.ok) throw new Error('Write failed');
+
+    status.textContent = '✓ Uploaded!';
   }
-  btn.disabled=false;
+  catch (e) {
+    status.textContent = 'Upload failed.';
+  }
+
+  btn.disabled = false;
 });
 
 // ════════════════════════════════════════════
