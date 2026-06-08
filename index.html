@@ -373,8 +373,8 @@ const BUILT_IN_MAPS = [
 // Steps: 1) sign up free at jsonbin.io  2) create a bin with content []
 //        3) paste the bin ID and your API key here.
 // Until then community sharing shows instructions.
-const JSONBIN_BIN_ID  = '';   // e.g. '664abc123def456789012345'
-const JSONBIN_API_KEY = '';   // e.g. '$2a$10$...'
+const JSONBIN_BIN_ID  = '6a26f94dda38895dfe9b25ce';   // e.g. '664abc123def456789012345'
+const JSONBIN_API_KEY = '$2a$10$QwWxvIXy75Ko9g7JzXtMDOKx6s63aGzPaQPaEquLFPCZBFzmOLioW';   // e.g. '$2a$10$...'
 const JSONBIN_URL     = JSONBIN_BIN_ID ? `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}` : '';
 
 // ════════════════════════════════════════════
@@ -531,7 +531,8 @@ document.getElementById('share-confirm').addEventListener('click',async()=>{
     // 2. write updated list
     const w=await fetch(JSONBIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_API_KEY},body: JSON.stringify({
   data: list
-}))
+})
+});
     if(!w.ok)throw new Error('Write failed');
     status.textContent='✓ Uploaded! It will appear in Community Maps.';
     setTimeout(()=>{document.getElementById('share-modal').classList.remove('open');loadCommunityMaps();},1500);
