@@ -174,22 +174,39 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .map-row:hover { border-color: var(--accent); background: var(--surface2); }
 .map-row-main { min-width: 0; }
 .reassign { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--font); font-size: 0.8rem; padding: 0.35rem 0.5rem; cursor: pointer; flex-shrink: 0; }
+
+/* ── GUESSED PANEL: alphabetical cells, blank until guessed ── */
+.guessed-list-grid{display:flex;flex-direction:column;gap:.2rem;}
+.guessed-cell{font-size:.72rem;padding:.28rem .45rem;border-radius:6px;border:1px solid var(--border);color:var(--muted);min-height:1.55em;background:var(--surface);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.guessed-cell.filled-exact{background:rgba(245,197,24,.12);color:var(--gold);border-color:rgba(245,197,24,.25);}
+.guessed-cell.filled-fuzzy{background:rgba(240,130,30,.12);color:var(--orange);border-color:rgba(240,130,30,.25);}
+
+/* ── PROGRESS BAR: completion-% color thresholds (100% = completed) ── */
+.quiz-progress-fill.pf-red{background:var(--red);}
+.quiz-progress-fill.pf-orange{background:var(--orange);}
+.quiz-progress-fill.pf-green{background:#2ec97a;}
+.quiz-progress-fill.pf-gold{background:var(--gold);}
+
+.result-best{font-size:.85rem;color:var(--muted);margin-top:.2rem;}
+.row-best{font-size:.7rem;color:var(--muted);margin-left:.4rem;}
+.home-add-btn{margin-top:.5rem;flex:none;}
 </style>
 </head>
 <body>
 
 <!-- HOME -->
-<div id="screen-home" class="screen">
+<div id="screen-home" class="screen active">
   <div class="home-header" style="padding-top:1.5rem">
     <h1>🌍 GeoQuiz</h1>
     <p>Click a map to start, or import your own</p>
   </div>
 
   <div style="padding:0 1.25rem;display:flex;flex-direction:column;gap:1.25rem;padding-bottom:1.5rem;">
-    <!-- Built-in + saved -->
+    <!-- Browse by continent -->
     <div>
-      <div class="section-label">My Maps</div>
-      <div class="map-list" id="map-list"></div>
+      <div class="section-label">Browse by continent</div>
+      <div class="continent-grid" id="map-list"></div>
+      <button class="btn home-add-btn" id="btn-all-maps">📂 All maps / import a map</button>
     </div>
 
     <!-- Community maps -->
@@ -202,11 +219,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
     </div>
 
     <!-- Import -->
-    <div style="padding:0 1.25rem; margin-top:1rem;">
-      <button class="btn btn-primary" id="btn-open-import" style="width:100%; padding:1rem;">
-        📂 Import your own map (SVG + JSON)
-      </button>
-    </div>
   </div>
 </div>
 
@@ -249,7 +261,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
   </div>
 </div>
 <!-- MAP SELECT -->
-<div id="screen-home" class="screen active">
+<div id="screen-mapselect" class="screen">
   <div style="padding:1.5rem 1.25rem;display:flex;flex-direction:column;gap:1.25rem;">
     <div class="back-row">
       <button class="back-btn" id="back-to-home">←</button>
@@ -322,6 +334,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
     <div class="result-header">
       <div class="result-score" id="result-score">0%</div>
       <div class="result-label" id="result-label"></div>
+      <div class="result-best" id="result-best"></div>
     </div>
     <div class="result-stats" style="margin-top:1rem;">
       <div class="stat-card"><div class="stat-num" style="color:var(--gold)"       id="res-gold">0</div><div class="stat-lbl">Perfect</div></div>
@@ -339,16 +352,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 </div>
 
 <!-- SHARE MODAL -->
-   <!-- ═══ CONTINENT SCREEN ═══ -->
-<div id="screen-continent" class="screen">
-  <div style="padding:1.5rem 1.25rem;display:flex;flex-direction:column;gap:1.25rem;">
-    <div class="back-row">
-      <button class="back-btn" id="cont-back">←</button>
-      <h2 class="screen-title">Choose a continent</h2>
-    </div>
-    <div class="continent-grid" id="continent-grid"></div>
-  </div>
-</div>
+   <!-- (continent browsing now lives on the home screen) -->
 <div class="modal-bg" id="share-modal">
   <div class="modal">
     <h2>🌐 Share map online</h2>
@@ -408,6 +412,22 @@ let feedbackTimeout=null, scoreMap={}, wrongIds=[];
 // fill mode
 let fillRemaining=[], fillScores={}, guessedNames=[];
 
+// ── category + persistence (localStorage) + event bus ──
+const CONTINENTS=['Africa','Europe','Asia','North America','South America','Oceania','Antarctica','World'];
+const DEFAULT_CONT={'belgium-provinces':'Europe'};   // nicety; user assignment overrides
+let selectedContinent=null;                          // null = "All maps"
+const LS_CONT='gq:continents', LS_BEST='gq:best';
+function lsGet(k){try{return JSON.parse(localStorage.getItem(k))||{};}catch(e){return {};}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+let contMap=lsGet(LS_CONT), bestMap=lsGet(LS_BEST);
+function getContinent(m){return contMap[m.id]||m.continent||DEFAULT_CONT[m.id]||'World';}
+function setContinent(id,c){contMap[id]=c;lsSet(LS_CONT,contMap);}
+function getBest(id){return bestMap[id]||0;}
+function setBest(id,pct){if(pct>(bestMap[id]||0)){bestMap[id]=pct;lsSet(LS_BEST,bestMap);}}
+// minimal event bus — quiz engine emits, future modules (stats/achievements) subscribe
+const Bus={_:{},on(e,f){(this._[e]||(this._[e]=[])).push(f);},emit(e,d){(this._[e]||[]).forEach(f=>{try{f(d);}catch(err){console.warn(err);}});}};
+Bus.on('quiz:complete',d=>setBest(d.mapId,d.pct));
+
 // ════════════════════════════════════════════
 //  SCREEN
 // ════════════════════════════════════════════
@@ -432,11 +452,19 @@ async function loadBuiltIn(){
 //  MAP LIST
 // ════════════════════════════════════════════
 function renderMapList(){
-  const list=document.getElementById('map-list');
-  list.innerHTML='';
-  const myMaps=maps.filter(m=>!m.community);
-  if(!myMaps.length){list.innerHTML='<p style="color:var(--muted);font-size:.85rem;text-align:center;padding:.75rem 0">No maps yet. Import below.</p>';return;}
-  myMaps.forEach(m=>list.appendChild(makeMapItem(m)));
+  const grid=document.getElementById('map-list');
+  grid.innerHTML='';
+  const counts={};
+  maps.forEach(m=>{const c=getContinent(m);counts[c]=(counts[c]||0)+1;});
+  const present=CONTINENTS.filter(c=>counts[c]);
+  if(!present.length){grid.innerHTML='<p style="color:var(--muted);font-size:.85rem;text-align:center;padding:.75rem 0">No maps yet. Use “All maps / import” below.</p>';return;}
+  present.forEach(c=>{
+    const card=document.createElement('div');
+    card.className='continent-card';
+    card.innerHTML=`<div class="continent-name">${c}</div><div class="continent-count">${counts[c]} map${counts[c]===1?'':'s'}</div>`;
+    card.addEventListener('click',()=>openContinent(c));
+    grid.appendChild(card);
+  });
 }
 
 function makeMapItem(m){
@@ -471,6 +499,63 @@ function makeMapItem(m){
 }
 
 // ════════════════════════════════════════════
+//  CATEGORY NAV  (continent → map list)
+// ════════════════════════════════════════════
+function openContinent(c){
+  selectedContinent=c; // null = "All maps"
+  document.getElementById('pickmap-title').textContent=c||'All maps';
+  document.getElementById('map-search').value='';
+  renderPickMap();
+  showScreen('pickmap');
+}
+function renderPickMap(){
+  const list=document.getElementById('pickmap-list');
+  const q=normalize(document.getElementById('map-search').value||'');
+  const items=maps.filter(m=>(selectedContinent?getContinent(m)===selectedContinent:true)&&(!q||normalize(m.name).includes(q)));
+  list.innerHTML='';
+  if(!items.length){list.innerHTML='<p style="color:var(--muted);font-size:.85rem;text-align:center;padding:.75rem 0">No maps here.</p>';return;}
+  items.forEach(m=>list.appendChild(makePickRow(m)));
+}
+function makePickRow(m){
+  const count=Object.keys(m.regions).length;
+  const isSaved=savedIds.has(m.id);
+  const best=getBest(m.id);
+  const row=document.createElement('div');
+  row.className='map-row';
+  const opts=CONTINENTS.map(c=>`<option value="${c}"${getContinent(m)===c?' selected':''}>${c}</option>`).join('');
+  row.innerHTML=`
+    <div class="map-row-main map-item-inner">
+      <div class="map-item-title">${m.name}</div>
+      <div class="map-item-meta">
+        <span>${count} regions</span>
+        ${isSaved?'<span class="badge badge-saved">saved</span>':''}
+        ${m.community?'<span class="badge badge-community">community</span>':''}
+        ${best?`<span class="row-best">best ${best}%</span>`:''}
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:.4rem;flex-shrink:0;">
+      ${isSaved?`<button class="icon-btn del" title="Delete">🗑</button>`:''}
+      <select class="reassign" title="Move to continent">${opts}</select>
+    </div>`;
+  row.querySelector('.map-item-inner').addEventListener('click',()=>openMapSelect(m.id));
+  const del=row.querySelector('.icon-btn.del');
+  if(del)del.addEventListener('click',async e=>{
+    e.stopPropagation();
+    if(!confirm(`Delete "${m.name}"?`))return;
+    try{await dbDel(m.id);}catch(err){}
+    savedIds.delete(m.id);maps=maps.filter(x=>x.id!==m.id);
+    renderPickMap();renderMapList();
+  });
+  const sel=row.querySelector('.reassign');
+  sel.addEventListener('click',e=>e.stopPropagation());
+  sel.addEventListener('change',e=>{setContinent(m.id,e.target.value);renderPickMap();renderMapList();});
+  return row;
+}
+document.getElementById('pickmap-back').addEventListener('click',()=>showScreen('home'));
+document.getElementById('map-search').addEventListener('input',renderPickMap);
+document.getElementById('btn-all-maps').addEventListener('click',()=>openContinent(null));
+
+// ════════════════════════════════════════════
 //  COMMUNITY MAPS
 // ════════════════════════════════════════════
 async function loadCommunityMaps(){
@@ -497,6 +582,7 @@ async function loadCommunityMaps(){
       if(!existing)maps.push(m);
       list.appendChild(makeMapItem(m));
     });
+    renderMapList();
   }catch(err){
     list.innerHTML='<div class="community-empty">Could not load community maps.</div>';
   }
@@ -587,8 +673,50 @@ document.getElementById('mode-type').addEventListener('click', ()=>{quizMode='ty
 // ════════════════════════════════════════════
 function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
 function normalize(s){return s.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ');}
+
+// ── fuzzy matching (Jetpunk-style): case/accent/punct/space-insensitive + Levenshtein tolerance, no autocomplete ──
+function levenshtein(a,b){
+  const m=a.length,n=b.length;if(!m)return n;if(!n)return m;
+  let prev=new Array(n+1),cur=new Array(n+1);
+  for(let j=0;j<=n;j++)prev[j]=j;
+  for(let i=1;i<=m;i++){cur[0]=i;
+    for(let j=1;j<=n;j++){const cost=a[i-1]===b[j-1]?0:1;cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+cost);}
+    [prev,cur]=[cur,prev];
+  }
+  return prev[n];
+}
+function fuzzyTol(len){return len<=4?0:len<=8?1:2;}
+// returns {id, exact} or null. exact normalized match is always preferred; ambiguous near-misses rejected.
+function fuzzyFind(input, ids){
+  const q=normalize(input);
+  if(!q)return null;
+  for(const id of ids){if(normalize(activeMap.regions[id]||id)===q)return {id,exact:true};}
+  if(q.length<3)return null;
+  const cands=[];
+  for(const id of ids){
+    const name=normalize(activeMap.regions[id]||id);
+    const tol=fuzzyTol(name.length);
+    if(tol===0)continue;
+    if(Math.abs(name.length-q.length)>tol+1)continue;
+    const d=levenshtein(name,q);
+    if(d<=tol)cands.push({id,d});
+  }
+  if(!cands.length)return null;
+  cands.sort((a,b)=>a.d-b.d);
+  if(cands.length>1&&cands[0].d===cands[1].d)return null; // ambiguous → ignore
+  return {id:cands[0].id, exact:false};
+}
+
 function getSvg(){return document.querySelector('#quiz-map-wrap svg');}
 function getEl(id){return getSvg()?.getElementById(id);}
+// completion-% progress bar with color thresholds (only 100% counts as completed)
+function setProgress(pct){
+  const f=document.getElementById('quiz-progress-fill');
+  f.style.width=pct+'%';
+  f.classList.remove('pf-red','pf-orange','pf-green','pf-gold');
+  f.classList.add(pct>=100?'pf-gold':pct>=75?'pf-green':pct>=50?'pf-orange':'pf-red');
+}
+function clickCompletionPct(){const t=quizQueue.length||1;const done=Object.values(scoreMap).filter(s=>s!=='giveup').length;return Math.round(done/t*100);}
 
 // Strip ALL inline fill/stroke/style from every SVG element so CSS wins
 function sanitizeSvg(){
@@ -644,7 +772,7 @@ function renderClickQuestion(){
   const id=quizQueue[quizIndex],name=activeMap.regions[id]||id,total=quizQueue.length;
   document.getElementById('quiz-prompt-name').textContent=name;
   document.getElementById('quiz-counter').textContent=(quizIndex+1)+'/'+total;
-  document.getElementById('quiz-progress-fill').style.width=(quizIndex/total*100)+'%';
+  setProgress(clickCompletionPct());
   document.getElementById('quiz-feedback').textContent='';
   document.getElementById('quiz-feedback').className='quiz-feedback';
   document.getElementById('btn-giveup').style.display='none';
@@ -663,7 +791,7 @@ function handleClick(cid){
   const fb=document.getElementById('quiz-feedback');
   if(cid===correctId){
     const score=mistakeCount===0?'0':mistakeCount===1?'1':mistakeCount===2?'2':'giveup';
-    scoreMap[correctId]=score;stopFlash();applyScore(correctId,score);
+    scoreMap[correctId]=score;stopFlash();applyScore(correctId,score);setProgress(clickCompletionPct());
     if(score!=='giveup')wrongIds=wrongIds.filter(i=>i!==correctId);
     const msgs={'0':['✓ Perfect!','feedback-gold'],'1':['✓ Got it (1 wrong)','feedback-warn'],'2':['✓ Got it (2 wrong)','feedback-warn'],'giveup':['✓ Got it','feedback-warn']};
     fb.textContent=msgs[score][0];fb.className='quiz-feedback '+msgs[score][1];
@@ -712,9 +840,9 @@ function startFillQuiz(regionIds){
   document.getElementById('click-prompt').style.display='none';
   document.getElementById('type-bar').style.display='';
   document.getElementById('guessed-panel').style.display='';
-  document.getElementById('guessed-list').innerHTML='';
+  renderGuessedPanel();
   document.getElementById('btn-giveup').style.display='none';
-  document.getElementById('quiz-progress-fill').style.width='0%';
+  setProgress(0);
   document.getElementById('quiz-counter').textContent='0/'+total;
   document.getElementById('score-correct').textContent='0';
   document.getElementById('score-wrong').textContent='0';
@@ -727,47 +855,64 @@ function startFillQuiz(regionIds){
   setTimeout(()=>inp.focus(),100);
 }
 
+// Alphabetical guessed panel: one cell per region, blank until guessed (fills in on guess)
+function fillAlphaIds(){
+  return Object.keys(activeMap.regions).sort((a,b)=>
+    (activeMap.regions[a]||a).localeCompare(activeMap.regions[b]||b));
+}
+function renderGuessedPanel(){
+  const gl=document.getElementById('guessed-list');
+  gl.className='guessed-list-grid';
+  gl.innerHTML='';
+  fillAlphaIds().forEach(id=>{
+    const c=document.createElement('div');
+    c.className='guessed-cell';c.dataset.gid=id;c.innerHTML='&nbsp;';
+    gl.appendChild(c);
+  });
+}
+function fillGuessCell(id,name,exact){
+  const c=document.querySelector(`#guessed-list .guessed-cell[data-gid="${CSS.escape(id)}"]`);
+  if(!c)return;
+  c.textContent=name;
+  c.classList.add(exact?'filled-exact':'filled-fuzzy');
+}
+
 document.getElementById('type-input').addEventListener('input',function(){
   if(quizMode!=='type')return;
-  const lookup={};
-  fillRemaining.forEach(id=>{lookup[normalize(activeMap.regions[id]||id)]=id;});
-  const input = normalize(this.value);
-
-const matchId = fillRemaining.find(id =>
-  normalize(activeMap.regions[id] || id) === input
-);
-  if(!matchId)return;
-  fillScores[matchId]='0';applyScore(matchId,'0');
-  fillRemaining=fillRemaining.filter(id=>id!==matchId);
-  const name=activeMap.regions[matchId]||matchId;
-  guessedNames.unshift(name);  // prepend so newest is at top
-
-  // update guessed panel
-  const gl=document.getElementById('guessed-list');
-  const item=document.createElement('div');
-  item.className='guessed-item';item.textContent=name;
-  gl.insertBefore(item,gl.firstChild);
+  const res=fuzzyFind(this.value, fillRemaining);
+  if(!res)return;
+  const id=res.id, name=activeMap.regions[id]||id;
+  const score=res.exact?'0':'1';            // close-enough counts as a hinted answer
+  fillScores[id]=score;applyScore(id,score);
+  fillRemaining=fillRemaining.filter(x=>x!==id);
+  fillGuessCell(id,name,res.exact);
 
   const total=Object.keys(activeMap.regions).length;
   const done=total-fillRemaining.length;
   document.getElementById('type-count').textContent=done+'/'+total;
   document.getElementById('quiz-counter').textContent=done+'/'+total;
-  document.getElementById('quiz-progress-fill').style.width=(done/total*100)+'%';
+  setProgress(Math.round(done/total*100));
   document.getElementById('score-correct').textContent=done;
-  document.getElementById('quiz-feedback').textContent='✓ '+name;
-  document.getElementById('quiz-feedback').className='quiz-feedback feedback-gold';
+  const fb=document.getElementById('quiz-feedback');
+  if(res.exact){fb.textContent='✓ '+name;fb.className='quiz-feedback feedback-gold';}
+  else{fb.textContent='≈ Close enough — '+name;fb.className='quiz-feedback feedback-warn';}
   this.value='';
   if(fillRemaining.length===0)setTimeout(()=>showFillResults(),800);
 });
 
 function showFillResults(){
   const total=Object.keys(activeMap.regions).length;
-  const done=Object.keys(fillScores).length;
+  const vals=Object.values(fillScores);
+  const exact=vals.filter(s=>s==='0').length, fuzzy=vals.filter(s=>s==='1').length;
+  const done=exact+fuzzy;
+  const pct=Math.round(done/total*100);
   wrongIds=fillRemaining.slice();
-  document.getElementById('result-score').textContent=Math.round(done/total*100)+'%';
+  Bus.emit('quiz:complete',{mapId:activeMap.id,pct,perfect:pct===100,mode:'fill'});
+  document.getElementById('result-score').textContent=pct+'%';
+  document.getElementById('result-best').textContent='Best: '+getBest(activeMap.id)+'%';
   document.getElementById('result-label').textContent=activeMap.name;
-  document.getElementById('res-gold').textContent=done;
-  document.getElementById('res-orange').textContent=0;
+  document.getElementById('res-gold').textContent=exact;
+  document.getElementById('res-orange').textContent=fuzzy;
   document.getElementById('res-dark').textContent=0;
   document.getElementById('res-red').textContent=total-done;
   const ws=document.getElementById('wrong-list');
@@ -786,7 +931,10 @@ function showClickResults(){
   const total=quizQueue.length,sc=Object.values(scoreMap);
   const gold=sc.filter(s=>s==='0').length,orange=sc.filter(s=>s==='1').length;
   const dark=sc.filter(s=>s==='2').length,red=sc.filter(s=>s==='giveup').length;
-  document.getElementById('result-score').textContent=Math.round((total-red)/total*100)+'%';
+  const pct=Math.round((total-red)/total*100);
+  Bus.emit('quiz:complete',{mapId:activeMap.id,pct,perfect:pct===100,mode:'click'});
+  document.getElementById('result-score').textContent=pct+'%';
+  document.getElementById('result-best').textContent='Best: '+getBest(activeMap.id)+'%';
   document.getElementById('result-label').textContent=activeMap.name;
   document.getElementById('res-gold').textContent=gold;
   document.getElementById('res-orange').textContent=orange;
@@ -865,11 +1013,6 @@ async function init(){
   loadCommunityMaps();
 }
 init();
-  // Open import screen from home
-document.getElementById('btn-open-import').addEventListener('click', () => {
-  document.getElementById('pickmap-title').textContent = "Import Map";
-  showScreen('pickmap');
-});
 </script>
 </body>
 </html>
