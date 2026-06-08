@@ -484,8 +484,8 @@ async function loadCommunityMaps(){
   list.innerHTML='<div class="community-empty">Loading…</div>';
   try{
     const r=await fetch(JSONBIN_URL+'/latest',{headers:{'X-Master-Key':JSONBIN_API_KEY}});
-    const data=await r.json();
-    const entries=data.record||[];
+    const data = await r.json();
+    const entries = data.record.data || [];
     if(!entries.length){list.innerHTML='<div class="community-empty">No community maps yet. Be the first to share!</div>';return;}
     list.innerHTML='';
     entries.slice().reverse().forEach(e=>{
@@ -524,12 +524,14 @@ document.getElementById('share-confirm').addEventListener('click',async()=>{
   try{
     // 1. fetch current list
     const r=await fetch(JSONBIN_URL+'/latest',{headers:{'X-Master-Key':JSONBIN_API_KEY}});
-    const data=await r.json();
-    const list=data.record||[];
+    const data = await r.json();
+    const list = data.record.data || [];
     const entry={id:Date.now(),name,author,regions:activeMap.regions,svgText:activeMap.svgText};
     list.push(entry);
     // 2. write updated list
-    const w=await fetch(JSONBIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_API_KEY},body:JSON.stringify(list)});
+    const w=await fetch(JSONBIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_API_KEY},body: JSON.stringify({
+  data: list
+})
     if(!w.ok)throw new Error('Write failed');
     status.textContent='✓ Uploaded! It will appear in Community Maps.';
     setTimeout(()=>{document.getElementById('share-modal').classList.remove('open');loadCommunityMaps();},1500);
