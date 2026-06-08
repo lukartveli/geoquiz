@@ -202,7 +202,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
     </div>
 
     <!-- Import -->
-  
+  </div>
 </div>
 
 <!-- ═══ PICK MAP SCREEN ═══ -->
@@ -531,7 +531,7 @@ document.getElementById('share-confirm').addEventListener('click',async()=>{
     // 2. write updated list
     const w=await fetch(JSONBIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_API_KEY},body: JSON.stringify({
   data: list
-})
+}))
     if(!w.ok)throw new Error('Write failed');
     status.textContent='✓ Uploaded! It will appear in Community Maps.';
     setTimeout(()=>{document.getElementById('share-modal').classList.remove('open');loadCommunityMaps();},1500);
