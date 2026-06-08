@@ -15,10 +15,10 @@
     --accent: #4f7cff;
     --font: 'Segoe UI', system-ui, sans-serif;
     --radius: 10px;
-    --gold:   #f5c518;
-    --green:  #2ec97a;
-    --orange: #f0a830;
-    --red:    #e85555;
+    --gold:        #f5c518;
+    --orange:      #f0821e;
+    --darkorange:  #c94a00;
+    --red:         #e85555;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100dvh; display: flex; flex-direction: column; }
@@ -41,6 +41,12 @@
   .map-item-title { font-weight: 600; font-size: 1rem; }
   .map-item-count { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
   .map-item-arrow { color: var(--muted); font-size: 1.2rem; }
+  .map-item-delete {
+    background: none; border: none; color: var(--muted); font-size: 1.1rem;
+    cursor: pointer; padding: 0.2rem 0.4rem; border-radius: 6px; line-height: 1;
+    flex-shrink: 0; transition: color 0.15s, background 0.15s;
+  }
+  .map-item-delete:hover { color: var(--red); background: rgba(232,85,85,0.12); }
   .import-section { border-top: 1px solid var(--border); padding-top: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; }
   .import-row { display: flex; gap: 0.5rem; }
   .import-row input[type=file] { display: none; }
@@ -84,14 +90,13 @@
   .quiz-counter { font-size: 0.82rem; color: var(--muted); white-space: nowrap; }
   .quiz-score-pill { display: flex; gap: 0.4rem; font-size: 0.8rem; white-space: nowrap; }
   .pill { padding: 2px 7px; border-radius: 99px; font-weight: 600; }
-  .pill-correct { background: #1a3d2b; color: var(--green); }
+  .pill-correct { background: #1a3d2b; color: #2ec97a; }
   .pill-wrong { background: #3d1a1a; color: var(--red); }
 
   .quiz-prompt { padding: 0.9rem 1rem 0.6rem; text-align: center; flex-shrink: 0; }
   .quiz-prompt-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.3rem; }
   .quiz-prompt-name { font-size: 1.5rem; font-weight: 700; }
 
-  /* Type-fill mode bar */
   .type-input-bar {
     padding: 0.6rem 1rem; display: flex; gap: 0.5rem; flex-shrink: 0;
     border-bottom: 1px solid var(--border); align-items: center;
@@ -110,43 +115,46 @@
   }
   .quiz-map-wrap svg { width: 100%; height: 100%; max-height: 100%; display: block; }
 
-  /* Strip all inline fill/stroke from SVG so CSS controls everything */
+  /* ── THE CRITICAL FIX ──
+     Force ALL svg shape elements to use our colors, overriding any inline attrs.
+     !important wins over inline style/fill attributes. */
   .quiz-map-wrap svg path,
   .quiz-map-wrap svg polygon,
   .quiz-map-wrap svg circle,
-  .quiz-map-wrap svg ellipse {
+  .quiz-map-wrap svg ellipse,
+  .quiz-map-wrap svg rect {
     fill: var(--surface2) !important;
     stroke: var(--border) !important;
-    stroke-width: 1 !important;
+    stroke-width: 0.8 !important;
     cursor: pointer;
-    transition: fill 0.12s;
+    transition: fill 0.1s;
   }
-  /* hover only on unfilled regions */
-  .quiz-map-wrap svg path:not([data-score]):not(.region-flashing):hover,
-  .quiz-map-wrap svg polygon:not([data-score]):not(.region-flashing):hover {
+  /* Hover only on unscored regions */
+  .quiz-map-wrap svg path:not([data-score]):hover,
+  .quiz-map-wrap svg polygon:not([data-score]):hover {
     fill: #2e3560 !important;
   }
 
-  /* Seterra score colors — permanent after answering */
-  [data-score="0"]      { fill: var(--gold)   !important; }
-  [data-score="1"]      { fill: var(--green)  !important; }
-  [data-score="2"]      { fill: var(--orange) !important; }
-  [data-score="giveup"] { fill: var(--red)    !important; }
+  /* Score colors — applied as data-score attribute */
+  [data-score="0"]      { fill: var(--gold)       !important; }
+  [data-score="1"]      { fill: var(--orange)     !important; }
+  [data-score="2"]      { fill: var(--darkorange) !important; }
+  [data-score="giveup"] { fill: var(--red)        !important; }
 
-  /* Transient states */
-  .region-wrong-flash { fill: var(--red) !important; transition: none !important; }
+  /* Transient flash states */
+  .region-wrong-flash  { fill: var(--red) !important; transition: none !important; }
 
-  @keyframes flash-red {
-    0%, 100% { fill: var(--red) !important; }
-    50%       { fill: #ff9900  !important; }
+  @keyframes flash-answer {
+    0%, 100% { fill: var(--red)    !important; }
+    50%       { fill: #ff7700      !important; }
   }
-  .region-flashing { animation: flash-red 0.5s infinite; fill: var(--red) !important; cursor: pointer; }
+  .region-flashing { animation: flash-answer 0.5s infinite; fill: var(--red) !important; }
 
   .quiz-feedback {
     height: 40px; display: flex; align-items: center; justify-content: center;
     font-size: 0.92rem; font-weight: 600; flex-shrink: 0; padding: 0 1rem; text-align: center;
   }
-  .feedback-correct { color: var(--green); }
+  .feedback-correct { color: #2ec97a; }
   .feedback-wrong   { color: var(--red); }
   .feedback-warn    { color: var(--orange); }
   .feedback-gold    { color: var(--gold); }
@@ -194,8 +202,8 @@
     </div>
     <button class="btn btn-primary" id="btn-add-import" disabled>Add imported map</button>
     <p class="import-note">
-      In Inkscape: select a region → Object → Object Properties → set the <strong>ID</strong> to match the key in your JSON.<br>
-      JSON: <code>{"name":"My Map","regions":{"id1":"Name 1","id2":"Name 2"}}</code>
+      In Inkscape: select region → Object → Object Properties → set <strong>ID</strong> to match JSON key.<br>
+      JSON format: <code>{"name":"My Map","regions":{"id1":"Name 1","id2":"Name 2"}}</code>
     </p>
   </div>
 </div>
@@ -217,13 +225,13 @@
       <div class="mode-card" id="mode-type">
         <div class="mode-icon">⌨️</div>
         <h3>Fill the map</h3>
-        <p>Type any region name — it turns gold on the map as you get them right</p>
+        <p>Type any region name — it fills gold on the map as you get it right</p>
       </div>
     </div>
     <div class="score-legend">
       <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div> Perfect</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> 1 hint</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div> 2 hints</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div> 1 wrong</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--darkorange)"></div> 2 wrong</div>
       <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Gave up</div>
     </div>
   </div>
@@ -233,9 +241,7 @@
 <div id="screen-quiz" class="screen">
   <div class="quiz-header">
     <button class="back-btn" id="back-to-select">←</button>
-    <div class="quiz-progress-bar">
-      <div class="quiz-progress-fill" id="quiz-progress-fill"></div>
-    </div>
+    <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="quiz-progress-fill"></div></div>
     <div class="quiz-counter" id="quiz-counter">0/0</div>
     <div class="quiz-score-pill">
       <span class="pill pill-correct" id="score-correct">0</span>
@@ -243,13 +249,11 @@
     </div>
   </div>
 
-  <!-- Click mode prompt -->
   <div class="quiz-prompt" id="click-prompt">
     <div class="quiz-prompt-label">find and click</div>
     <div class="quiz-prompt-name" id="quiz-prompt-name">—</div>
   </div>
 
-  <!-- Fill/type mode input -->
   <div class="type-input-bar" id="type-bar" style="display:none">
     <input class="type-input" id="type-input" type="text" placeholder="Type a region name…"
       autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
@@ -259,7 +263,6 @@
   <div class="quiz-map-wrap" id="quiz-map-wrap" style="position:relative;">
     <button id="btn-giveup">Give up</button>
   </div>
-
   <div class="quiz-feedback" id="quiz-feedback"></div>
 </div>
 
@@ -271,10 +274,10 @@
       <div class="result-label" id="result-label"></div>
     </div>
     <div class="result-stats">
-      <div class="stat-card"><div class="stat-num" style="color:var(--gold)"   id="res-gold">0</div>  <div class="stat-lbl">Perfect</div></div>
-      <div class="stat-card"><div class="stat-num" style="color:var(--green)"  id="res-green">0</div> <div class="stat-lbl">1 hint</div></div>
-      <div class="stat-card"><div class="stat-num" style="color:var(--orange)" id="res-orange">0</div><div class="stat-lbl">2 hints</div></div>
-      <div class="stat-card"><div class="stat-num" style="color:var(--red)"    id="res-red">0</div>   <div class="stat-lbl">Gave up</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--gold)"       id="res-gold">0</div><div class="stat-lbl">Perfect</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--orange)"     id="res-orange">0</div><div class="stat-lbl">1 wrong</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--darkorange)" id="res-dark">0</div><div class="stat-lbl">2 wrong</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--red)"        id="res-red">0</div><div class="stat-lbl">Gave up</div></div>
     </div>
     <div class="wrong-list" id="wrong-list"></div>
     <div class="result-actions">
@@ -286,65 +289,102 @@
 </div>
 
 <script>
-// ═══════════════════════════════════════════
-//  CONFIG — add your built-in maps here
-// ═══════════════════════════════════════════
+// ════════════════════════════════════════════
+//  CONFIG — add built-in maps here
+// ════════════════════════════════════════════
 const BUILT_IN_MAPS = [
-  { id: 'belgium-provinces', name: 'Belgian Provinces',
-    svgFile: 'maps/belgium-provinces.svg', jsonFile: 'data/belgium-provinces.json' }
+  { id: 'belgium-provinces',       name: 'Belgian Provinces',           svgFile: 'maps/belgium-provinces.svg',        jsonFile: 'data/belgium-provinces.json' },
+  { id: 'regions-georgia',         name: 'Regions of Georgia',          svgFile: 'maps/regionsgeorgia.svg',           jsonFile: 'data/regionsgeorgia.json' },
+  { id: 'municipalities-georgia',  name: 'Municipalities of Georgia',   svgFile: 'maps/municipalitiesgeorgia.svg',    jsonFile: 'data/municipalitiesgeorgia.json' },
 ];
 
-// ═══════════════════════════════════════════
-//  APP STATE
-// ═══════════════════════════════════════════
-let maps        = [];
+// ════════════════════════════════════════════
+//  INDEXEDDB — persist imported maps across sessions
+// ════════════════════════════════════════════
+const DB_NAME    = 'geoquiz';
+const DB_VERSION = 1;
+const STORE      = 'saved_maps';
+let db = null;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains(STORE)) {
+        d.createObjectStore(STORE, { keyPath: 'id' });
+      }
+    };
+    req.onsuccess = e => { db = e.target.result; resolve(db); };
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+function dbSaveMap(map) {
+  return new Promise((resolve, reject) => {
+    const tx  = db.transaction(STORE, 'readwrite');
+    const req = tx.objectStore(STORE).put({ id: map.id, name: map.name, svgText: map.svgText, regions: map.regions });
+    req.onsuccess = () => resolve();
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+function dbDeleteMap(id) {
+  return new Promise((resolve, reject) => {
+    const tx  = db.transaction(STORE, 'readwrite');
+    const req = tx.objectStore(STORE).delete(id);
+    req.onsuccess = () => resolve();
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+function dbLoadAllMaps() {
+  return new Promise((resolve, reject) => {
+    const tx  = db.transaction(STORE, 'readonly');
+    const req = tx.objectStore(STORE).getAll();
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+// ════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════
+let maps         = [];   // all maps (built-in + saved)
+let savedMapIds  = new Set();   // IDs that came from IndexedDB (can be deleted)
 let pendingImport = { svg: null, json: null };
 let activeMap   = null;
-let quizMode    = 'click';   // 'click' | 'type'
+let quizMode    = 'click';
 
-// Click mode state
-let quizQueue   = [];
-let quizIndex   = 0;
-let mistakeCount = 0;
+// Click mode
+let quizQueue      = [];
+let quizIndex      = 0;
+let mistakeCount   = 0;
 let waitingForNext = false;
 let feedbackTimeout = null;
 let flashInterval   = null;
-
-// Type/fill mode state
-let fillRemaining = [];   // region ids not yet found
-let fillScores    = {};   // id → score (same scheme as click mode)
-
-// Shared
-let scoreMap  = {};   // id → '0'|'1'|'2'|'giveup'  (used by click mode)
+let scoreMap  = {};
 let wrongIds  = [];
 
-// ═══════════════════════════════════════════
+// Fill mode
+let fillRemaining = [];
+let fillScores    = {};
+
+// ════════════════════════════════════════════
 //  SCREEN ROUTER
-// ═══════════════════════════════════════════
+// ════════════════════════════════════════════
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + id).classList.add('active');
 }
 
-// ═══════════════════════════════════════════
+// ════════════════════════════════════════════
 //  LOAD BUILT-IN MAPS
-// ═══════════════════════════════════════════
+// ════════════════════════════════════════════
 async function loadBuiltIn() {
   for (const m of BUILT_IN_MAPS) {
     try {
       const [svgR, jsonR] = await Promise.all([fetch(m.svgFile), fetch(m.jsonFile)]);
-      if (!svgR.ok || !jsonR.ok) continue;
-      maps.push({ id: m.id, name: (await jsonR.json()).name || m.name,
-        svgText: await svgR.text(),
-        regions: (await fetch(m.jsonFile).then(r=>r.json())).regions });
-    } catch(e) {}
-  }
-  // reload properly (two fetches above reuse — fix by doing it right)
-  maps = [];
-  for (const m of BUILT_IN_MAPS) {
-    try {
-      const svgR  = await fetch(m.svgFile);
-      const jsonR = await fetch(m.jsonFile);
       if (!svgR.ok || !jsonR.ok) continue;
       const svgText  = await svgR.text();
       const jsonData = await jsonR.json();
@@ -362,18 +402,42 @@ function renderMapList() {
     return;
   }
   maps.forEach(m => {
-    const count = Object.keys(m.regions).length;
+    const count   = Object.keys(m.regions).length;
+    const isSaved = savedMapIds.has(m.id);
     const div = document.createElement('div');
     div.className = 'map-item';
-    div.innerHTML = `<div><div class="map-item-title">${m.name}</div><div class="map-item-count">${count} regions</div></div><div class="map-item-arrow">›</div>`;
-    div.addEventListener('click', () => openMapSelect(m.id));
+    div.innerHTML = `
+      <div style="flex:1;min-width:0;cursor:pointer" class="map-item-inner">
+        <div class="map-item-title">${m.name}${isSaved ? ' <span style="font-size:0.7rem;color:var(--muted);font-weight:400">(saved)</span>' : ''}</div>
+        <div class="map-item-count">${count} regions</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.4rem;flex-shrink:0">
+        ${isSaved ? `<button class="map-item-delete" data-id="${m.id}" title="Delete saved map">🗑</button>` : ''}
+        <div class="map-item-arrow">›</div>
+      </div>`;
+
+    div.querySelector('.map-item-inner').addEventListener('click', () => openMapSelect(m.id));
+    div.querySelector('.map-item-arrow').addEventListener('click', () => openMapSelect(m.id));
+
+    const delBtn = div.querySelector('.map-item-delete');
+    if (delBtn) {
+      delBtn.addEventListener('click', async e => {
+        e.stopPropagation();
+        if (!confirm(`Delete "${m.name}"?`)) return;
+        await dbDeleteMap(m.id);
+        savedMapIds.delete(m.id);
+        maps = maps.filter(x => x.id !== m.id);
+        renderMapList();
+      });
+    }
+
     list.appendChild(div);
   });
 }
 
-// ═══════════════════════════════════════════
+// ════════════════════════════════════════════
 //  MAP SELECT
-// ═══════════════════════════════════════════
+// ════════════════════════════════════════════
 function openMapSelect(mapId) {
   activeMap = maps.find(m => m.id === mapId);
   document.getElementById('mapselect-title').textContent = activeMap.name;
@@ -385,9 +449,9 @@ document.getElementById('back-to-home').addEventListener('click', () => showScre
 document.getElementById('mode-click').addEventListener('click', () => { quizMode = 'click'; startClickQuiz(Object.keys(activeMap.regions)); });
 document.getElementById('mode-type').addEventListener('click',  () => { quizMode = 'type';  startFillQuiz(Object.keys(activeMap.regions)); });
 
-// ═══════════════════════════════════════════
+// ════════════════════════════════════════════
 //  HELPERS
-// ═══════════════════════════════════════════
+// ════════════════════════════════════════════
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -406,15 +470,17 @@ function normalize(s) {
 function getSvg()  { return document.querySelector('#quiz-map-wrap svg'); }
 function getEl(id) { return getSvg()?.getElementById(id); }
 
-// Strip all inline style/fill attributes from imported SVG so CSS rules win
+// ── THE CORE FIX ──
+// Strip every inline fill/stroke/style attribute from every element in the SVG
+// so CSS rules (especially the !important ones above) can take control.
+// Without this, inline attrs on <path> and <g> silently override CSS.
 function sanitizeSvg() {
   const svg = getSvg();
   if (!svg) return;
-  svg.querySelectorAll('path, polygon, circle, ellipse').forEach(el => {
-    el.removeAttribute('style');
-    el.removeAttribute('fill');
-    el.removeAttribute('stroke');
-    el.removeAttribute('stroke-width');
+  const STRIP = ['fill','fill-opacity','stroke','stroke-width','stroke-opacity',
+                 'stroke-linecap','stroke-linejoin','style'];
+  svg.querySelectorAll('*').forEach(el => {
+    STRIP.forEach(a => el.removeAttribute(a));
   });
 }
 
@@ -431,8 +497,7 @@ function stopFlash() { clearInterval(flashInterval); flashInterval = null; }
 function startFlash(id) {
   stopFlash();
   const el = getEl(id);
-  if (!el) return;
-  el.classList.add('region-flashing');
+  if (el) el.classList.add('region-flashing');
 }
 
 function loadMapIntoQuiz() {
@@ -440,14 +505,14 @@ function loadMapIntoQuiz() {
   const giveup = document.getElementById('btn-giveup');
   wrap.innerHTML = activeMap.svgText;
   wrap.appendChild(giveup);
-  sanitizeSvg();  // ← this is the blue-flash fix: strips all inline fill attrs
+  sanitizeSvg();   // ← strips all inline fills so CSS wins
 }
 
-// ═══════════════════════════════════════════
+// ════════════════════════════════════════════
 //  CLICK MODE
-// ═══════════════════════════════════════════
+// ════════════════════════════════════════════
 function startClickQuiz(regionIds) {
-  quizQueue      = shuffle(regionIds);
+  quizQueue      = shuffle(regionIds);   // ← shuffled every time
   quizIndex      = 0;
   wrongIds       = [];
   scoreMap       = {};
@@ -458,7 +523,6 @@ function startClickQuiz(regionIds) {
 
   loadMapIntoQuiz();
 
-  // attach click listeners
   getSvg()?.querySelectorAll('path, polygon, circle, ellipse').forEach(el => {
     if (!el.id) return;
     el.addEventListener('click',    () => handleClick(el.id));
@@ -478,21 +542,21 @@ function renderClickQuestion() {
   waitingForNext = false;
   mistakeCount   = 0;
 
-  if (quizIndex >= quizQueue.length) { showResults(); return; }
+  if (quizIndex >= quizQueue.length) { showClickResults(); return; }
 
   const regionId = quizQueue[quizIndex];
   const name     = activeMap.regions[regionId] || regionId;
   const total    = quizQueue.length;
 
-  document.getElementById('quiz-prompt-name').textContent = name;
-  document.getElementById('quiz-counter').textContent     = (quizIndex + 1) + '/' + total;
+  document.getElementById('quiz-prompt-name').textContent   = name;
+  document.getElementById('quiz-counter').textContent       = (quizIndex + 1) + '/' + total;
   document.getElementById('quiz-progress-fill').style.width = (quizIndex / total * 100) + '%';
-  document.getElementById('quiz-feedback').textContent    = '';
-  document.getElementById('quiz-feedback').className      = 'quiz-feedback';
-  document.getElementById('btn-giveup').style.display     = 'none';
+  document.getElementById('quiz-feedback').textContent      = '';
+  document.getElementById('quiz-feedback').className        = 'quiz-feedback';
+  document.getElementById('btn-giveup').style.display       = 'none';
   updateClickPills();
 
-  // recolor map — already-scored regions get their color back, rest are neutral
+  // Restore scored regions; clear everything else
   const svg = getSvg();
   if (svg) {
     svg.querySelectorAll('path, polygon, circle, ellipse').forEach(el => {
@@ -510,23 +574,22 @@ function handleClick(clickedId) {
   const fb        = document.getElementById('quiz-feedback');
 
   if (clickedId === correctId) {
-    // correct
     const score = mistakeCount === 0 ? '0' : mistakeCount === 1 ? '1' : mistakeCount === 2 ? '2' : 'giveup';
     scoreMap[correctId] = score;
     stopFlash();
     applyScore(correctId, score);
     if (score !== 'giveup') wrongIds = wrongIds.filter(i => i !== correctId);
 
-    if (score === '0')      { fb.textContent = '✓ Perfect!';          fb.className = 'quiz-feedback feedback-gold'; }
-    else if (score === '1') { fb.textContent = '✓ Got it (1 wrong)';  fb.className = 'quiz-feedback feedback-correct'; }
-    else if (score === '2') { fb.textContent = '✓ Got it (2 wrong)';  fb.className = 'quiz-feedback feedback-warn'; }
-    else                    { fb.textContent = '✓ Got it';            fb.className = 'quiz-feedback feedback-warn'; }
+    const msgs = { '0': ['✓ Perfect!', 'feedback-gold'], '1': ['✓ Got it (1 wrong)', 'feedback-warn'],
+                   '2': ['✓ Got it (2 wrong)', 'feedback-warn'], 'giveup': ['✓ Got it', 'feedback-warn'] };
+    [fb.textContent, fb.className] = ['quiz-feedback ' + msgs[score][1], msgs[score][0]];
+    fb.textContent = msgs[score][0];
+    fb.className   = 'quiz-feedback ' + msgs[score][1];
 
     waitingForNext = true;
     clearTimeout(feedbackTimeout);
     feedbackTimeout = setTimeout(() => advanceClick(), 900);
   } else {
-    // wrong
     mistakeCount++;
     if (!wrongIds.includes(correctId)) wrongIds.push(correctId);
     document.getElementById('btn-giveup').style.display = '';
@@ -556,7 +619,6 @@ function updateClickPills() {
   document.getElementById('score-wrong').textContent   = scores.filter(s => s === 'giveup').length;
 }
 
-// Give up — click mode
 document.getElementById('btn-giveup').addEventListener('click', () => {
   if (waitingForNext) return;
   const correctId   = quizQueue[quizIndex];
@@ -566,9 +628,10 @@ document.getElementById('btn-giveup').addEventListener('click', () => {
   if (!wrongIds.includes(correctId)) wrongIds.push(correctId);
   applyScore(correctId, 'giveup');
 
-  document.getElementById('quiz-feedback').textContent = `→ It was: ${correctName}`;
-  document.getElementById('quiz-feedback').className   = 'quiz-feedback feedback-wrong';
-  document.getElementById('btn-giveup').style.display  = 'none';
+  const fb = document.getElementById('quiz-feedback');
+  fb.textContent = `→ It was: ${correctName}`;
+  fb.className   = 'quiz-feedback feedback-wrong';
+  document.getElementById('btn-giveup').style.display = 'none';
 
   waitingForNext = true;
   clearTimeout(feedbackTimeout);
@@ -580,10 +643,10 @@ document.getElementById('back-to-select').addEventListener('click', () => {
   showScreen('mapselect');
 });
 
-// ═══════════════════════════════════════════
+// ════════════════════════════════════════════
 //  FILL / TYPE MODE
-//  No queue — type any name, map fills as you go
-// ═══════════════════════════════════════════
+//  Free-type: blank map, type any name, it fills gold
+// ════════════════════════════════════════════
 function startFillQuiz(regionIds) {
   fillRemaining = [...regionIds];
   fillScores    = {};
@@ -612,46 +675,41 @@ function startFillQuiz(regionIds) {
   setTimeout(() => inp.focus(), 100);
 }
 
-// Build a lookup: normalized name → region id
-function buildNameLookup(regionIds) {
-  const map = {};
-  regionIds.forEach(id => {
-    const name = activeMap.regions[id] || id;
-    map[normalize(name)] = id;
-  });
-  return map;
-}
-
 document.getElementById('type-input').addEventListener('input', function() {
   if (quizMode !== 'type') return;
 
   const typed = this.value;
-  const lookup = buildNameLookup(fillRemaining);
+
+  // Build lookup from remaining regions only
+  const lookup = {};
+  fillRemaining.forEach(id => {
+    const name = activeMap.regions[id] || id;
+    lookup[normalize(name)] = id;
+  });
+
   const matchId = lookup[normalize(typed)];
+  if (!matchId) return;
 
-  if (matchId) {
-    // correct match — fill it gold
-    fillScores[matchId] = '0';
-    applyScore(matchId, '0');
-    fillRemaining = fillRemaining.filter(id => id !== matchId);
+  // Match found — fill it gold and clear input
+  fillScores[matchId] = '0';
+  applyScore(matchId, '0');
+  fillRemaining = fillRemaining.filter(id => id !== matchId);
 
-    const total   = Object.keys(activeMap.regions).length;
-    const done    = total - fillRemaining.length;
-    const name    = activeMap.regions[matchId] || matchId;
+  const total = Object.keys(activeMap.regions).length;
+  const done  = total - fillRemaining.length;
+  const name  = activeMap.regions[matchId] || matchId;
 
-    document.getElementById('type-count').textContent             = done + '/' + total;
-    document.getElementById('quiz-counter').textContent           = done + '/' + total;
-    document.getElementById('quiz-progress-fill').style.width     = (done / total * 100) + '%';
-    document.getElementById('score-correct').textContent          = done;
-    document.getElementById('quiz-feedback').textContent          = '✓ ' + name;
-    document.getElementById('quiz-feedback').className            = 'quiz-feedback feedback-gold';
+  document.getElementById('type-count').textContent             = done + '/' + total;
+  document.getElementById('quiz-counter').textContent           = done + '/' + total;
+  document.getElementById('quiz-progress-fill').style.width     = (done / total * 100) + '%';
+  document.getElementById('score-correct').textContent          = done;
+  document.getElementById('quiz-feedback').textContent          = '✓ ' + name;
+  document.getElementById('quiz-feedback').className            = 'quiz-feedback feedback-gold';
 
-    this.value     = '';
-    this.className = 'type-input';
+  this.value = '';
 
-    if (fillRemaining.length === 0) {
-      setTimeout(() => showFillResults(), 800);
-    }
+  if (fillRemaining.length === 0) {
+    setTimeout(() => showFillResults(), 800);
   }
 });
 
@@ -659,16 +717,14 @@ function showFillResults() {
   const total  = Object.keys(activeMap.regions).length;
   const done   = Object.keys(fillScores).length;
   const missed = total - done;
+  wrongIds = fillRemaining.slice();
 
-  // everything not found counts as missed
-  wrongIds = fillRemaining.slice(); // anything still remaining = not found
-
-  document.getElementById('result-score').textContent  = Math.round(done / total * 100) + '%';
-  document.getElementById('result-label').textContent  = activeMap.name;
-  document.getElementById('res-gold').textContent      = done;
-  document.getElementById('res-green').textContent     = 0;
-  document.getElementById('res-orange').textContent    = 0;
-  document.getElementById('res-red').textContent       = missed;
+  document.getElementById('result-score').textContent   = Math.round(done / total * 100) + '%';
+  document.getElementById('result-label').textContent   = activeMap.name;
+  document.getElementById('res-gold').textContent       = done;
+  document.getElementById('res-orange').textContent     = 0;
+  document.getElementById('res-dark').textContent       = 0;
+  document.getElementById('res-red').textContent        = missed;
 
   const wrongSection = document.getElementById('wrong-list');
   if (wrongIds.length) {
@@ -687,22 +743,22 @@ function showFillResults() {
   showScreen('results');
 }
 
-// ═══════════════════════════════════════════
+// ════════════════════════════════════════════
 //  RESULTS (click mode)
-// ═══════════════════════════════════════════
-function showResults() {
+// ════════════════════════════════════════════
+function showClickResults() {
   const total  = quizQueue.length;
   const scores = Object.values(scoreMap);
   const gold   = scores.filter(s => s === '0').length;
-  const green  = scores.filter(s => s === '1').length;
-  const orange = scores.filter(s => s === '2').length;
+  const orange = scores.filter(s => s === '1').length;
+  const dark   = scores.filter(s => s === '2').length;
   const red    = scores.filter(s => s === 'giveup').length;
 
   document.getElementById('result-score').textContent  = Math.round((total - red) / total * 100) + '%';
   document.getElementById('result-label').textContent  = activeMap.name;
   document.getElementById('res-gold').textContent      = gold;
-  document.getElementById('res-green').textContent     = green;
   document.getElementById('res-orange').textContent    = orange;
+  document.getElementById('res-dark').textContent      = dark;
   document.getElementById('res-red').textContent       = red;
 
   const wrongSection = document.getElementById('wrong-list');
@@ -734,9 +790,9 @@ document.getElementById('btn-restart').addEventListener('click', () => {
 });
 document.getElementById('btn-home').addEventListener('click', () => showScreen('home'));
 
-// ═══════════════════════════════════════════
+// ════════════════════════════════════════════
 //  IMPORT
-// ═══════════════════════════════════════════
+// ════════════════════════════════════════════
 function readFile(file) {
   return new Promise((res, rej) => {
     const r = new FileReader();
@@ -763,7 +819,7 @@ document.getElementById('import-json').addEventListener('change', async function
   catch(e) { alert('Invalid JSON file.'); }
 });
 
-document.getElementById('btn-add-import').addEventListener('click', () => {
+document.getElementById('btn-add-import').addEventListener('click', async () => {
   const id     = 'custom-' + Date.now();
   const newMap = {
     id,
@@ -787,21 +843,41 @@ document.getElementById('btn-add-import').addEventListener('click', () => {
     if (!confirm(`${matched.length}/${regionIds.length} matched. Unmatched: ${unmatched.slice(0,5).join(', ')}. Continue?`)) return;
   }
 
+  // Save to IndexedDB so it persists across page reloads
+  try {
+    await dbSaveMap(newMap);
+    savedMapIds.add(newMap.id);
+  } catch(e) {
+    console.warn('Could not save to IndexedDB:', e);
+  }
+
   maps.push(newMap);
   renderMapList();
   pendingImport = { svg: null, json: null };
   document.getElementById('import-svg').value  = '';
   document.getElementById('import-json').value = '';
   document.getElementById('btn-add-import').disabled = true;
-  alert(`"${newMap.name}" added with ${matched.length} regions!`);
+  alert(`"${newMap.name}" added and saved! It will still be here next time you open the app.`);
 });
 
-// ═══════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════
-loadBuiltIn();
+// ════════════════════════════════════════════
+//  INIT — open DB, restore saved maps, then load built-ins
+// ════════════════════════════════════════════
+async function init() {
+  try {
+    await openDB();
+    const saved = await dbLoadAllMaps();
+    saved.forEach(m => {
+      savedMapIds.add(m.id);
+      maps.push(m);
+    });
+  } catch(e) {
+    console.warn('IndexedDB unavailable — saved maps will not persist:', e);
+  }
+  await loadBuiltIn();
+}
+
+init();
 </script>
 </body>
 </html>
-HTMLEOF
-echo "done"
