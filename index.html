@@ -71,7 +71,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 /* QUIZ layout */
 #screen-quiz{flex-direction:column;overflow:hidden;}
 .quiz-header{padding:.75rem 1rem;display:flex;align-items:center;gap:.75rem;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg);}
-.quiz-progress-bar{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+.quiz-progress-bar{flex:1;height:10px;background:var(--border);border-radius:5px;overflow:hidden;}
 .quiz-progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .3s;}
 .quiz-counter{font-size:.82rem;color:var(--muted);white-space:nowrap;}
 .quiz-score-pill{display:flex;gap:.4rem;font-size:.8rem;white-space:nowrap;}
@@ -123,11 +123,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .quiz-map-wrap svg [data-score="giveup"] { fill: var(--red)        !important; }
 
 .quiz-map-wrap svg .region-wrong-flash { fill: var(--red) !important; transition: none !important; }
-@keyframes flash-answer {
-  0%,100%{ fill: var(--red)   !important; }
-  50%    { fill: #ff7700      !important; }
-}
-.quiz-map-wrap svg .region-flashing { animation: flash-answer .5s infinite; }
+/* flash hint: toggled on/off from JS — a !important class beats the base fill; a keyframe animation cannot */
+.quiz-map-wrap svg .region-flashing { fill: #ff7e26 !important; stroke:#ffffff !important; stroke-width:1.4 !important; }
 
 .quiz-feedback{height:38px;display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:600;flex-shrink:0;padding:0 1rem;text-align:center;}
 .feedback-correct{color:#2ec97a;} .feedback-wrong{color:var(--red);} .feedback-warn{color:var(--orange);} .feedback-gold{color:var(--gold);}
@@ -182,14 +179,36 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .guessed-cell.filled-fuzzy{background:rgba(240,130,30,.12);color:var(--orange);border-color:rgba(240,130,30,.25);}
 
 /* ── PROGRESS BAR: completion-% color thresholds (100% = completed) ── */
-.quiz-progress-fill.pf-red{background:var(--red);}
-.quiz-progress-fill.pf-orange{background:var(--orange);}
-.quiz-progress-fill.pf-green{background:#2ec97a;}
-.quiz-progress-fill.pf-gold{background:var(--gold);}
+.pf-red{background:var(--red)!important;}
+.pf-orange{background:var(--orange)!important;}
+.pf-green{background:#2ec97a!important;}
+.pf-gold{background:var(--gold)!important;}
+.result-bar{height:16px;background:var(--border);border-radius:8px;overflow:hidden;margin-top:.6rem;}
+.result-bar-fill{height:100%;border-radius:8px;width:0;transition:width .45s;}
+#quiz-pct{font-variant-numeric:tabular-nums;}
 
-.result-best{font-size:.85rem;color:var(--muted);margin-top:.2rem;}
+.result-best{font-size:.95rem;color:var(--text);font-weight:600;margin-top:.5rem;}
 .row-best{font-size:.7rem;color:var(--muted);margin-left:.4rem;}
 .home-add-btn{margin-top:.5rem;flex:none;}
+/* ── ZOOM reset buttons ── */
+.qz-zoom-reset,.ed-zoom-reset{position:absolute;top:8px;right:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:1rem;line-height:1;padding:.35rem .5rem;cursor:pointer;z-index:10;}
+.qz-zoom-reset:hover,.ed-zoom-reset:hover{border-color:var(--accent);}
+.quiz-map-wrap svg{touch-action:none;}
+
+/* ── SVG EDITOR ── */
+#screen-editor{flex-direction:column;overflow:hidden;}
+.ed-top{padding:.9rem 1rem;border-bottom:1px solid var(--border);flex-shrink:0;}
+.ed-bar{padding:.55rem 1rem;display:flex;gap:.6rem;align-items:center;border-bottom:1px solid var(--border);flex-shrink:0;}
+.ed-bar .map-search{flex:1;}
+.ed-progress{font-size:.8rem;color:var(--muted);white-space:nowrap;}
+.ed-name-bar{padding:.55rem 1rem;display:flex;gap:.45rem;align-items:center;border-top:1px solid var(--border);flex-shrink:0;}
+.ed-name-bar .type-input{flex:1;}
+.ed-actions{padding:.55rem 1rem;display:flex;gap:.45rem;flex-wrap:wrap;border-top:1px solid var(--border);flex-shrink:0;}
+.ed-actions .btn{flex:1;min-width:84px;padding:.55rem .5rem;font-size:.85rem;}
+#editor-map-wrap svg{width:100%;height:100%;max-height:100%;display:block;touch-action:none;}
+#editor-map-wrap svg path,#editor-map-wrap svg polygon,#editor-map-wrap svg polyline,#editor-map-wrap svg circle,#editor-map-wrap svg ellipse,#editor-map-wrap svg rect{fill:var(--surface2)!important;stroke:var(--border)!important;stroke-width:0.8!important;cursor:pointer;transition:fill .1s;}
+#editor-map-wrap svg .ed-named{fill:var(--gold)!important;}
+#editor-map-wrap svg .ed-current{fill:var(--accent)!important;stroke:#ffffff!important;stroke-width:1.6!important;}
 </style>
 </head>
 <body>
@@ -207,6 +226,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
       <div class="section-label">Browse by continent</div>
       <div class="continent-grid" id="map-list"></div>
       <button class="btn home-add-btn" id="btn-all-maps">📂 All maps / import a map</button>
+      <button class="btn home-add-btn" id="btn-open-editor">🛠 Build a map (SVG editor)</button>
     </div>
 
     <!-- Community maps -->
@@ -297,6 +317,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
   <div class="quiz-header">
     <button class="back-btn" id="back-to-select">←</button>
     <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="quiz-progress-fill"></div></div>
+    <div class="quiz-counter" id="quiz-pct">0%</div>
     <div class="quiz-counter" id="quiz-counter">0/0</div>
     <div class="quiz-score-pill">
       <span class="pill pill-correct" id="score-correct">0</span>
@@ -317,6 +338,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 
   <div class="quiz-body">
     <div class="quiz-map-wrap" id="quiz-map-wrap">
+      <button class="qz-zoom-reset" id="quiz-zoom-reset" title="Reset zoom">⤢</button>
       <button id="btn-giveup">Give up</button>
     </div>
     <!-- Guessed panel shown only in fill mode -->
@@ -336,6 +358,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
       <div class="result-label" id="result-label"></div>
       <div class="result-best" id="result-best"></div>
     </div>
+    <div class="result-bar"><div class="result-bar-fill" id="result-bar-fill"></div></div>
     <div class="result-stats" style="margin-top:1rem;">
       <div class="stat-card"><div class="stat-num" style="color:var(--gold)"       id="res-gold">0</div><div class="stat-lbl">Perfect</div></div>
       <div class="stat-card"><div class="stat-num" style="color:var(--orange)"     id="res-orange">0</div><div class="stat-lbl">1 wrong</div></div>
@@ -353,6 +376,50 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 
 <!-- SHARE MODAL -->
    <!-- (continent browsing now lives on the home screen) -->
+<!-- SVG EDITOR -->
+<div id="screen-editor" class="screen">
+  <div class="ed-top back-row">
+    <button class="back-btn" id="editor-back">←</button>
+    <h2 class="screen-title">SVG Editor</h2>
+  </div>
+
+  <!-- upload state -->
+  <div id="editor-upload" style="padding:1.5rem 1.25rem;display:flex;flex-direction:column;gap:.75rem;">
+    <p style="color:var(--muted);font-size:.88rem;line-height:1.65;">
+      Upload an SVG, click each region on the map, and type its name. Build a quiz map right here — no Inkscape needed.
+      Each region should be its own shape; any shape without an id gets one automatically.
+    </p>
+    <label class="btn btn-primary" for="editor-svg">📂 Choose SVG file</label>
+    <input type="file" id="editor-svg" accept=".svg" style="display:none"/>
+    <span id="editor-upload-status" style="font-size:.8rem;color:var(--muted);"></span>
+  </div>
+
+  <!-- editing state -->
+  <div id="editor-work" style="display:none;flex:1;min-height:0;flex-direction:column;">
+    <div class="ed-bar">
+      <input class="map-search" id="editor-map-name" type="text" placeholder="Map name (e.g. Regions of Georgia)" autocomplete="off"/>
+      <div class="ed-progress" id="editor-progress">0 / 0 named</div>
+    </div>
+    <div class="quiz-body" style="flex:1;min-height:0;">
+      <div class="quiz-map-wrap" id="editor-map-wrap">
+        <button class="ed-zoom-reset" id="editor-zoom-reset" title="Reset zoom">⤢</button>
+      </div>
+    </div>
+    <div class="ed-name-bar">
+      <button class="btn" id="editor-prev" style="flex:none;">‹</button>
+      <input class="type-input" id="editor-name" type="text" placeholder="Name this region…" autocomplete="off" autocorrect="off" spellcheck="false"/>
+      <button class="btn btn-primary" id="editor-save" style="flex:none;">Save</button>
+      <button class="btn" id="editor-next" style="flex:none;">›</button>
+    </div>
+    <div class="ed-actions">
+      <button class="btn" id="editor-export-json">⬇ JSON</button>
+      <button class="btn" id="editor-export-svg">⬇ Clean SVG</button>
+      <button class="btn" id="editor-save-local">💾 Save locally</button>
+      <button class="btn btn-primary" id="editor-start-quiz">▶ Start quiz</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="share-modal">
   <div class="modal">
     <h2>🌐 Share map online</h2>
@@ -692,6 +759,8 @@ function fuzzyFind(input, ids){
   if(!q)return null;
   for(const id of ids){if(normalize(activeMap.regions[id]||id)===q)return {id,exact:true};}
   if(q.length<3)return null;
+  // still typing toward an exact answer? (input is a prefix of an unguessed name) — don't steal it with a hint
+  for(const id of ids){const nm=normalize(activeMap.regions[id]||id);if(nm.length>q.length&&nm.startsWith(q))return null;}
   const cands=[];
   for(const id of ids){
     const name=normalize(activeMap.regions[id]||id);
@@ -710,20 +779,25 @@ function fuzzyFind(input, ids){
 function getSvg(){return document.querySelector('#quiz-map-wrap svg');}
 function getEl(id){return getSvg()?.getElementById(id);}
 // completion-% progress bar with color thresholds (only 100% counts as completed)
+function colorBar(el,pct){
+  if(!el)return;
+  el.style.width=pct+'%';
+  el.classList.remove('pf-red','pf-orange','pf-green','pf-gold');
+  el.classList.add(pct>=100?'pf-gold':pct>=75?'pf-green':pct>=50?'pf-orange':'pf-red');
+}
 function setProgress(pct){
-  const f=document.getElementById('quiz-progress-fill');
-  f.style.width=pct+'%';
-  f.classList.remove('pf-red','pf-orange','pf-green','pf-gold');
-  f.classList.add(pct>=100?'pf-gold':pct>=75?'pf-green':pct>=50?'pf-orange':'pf-red');
+  colorBar(document.getElementById('quiz-progress-fill'),pct);
+  const p=document.getElementById('quiz-pct');if(p)p.textContent=pct+'%';
 }
 function clickCompletionPct(){const t=quizQueue.length||1;const done=Object.values(scoreMap).filter(s=>s!=='giveup').length;return Math.round(done/t*100);}
 
 // Strip ALL inline fill/stroke/style from every SVG element so CSS wins
-function sanitizeSvg(){
-  const svg=getSvg();if(!svg)return;
+function stripStyles(svg){
+  if(!svg)return;
   const STRIP=['fill','fill-opacity','stroke','stroke-width','stroke-opacity','stroke-linecap','stroke-linejoin','style'];
   svg.querySelectorAll('*').forEach(el=>STRIP.forEach(a=>el.removeAttribute(a)));
 }
+function sanitizeSvg(){stripStyles(getSvg());}
 
 function applyScore(id,score){
   const el=getEl(id);if(!el)return;
@@ -731,19 +805,28 @@ function applyScore(id,score){
   el.setAttribute('data-score',score);
 }
 
+let flashTimer=null;
 function stopFlash(){
-  const el=getSvg()?.querySelector('.region-flashing');
-  if(el)el.classList.remove('region-flashing');
+  if(flashTimer){clearInterval(flashTimer);flashTimer=null;}
+  getSvg()?.querySelectorAll('.region-flashing').forEach(el=>el.classList.remove('region-flashing'));
 }
 
-function startFlash(id){stopFlash();getEl(id)?.classList.add('region-flashing');}
+function startFlash(id){
+  stopFlash();
+  const el=getEl(id);if(!el)return;
+  let on=true;el.classList.add('region-flashing');
+  flashTimer=setInterval(()=>{on=!on;el.classList.toggle('region-flashing',on);},340);
+}
 
 function loadMapIntoQuiz(){
   const wrap=document.getElementById('quiz-map-wrap');
   const giveup=document.getElementById('btn-giveup');
+  const zr=document.getElementById('quiz-zoom-reset');
   wrap.innerHTML=activeMap.svgText;
   wrap.appendChild(giveup);
+  if(zr)wrap.appendChild(zr);
   sanitizeSvg();
+  if(window.quizZoom)quizZoom.reset();
 }
 
 // ════════════════════════════════════════════
@@ -786,6 +869,8 @@ function renderClickQuestion(){
 }
 
 function handleClick(cid){
+  const w=document.getElementById('quiz-map-wrap');
+  if(w&&w._dragMoved){w._dragMoved=false;return;}
   if(waitingForNext){advanceClick();return;}
   const correctId=quizQueue[quizIndex];
   const fb=document.getElementById('quiz-feedback');
@@ -910,6 +995,7 @@ function showFillResults(){
   Bus.emit('quiz:complete',{mapId:activeMap.id,pct,perfect:pct===100,mode:'fill'});
   document.getElementById('result-score').textContent=pct+'%';
   document.getElementById('result-best').textContent='Best: '+getBest(activeMap.id)+'%';
+  colorBar(document.getElementById('result-bar-fill'),pct);
   document.getElementById('result-label').textContent=activeMap.name;
   document.getElementById('res-gold').textContent=exact;
   document.getElementById('res-orange').textContent=fuzzy;
@@ -935,6 +1021,7 @@ function showClickResults(){
   Bus.emit('quiz:complete',{mapId:activeMap.id,pct,perfect:pct===100,mode:'click'});
   document.getElementById('result-score').textContent=pct+'%';
   document.getElementById('result-best').textContent='Best: '+getBest(activeMap.id)+'%';
+  colorBar(document.getElementById('result-bar-fill'),pct);
   document.getElementById('result-label').textContent=activeMap.name;
   document.getElementById('res-gold').textContent=gold;
   document.getElementById('res-orange').textContent=orange;
@@ -998,6 +1085,166 @@ document.getElementById('btn-add-import').addEventListener('click',async()=>{
   document.getElementById('lbl-json').textContent='📋 JSON data';
   document.getElementById('btn-add-import').disabled=true;
   alert(`"${newMap.name}" saved! It will still be here next time you open the app.`);
+});
+
+// ════════════════════════════════════════════
+//  ZOOM / PAN  (wheel + drag + pinch, per map wrap)
+//  Pans only when zoomed in, so default-zoom clicks behave exactly as before.
+// ════════════════════════════════════════════
+function attachZoom(wrap){
+  if(!wrap)return null;
+  let scale=1,tx=0,ty=0,dragging=false,sx=0,sy=0,pinch=0,pinchScale=1;
+  const svgEl=()=>wrap.querySelector('svg');
+  const clamp=v=>Math.min(12,Math.max(1,v));
+  function apply(){const s=svgEl();if(s){s.style.transformOrigin='0 0';s.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`;}}
+  function reset(){scale=1;tx=0;ty=0;wrap._dragMoved=false;apply();}
+  wrap.addEventListener('wheel',e=>{
+    if(!svgEl())return; e.preventDefault();
+    const r=wrap.getBoundingClientRect(), cx=e.clientX-r.left, cy=e.clientY-r.top;
+    const ns=clamp(scale*(e.deltaY<0?1.15:1/1.15));
+    tx=cx-(cx-tx)*(ns/scale); ty=cy-(cy-ty)*(ns/scale); scale=ns;
+    if(scale===1){tx=0;ty=0;} apply();
+  },{passive:false});
+  wrap.addEventListener('pointerdown',e=>{ if(e.pointerType==='touch')return; dragging=true; wrap._dragMoved=false; sx=e.clientX; sy=e.clientY; });
+  wrap.addEventListener('pointermove',e=>{
+    if(!dragging||scale<=1)return;
+    const dx=e.clientX-sx, dy=e.clientY-sy; sx=e.clientX; sy=e.clientY;
+    if(Math.abs(dx)+Math.abs(dy)>2){wrap._dragMoved=true; tx+=dx; ty+=dy; apply();}
+  });
+  window.addEventListener('pointerup',()=>{dragging=false;});
+  wrap.addEventListener('touchstart',e=>{
+    if(e.touches.length===1){dragging=true;wrap._dragMoved=false;sx=e.touches[0].clientX;sy=e.touches[0].clientY;}
+    else if(e.touches.length===2){pinch=tdist(e);pinchScale=scale;dragging=false;}
+  },{passive:true});
+  wrap.addEventListener('touchmove',e=>{
+    if(e.touches.length===2&&pinch){e.preventDefault();scale=clamp(pinchScale*tdist(e)/pinch);if(scale===1){tx=0;ty=0;}apply();}
+    else if(e.touches.length===1&&dragging&&scale>1){
+      const dx=e.touches[0].clientX-sx, dy=e.touches[0].clientY-sy; sx=e.touches[0].clientX; sy=e.touches[0].clientY;
+      if(Math.abs(dx)+Math.abs(dy)>2){e.preventDefault();wrap._dragMoved=true; tx+=dx; ty+=dy; apply();}
+    }
+  },{passive:false});
+  wrap.addEventListener('touchend',e=>{ if(e.touches.length<2)pinch=0; if(e.touches.length===0)dragging=false; });
+  function tdist(e){const a=e.touches[0],b=e.touches[1];return Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);}
+  return {reset,apply};
+}
+const quizZoom=attachZoom(document.getElementById('quiz-map-wrap'));
+const editorZoom=attachZoom(document.getElementById('editor-map-wrap'));
+window.quizZoom=quizZoom; window.editorZoom=editorZoom;
+document.getElementById('quiz-zoom-reset')?.addEventListener('click',()=>quizZoom&&quizZoom.reset());
+document.getElementById('editor-zoom-reset')?.addEventListener('click',()=>editorZoom&&editorZoom.reset());
+
+// ════════════════════════════════════════════
+//  SVG EDITOR  (click regions → name them → export / save / play)
+// ════════════════════════════════════════════
+let edIds=[], edNames={}, edIndex=0, edClean='';
+const EDIT_SHAPES='path,polygon,polyline,circle,ellipse,rect';
+
+function openEditor(){
+  document.getElementById('editor-upload').style.display='';
+  document.getElementById('editor-work').style.display='none';
+  document.getElementById('editor-upload-status').textContent='';
+  document.getElementById('editor-svg').value='';
+  showScreen('editor');
+}
+document.getElementById('btn-open-editor').addEventListener('click',openEditor);
+document.getElementById('editor-back').addEventListener('click',()=>showScreen('home'));
+
+document.getElementById('editor-svg').addEventListener('change',async function(){
+  if(!this.files[0])return;
+  const text=await readFile(this.files[0]);
+  loadEditorSvg(text, this.files[0].name.replace(/\.svg$/i,''));
+});
+
+function loadEditorSvg(svgText, baseName){
+  const wrap=document.getElementById('editor-map-wrap');
+  const resetBtn=document.getElementById('editor-zoom-reset');
+  wrap.innerHTML='';
+  wrap.insertAdjacentHTML('afterbegin', svgText);
+  if(resetBtn)wrap.appendChild(resetBtn);
+  const svg=wrap.querySelector('svg');
+  if(!svg){document.getElementById('editor-upload-status').textContent='That file is not a valid SVG.';return;}
+  stripStyles(svg);
+  edIds=[]; let auto=0;
+  svg.querySelectorAll(EDIT_SHAPES).forEach(el=>{
+    if(!el.id)el.id='r'+(++auto);
+    edIds.push(el.id);
+    el.addEventListener('click',()=>{ if(wrap._dragMoved){wrap._dragMoved=false;return;} selectRegion(edIds.indexOf(el.id)); });
+  });
+  if(!edIds.length){document.getElementById('editor-upload-status').textContent='No shapes found in this SVG to name.';return;}
+  edClean=new XMLSerializer().serializeToString(svg);
+  edNames={}; edIndex=0;
+  document.getElementById('editor-map-name').value=baseName||'My map';
+  document.getElementById('editor-upload').style.display='none';
+  document.getElementById('editor-work').style.display='flex';
+  if(editorZoom)editorZoom.reset();
+  selectRegion(0);
+  updateEditorProgress();
+}
+
+function selectRegion(i){
+  if(!edIds.length)return;
+  edIndex=(i+edIds.length)%edIds.length;
+  const svg=document.querySelector('#editor-map-wrap svg');
+  svg?.querySelectorAll('.ed-current').forEach(el=>el.classList.remove('ed-current'));
+  const id=edIds[edIndex];
+  svg?.getElementById(id)?.classList.add('ed-current');
+  const inp=document.getElementById('editor-name');
+  inp.value=edNames[id]||''; inp.focus();
+}
+function saveEditorName(){
+  const id=edIds[edIndex];
+  const name=document.getElementById('editor-name').value.trim();
+  const el=document.querySelector('#editor-map-wrap svg')?.getElementById(id);
+  if(name){edNames[id]=name; el&&el.classList.add('ed-named');}
+  else{delete edNames[id]; el&&el.classList.remove('ed-named');}
+  updateEditorProgress();
+  const nextUn=edIds.findIndex((x,k)=>k>edIndex && !edNames[x]);
+  const anyUn=edIds.findIndex(x=>!edNames[x]);
+  selectRegion(nextUn>=0?nextUn:(anyUn>=0?anyUn:edIndex+1));
+}
+function updateEditorProgress(){
+  document.getElementById('editor-progress').textContent=Object.keys(edNames).length+' / '+edIds.length+' named';
+}
+document.getElementById('editor-save').addEventListener('click',saveEditorName);
+document.getElementById('editor-name').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();saveEditorName();}});
+document.getElementById('editor-prev').addEventListener('click',()=>selectRegion(edIndex-1));
+document.getElementById('editor-next').addEventListener('click',()=>selectRegion(edIndex+1));
+
+function editorMapMeta(){return {name:(document.getElementById('editor-map-name').value.trim()||'My map'), regions:{...edNames}};}
+function downloadFile(filename, text, type){
+  const url=URL.createObjectURL(new Blob([text],{type}));
+  const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click();
+  a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function editorNeedsRegions(){
+  if(Object.keys(edNames).length)return true;
+  alert('Name at least one region first.'); return false;
+}
+document.getElementById('editor-export-json').addEventListener('click',()=>{
+  if(!editorNeedsRegions())return;
+  const m=editorMapMeta();
+  downloadFile((m.name||'map')+'.json', JSON.stringify(m,null,2), 'application/json');
+});
+document.getElementById('editor-export-svg').addEventListener('click',()=>{
+  if(!edClean){alert('Upload an SVG first.');return;}
+  downloadFile((editorMapMeta().name||'map')+'.svg', edClean, 'image/svg+xml');
+});
+document.getElementById('editor-save-local').addEventListener('click',async()=>{
+  if(!editorNeedsRegions())return;
+  const m=editorMapMeta();
+  const map={id:'custom-'+Date.now(), name:m.name, svgText:edClean, regions:m.regions};
+  try{await dbSave(map);savedIds.add(map.id);}catch(e){console.warn('save failed',e);}
+  maps.push(map); renderMapList();
+  alert(`"${m.name}" saved to your library (under ${getContinent(map)}).`);
+});
+document.getElementById('editor-start-quiz').addEventListener('click',()=>{
+  if(!editorNeedsRegions())return;
+  const m=editorMapMeta();
+  activeMap={id:'editor-'+Date.now(), name:m.name, svgText:edClean, regions:m.regions};
+  document.getElementById('mapselect-title').textContent=activeMap.name;
+  document.getElementById('mapselect-sub').textContent=Object.keys(activeMap.regions).length+' regions';
+  document.getElementById('btn-share-map').style.display='none';
+  showScreen('mapselect');
 });
 
 // ════════════════════════════════════════════
