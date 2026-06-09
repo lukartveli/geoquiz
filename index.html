@@ -33,6 +33,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .badge-community{border-color:#3d2a5c;color:#a06ad4;background:rgba(160,106,212,.08);}
 .map-item-actions{display:flex;align-items:center;gap:.3rem;flex-shrink:0;}
 .icon-btn{background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;padding:.25rem .4rem;border-radius:6px;line-height:1;transition:color .15s,background .15s;}
+.icon-btn.fav{font-size:1.15rem;}
+.icon-btn.fav.on{color:var(--gold);}
+.icon-btn.fav:hover{color:var(--gold);}
 .icon-btn:hover{color:var(--text);background:var(--border);}
 .icon-btn.del:hover{color:var(--red);background:rgba(232,85,85,.12);}
 .map-item-arrow{color:var(--muted);font-size:1.2rem;cursor:pointer;}
@@ -244,25 +247,32 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
   </div>
 
   <div style="padding:0 1.25rem;display:flex;flex-direction:column;gap:1.25rem;padding-bottom:1.5rem;">
-    <!-- Browse by continent -->
-    <div>
-      <div class="section-label">Browse by continent</div>
-      <div class="continent-grid" id="map-list"></div>
-      <button class="btn home-add-btn" id="btn-all-maps">📂 All maps / import a map</button>
-      <button class="btn home-add-btn" id="btn-open-editor">🛠 Build a map (SVG editor)</button>
-      <button class="btn home-add-btn" id="btn-open-stats">📊 Stats &amp; achievements</button>
-    </div>
-
-    <!-- Community maps -->
-    <div class="community-section">
-      <div style="display:flex;align-items:center;justify-content:space-between;">
-        <div class="section-label" style="margin-bottom:0">🌐 Community Maps</div>
-        <button class="btn" id="btn-refresh-community" style="flex:none;padding:.35rem .7rem;font-size:.75rem;">↺ Refresh</button>
+    <input id="home-search" class="map-search" type="text" placeholder="🔍 Search all quizzes…" autocomplete="off"/>
+    <div id="home-results" class="map-list" style="display:none;"></div>
+    <div id="home-default" style="display:flex;flex-direction:column;gap:1.25rem;">
+      <!-- Favorites -->
+      <div id="fav-section" style="display:none;">
+        <div class="section-label">⭐ Favorites</div>
+        <div class="map-list" id="fav-list"></div>
       </div>
-      <div class="map-list" id="community-list"><div class="community-empty">Loading…</div></div>
-    </div>
+      <!-- Browse by continent -->
+      <div>
+        <div class="section-label">Browse by continent</div>
+        <div class="continent-grid" id="map-list"></div>
+        <button class="btn home-add-btn" id="btn-all-maps">📂 All maps / import a map</button>
+        <button class="btn home-add-btn" id="btn-open-editor">🛠 Build a map (SVG editor)</button>
+        <button class="btn home-add-btn" id="btn-open-stats">📊 Stats &amp; achievements</button>
+      </div>
 
-    <!-- Import -->
+      <!-- Community maps -->
+      <div class="community-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="section-label" style="margin-bottom:0">🌐 Community Maps</div>
+          <button class="btn" id="btn-refresh-community" style="flex:none;padding:.35rem .7rem;font-size:.75rem;">↺ Refresh</button>
+        </div>
+        <div class="map-list" id="community-list"><div class="community-empty">Loading…</div></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -522,6 +532,7 @@ let maps=[], savedIds=new Set(), pendingImport={svg:null,json:null};
 let activeMap=null, quizMode='click';
 // click mode
 let quizQueue=[], quizIndex=0, mistakeCount=0, waitingForNext=false;
+let correctClicks=0, wrongClicks=0; // click-accuracy: correct/(correct+wrong)
 let feedbackTimeout=null, scoreMap={}, wrongIds=[];
 // fill mode
 let fillRemaining=[], fillScores={}, guessedNames=[];
@@ -644,6 +655,8 @@ async function loadBuiltIn(){
 //  MAP LIST
 // ════════════════════════════════════════════
 function renderMapList(){
+  renderFavorites();
+  if(document.getElementById('home-search')&&document.getElementById('home-search').value.trim())runHomeSearch();
   const grid=document.getElementById('map-list');
   grid.innerHTML='';
   const counts={};
@@ -675,11 +688,14 @@ function makeMapItem(m){
       </div>
     </div>
     <div class="map-item-actions">
+      <button class="icon-btn fav${isFav(m.id)?' on':''}" title="Favorite">${isFav(m.id)?'★':'☆'}</button>
       ${isSaved?`<button class="icon-btn del" title="Delete">🗑</button>`:''}
       <div class="map-item-arrow">›</div>
     </div>`;
   div.querySelector('.map-item-inner').addEventListener('click',()=>openMapSelect(m.id));
   div.querySelector('.map-item-arrow').addEventListener('click',()=>openMapSelect(m.id));
+  const favBtn=div.querySelector('.icon-btn.fav');
+  favBtn.addEventListener('click',e=>{e.stopPropagation();toggleFav(m.id);favBtn.textContent=isFav(m.id)?'★':'☆';favBtn.classList.toggle('on',isFav(m.id));renderFavorites();});
   const del=div.querySelector('.icon-btn.del');
   if(del)del.addEventListener('click',async e=>{
     e.stopPropagation();
@@ -726,10 +742,13 @@ function makePickRow(m){
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:.4rem;flex-shrink:0;">
+      <button class="icon-btn fav${isFav(m.id)?' on':''}" title="Favorite">${isFav(m.id)?'★':'☆'}</button>
       ${isSaved?`<button class="icon-btn del" title="Delete">🗑</button>`:''}
       <select class="reassign" title="Move to continent">${opts}</select>
     </div>`;
   row.querySelector('.map-item-inner').addEventListener('click',()=>openMapSelect(m.id));
+  const favBtn=row.querySelector('.icon-btn.fav');
+  favBtn.addEventListener('click',e=>{e.stopPropagation();toggleFav(m.id);favBtn.textContent=isFav(m.id)?'★':'☆';favBtn.classList.toggle('on',isFav(m.id));renderFavorites();});
   const del=row.querySelector('.icon-btn.del');
   if(del)del.addEventListener('click',async e=>{
     e.stopPropagation();
@@ -746,6 +765,34 @@ function makePickRow(m){
 document.getElementById('pickmap-back').addEventListener('click',()=>showScreen('home'));
 document.getElementById('map-search').addEventListener('input',renderPickMap);
 document.getElementById('btn-all-maps').addEventListener('click',()=>openContinent(null));
+
+// ════════════════════════════════════════════
+//  FAVORITES + GLOBAL SEARCH
+// ════════════════════════════════════════════
+const LS_FAV='gq:favorites';
+let favIds=(()=>{try{return new Set(JSON.parse(localStorage.getItem(LS_FAV))||[]);}catch(e){return new Set();}})();
+function isFav(id){return favIds.has(id);}
+function toggleFav(id){ favIds.has(id)?favIds.delete(id):favIds.add(id); try{localStorage.setItem(LS_FAV,JSON.stringify([...favIds]));}catch(e){} }
+function renderFavorites(){
+  const sec=document.getElementById('fav-section'), list=document.getElementById('fav-list');
+  if(!sec||!list)return;
+  const favs=maps.filter(m=>favIds.has(m.id));
+  if(!favs.length){sec.style.display='none';list.innerHTML='';return;}
+  sec.style.display=''; list.innerHTML='';
+  favs.forEach(m=>list.appendChild(makeMapItem(m)));
+}
+function runHomeSearch(){
+  const input=document.getElementById('home-search'); if(!input)return;
+  const raw=input.value||'', q=normalize(raw);
+  const results=document.getElementById('home-results'), def=document.getElementById('home-default');
+  if(!q){results.style.display='none';results.innerHTML='';def.style.display='';return;}
+  def.style.display='none'; results.style.display='';
+  const items=maps.filter(m=>normalize(m.name).includes(q));
+  results.innerHTML='';
+  if(!items.length){results.innerHTML=`<p style="color:var(--muted);font-size:.85rem;text-align:center;padding:1rem 0">No quizzes match “${raw}”.</p>`;return;}
+  items.forEach(m=>results.appendChild(makeMapItem(m)));
+}
+document.getElementById('home-search').addEventListener('input',runHomeSearch);
 
 // ════════════════════════════════════════════
 //  COMMUNITY MAPS
@@ -938,7 +985,7 @@ function setProgress(pct){
   colorBar(document.getElementById('quiz-progress-fill'),pct);
   const p=document.getElementById('quiz-pct');if(p)p.textContent=pct+'%';
 }
-function clickCompletionPct(){const t=quizQueue.length||1;const done=Object.values(scoreMap).filter(s=>s!=='giveup').length;return Math.round(done/t*100);}
+function clickCompletionPct(){const t=correctClicks+wrongClicks;return t?Math.round(correctClicks/t*100):100;}
 
 // Strip ALL inline fill/stroke/style from every SVG element so CSS wins
 function stripStyles(svg){
@@ -985,6 +1032,7 @@ function loadMapIntoQuiz(){
 // ════════════════════════════════════════════
 function startClickQuiz(regionIds){
   quizQueue=shuffle(regionIds);quizIndex=0;wrongIds=[];scoreMap={};mistakeCount=0;waitingForNext=false;
+  correctClicks=0;wrongClicks=0;
   quizStartTime=Date.now();
   stopFlash();clearTimeout(feedbackTimeout);
   loadMapIntoQuiz();
@@ -1023,14 +1071,15 @@ function handleClick(cid){
   const fb=document.getElementById('quiz-feedback');
   if(rid===correctId){
     const score=mistakeCount===0?'0':mistakeCount===1?'1':mistakeCount===2?'2':'giveup';
-    scoreMap[correctId]=score;stopFlash();applyScore(correctId,score);setProgress(clickCompletionPct());
+    scoreMap[correctId]=score;correctClicks++;stopFlash();applyScore(correctId,score);setProgress(clickCompletionPct());
     if(score!=='giveup')wrongIds=wrongIds.filter(i=>i!==correctId);
     const msgs={'0':['✓ Perfect!','feedback-gold'],'1':['✓ Got it (1 wrong)','feedback-warn'],'2':['✓ Got it (2 wrong)','feedback-warn'],'giveup':['✓ Got it','feedback-warn']};
     fb.textContent=msgs[score][0];fb.className='quiz-feedback '+msgs[score][1];
     waitingForNext=true;clearTimeout(feedbackTimeout);
     feedbackTimeout=setTimeout(()=>advanceClick(),900);
   }else{
-    mistakeCount++;if(!wrongIds.includes(correctId))wrongIds.push(correctId);
+    mistakeCount++;wrongClicks++;if(!wrongIds.includes(correctId))wrongIds.push(correctId);
+    setProgress(clickCompletionPct());
     document.getElementById('btn-giveup').style.display='';
     const wrongEl=getEl(clickedShape);
     if(wrongEl&&!wrongEl.getAttribute('data-score')){
@@ -1165,8 +1214,9 @@ function showClickResults(){
   const total=quizQueue.length,sc=Object.values(scoreMap);
   const gold=sc.filter(s=>s==='0').length,orange=sc.filter(s=>s==='1').length;
   const dark=sc.filter(s=>s==='2').length,red=sc.filter(s=>s==='giveup').length;
-  const pct=Math.round((total-red)/total*100);
+  const pct=clickCompletionPct();           // correct clicks / (correct + wrong clicks)
   const correct=gold+orange+dark;
+  const imperfect=quizQueue.filter(id=>scoreMap[id]&&scoreMap[id]!=='0');
   const bestStreak=bestStreakOf(quizQueue,scoreMap);
   Bus.emit('quiz:complete',{mapId:activeMap.id,name:activeMap.name,pct,perfect:pct===100,mode:'click',durationMs:Date.now()-quizStartTime,total,correct,exact:gold,bestStreak});
   document.getElementById('result-score').textContent=pct+'%';
@@ -1178,16 +1228,17 @@ function showClickResults(){
   document.getElementById('res-dark').textContent=dark;
   document.getElementById('res-red').textContent=red;
   const ws=document.getElementById('wrong-list');
-  if(wrongIds.length){
-    ws.innerHTML='<h3>Missed regions</h3>';
-    wrongIds.forEach(id=>{
-      const s=scoreMap[id]||'giveup';
+  if(imperfect.length){
+    ws.innerHTML='<h3>Review these</h3>';
+    imperfect.forEach(id=>{
+      const s=scoreMap[id];
       const dot=s==='giveup'?'🔴':s==='2'?'🟠':'🟡';
       const d=document.createElement('div');d.className='wrong-item';
       d.innerHTML=`<span>${dot}</span>${activeMap.regions[id]||id}`;ws.appendChild(d);
     });
-  }else{ws.innerHTML='<p style="color:var(--gold);text-align:center;font-weight:600;font-size:1.1rem">🏆 Perfect score!</p>';}
-  document.getElementById('btn-review').style.display=wrongIds.length?'':'none';
+  }else{ws.innerHTML='<p style="color:var(--gold);text-align:center;font-weight:600;font-size:1.1rem">🏆 Flawless — every region first try!</p>';}
+  wrongIds=imperfect;
+  document.getElementById('btn-review').style.display=imperfect.length?'':'none';
   showScreen('results');
 }
 document.getElementById('btn-review').addEventListener('click',()=>{if(quizMode==='click')startClickQuiz(wrongIds);else startFillQuiz(wrongIds);});
