@@ -235,9 +235,65 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .ach-toast-ic{font-size:1.7rem;}
 .ach-toast-t{font-size:.66rem;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;}
 .ach-toast-n{font-size:.92rem;font-weight:600;}
+/* ── BLURRED WORLD BACKGROUND ── */
+#world-bg{position:fixed;inset:0;z-index:-1;background:#bfe6f5;overflow:hidden;opacity:0;transition:opacity .55s ease;pointer-events:none;}
+#world-bg.show{opacity:1;}
+#world-bg svg{position:absolute;inset:0;width:100%;height:100%;filter:blur(44px) saturate(1.15);transform:scale(1.08);transform-origin:50% 50%;transition:transform .7s ease;}
+#world-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,17,23,.60),rgba(15,17,23,.72));}
+.wbg-land{fill:#5a8a64;}
+/* ── LEARN MODE ── */
+.quiz-map-wrap svg .region-learn{fill:var(--accent)!important;stroke:#fff!important;stroke-width:1.2!important;}
+.guessed-cell.learn-cell{cursor:pointer;}
+.guessed-cell.learn-active{outline:2px solid var(--accent);outline-offset:-2px;}
+#screen-quiz.learn-mode .quiz-score-pill,#screen-quiz.learn-mode .quiz-progress-bar,#screen-quiz.learn-mode #quiz-pct,#screen-quiz.learn-mode #quiz-counter{display:none;}
+/* ── ARCHIPELAGO MARQUEE ── */
+#ed-marquee{position:absolute;inset:0;z-index:8;display:none;}
+#ed-marquee.on{display:block;cursor:crosshair;}
+#ed-marquee-box{position:absolute;border:1.5px dashed var(--accent);background:rgba(79,124,255,.18);border-radius:3px;display:none;pointer-events:none;}
+/* ── LEADERBOARD ── */
+#screen-leaderboard{flex-direction:column;overflow:hidden;}
+.lb-tabs{display:flex;gap:.5rem;padding:.4rem 1rem 0;}
+.lb-tab{flex:1;text-align:center;padding:.55rem;border-radius:10px 10px 0 0;background:var(--surface);border:1px solid var(--border);border-bottom:none;color:var(--muted);cursor:pointer;font-size:.85rem;font-weight:600;}
+.lb-tab.active{background:var(--surface2);color:var(--text);}
+.lb-list{flex:1;min-height:0;overflow-y:auto;padding:.6rem 1rem 1.2rem;}
+.lb-row{display:flex;align-items:center;gap:.6rem;padding:.55rem .2rem;border-bottom:1px solid var(--border);font-size:.9rem;}
+.lb-rank{width:1.8rem;text-align:center;font-weight:700;color:var(--muted);flex:none;}
+.lb-row.me{background:rgba(79,124,255,.08);border-radius:6px;}
+.lb-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.lb-pct{font-weight:700;}
+.lb-time{color:var(--muted);font-size:.78rem;width:3.5rem;text-align:right;flex:none;}
+.lb-empty{color:var(--muted);font-size:.85rem;text-align:center;padding:1.5rem 0;line-height:1.6;}
 </style>
 </head>
 <body>
+
+<div id="world-bg" aria-hidden="true">
+  <svg viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid slice">
+    <!-- rough continent blobs; heavy CSS blur turns these into a soft world map -->
+    <g class="wbg-land">
+      <!-- North America -->
+      <ellipse cx="175" cy="140" rx="95" ry="70"/>
+      <ellipse cx="150" cy="95" rx="70" ry="40"/>
+      <ellipse cx="235" cy="180" rx="40" ry="55"/>
+      <!-- South America -->
+      <ellipse cx="300" cy="320" rx="48" ry="80"/>
+      <ellipse cx="285" cy="270" rx="40" ry="40"/>
+      <!-- Europe -->
+      <ellipse cx="520" cy="130" rx="45" ry="38"/>
+      <!-- Africa -->
+      <ellipse cx="545" cy="280" rx="62" ry="85"/>
+      <ellipse cx="525" cy="215" rx="55" ry="40"/>
+      <!-- Asia -->
+      <ellipse cx="700" cy="150" rx="135" ry="80"/>
+      <ellipse cx="620" cy="120" rx="60" ry="45"/>
+      <ellipse cx="780" cy="215" rx="55" ry="45"/>
+      <!-- Oceania -->
+      <ellipse cx="845" cy="350" rx="55" ry="38"/>
+      <!-- Antarctica -->
+      <ellipse cx="500" cy="478" rx="380" ry="45"/>
+    </g>
+  </svg>
+</div>
 
 <!-- HOME -->
 <div id="screen-home" class="screen active">
@@ -333,6 +389,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
         <h3>Fill the map</h3>
         <p>Type any region name freely — it fills gold as you get it. See your list grow on the side.</p>
       </div>
+      <div class="mode-card" id="mode-learn">
+        <div class="mode-icon">📖</div>
+        <h3>Learn the map</h3>
+        <p>No scoring — tap any region (or a name in the list) to study every element on the map.</p>
+      </div>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
       <div class="score-legend">
@@ -345,6 +406,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
     </div>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
       <button class="btn" id="btn-edit-map" style="flex:1;">✏️ Edit in editor</button>
+      <button class="btn" id="btn-leaderboard" style="flex:1;">🏆 Leaderboard</button>
       <button class="btn" id="btn-rename-map" style="flex:1;display:none;">🏷️ Rename</button>
     </div>
   </div>
@@ -407,6 +469,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
     <div class="result-actions" style="margin-top:.5rem;">
       <button class="btn btn-primary" id="btn-review">🔁 Review wrong answers</button>
       <button class="btn" id="btn-restart">↺ Play again (all regions)</button>
+      <button class="btn" id="btn-result-lb">🏆 Leaderboard</button>
       <button class="btn" id="btn-home">⌂ Home</button>
     </div>
   </div>
@@ -414,6 +477,20 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 
 <!-- SHARE MODAL -->
    <!-- (continent browsing now lives on the home screen) -->
+<!-- LEADERBOARD -->
+<div id="screen-leaderboard" class="screen">
+  <div class="ed-top back-row">
+    <button class="back-btn" id="lb-back">←</button>
+    <h2 class="screen-title" id="lb-title">Leaderboard</h2>
+  </div>
+  <div class="lb-tabs">
+    <div class="lb-tab active" id="lb-tab-local">Local</div>
+    <div class="lb-tab" id="lb-tab-global">Global</div>
+  </div>
+  <div class="lb-list" id="lb-list"></div>
+  <div style="padding:.6rem 1rem 1rem;"><button class="btn btn-primary" id="lb-submit" style="width:100%;display:none;">📤 Submit my last score to global</button></div>
+</div>
+
 <!-- STATS & ACHIEVEMENTS -->
 <div id="screen-stats" class="screen">
   <div class="ed-top back-row">
@@ -458,11 +535,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
     <div class="quiz-body" style="flex:1;min-height:0;">
       <div class="quiz-map-wrap" id="editor-map-wrap">
         <button class="ed-zoom-reset" id="editor-zoom-reset" title="Reset zoom">⤢</button>
+        <div id="ed-marquee"><div id="ed-marquee-box"></div></div>
       </div>
     </div>
-    <div class="ed-help">Click a region → type its name → Save. Type <b>Name | short</b> to also accept “short”. Tap <b>⧉</b> then several shapes to make them one region.</div>
+    <div class="ed-help">Click a region → name it → Save. <b>Name | short</b> also accepts “short”. <b>⧉</b> tap several shapes = one region. <b>▦</b> drag a box to grab a cluster of islands at once.</div>
     <div class="ed-name-bar">
       <button class="btn ed-toggle" id="editor-multi" title="Multi-part region: tap several shapes, then Save">⧉</button>
+      <button class="btn ed-toggle" id="editor-marquee" title="Archipelago: drag a box to select all shapes inside it">▦</button>
       <button class="btn" id="editor-prev" style="flex:none;" title="Previous shape">‹</button>
       <input class="type-input" id="editor-name" type="text" placeholder="Name this region…  (Name | alias)" autocomplete="off" autocorrect="off" spellcheck="false"/>
       <button class="btn btn-primary" id="editor-save" style="flex:none;">Save</button>
@@ -507,6 +586,8 @@ const BUILT_IN_MAPS = [
 const JSONBIN_BIN_ID  = '6a26f94dda38895dfe9b25ce';   // e.g. '664abc123def456789012345'
 const JSONBIN_API_KEY = '$2a$10$QwWxvIXy75Ko9g7JzXtMDOKx6s63aGzPaQPaEquLFPCZBFzmOLioW';   // e.g. '$2a$10$...'
 const JSONBIN_URL     = JSONBIN_BIN_ID ? `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}` : '';
+const JSONBIN_LB_ID   = '';   // optional SEPARATE bin id for the GLOBAL leaderboard (create another empty [] bin)
+const JSONBIN_LB_URL  = JSONBIN_LB_ID ? `https://api.jsonbin.io/v3/b/${JSONBIN_LB_ID}` : '';
 
 // ════════════════════════════════════════════
 //  INDEXEDDB
@@ -606,6 +687,82 @@ function showAchievementToast(list){
 }
 Bus.on('quiz:complete',d=>{ const s=recordPlay(d); const newly=evaluateAchievements(s,d); if(newly.length)showAchievementToast(newly); });
 
+// ════════════════════════════════════════════
+//  LEADERBOARDS  (local always; global via optional jsonbin bin)
+// ════════════════════════════════════════════
+const LS_LB='gq:lb-local';
+let lastRun=null, lbMapId=null, lbTab='local';
+function loadLB(){try{return JSON.parse(localStorage.getItem(LS_LB))||{};}catch(e){return {};}}
+function rankEntries(list){return list.slice().sort((a,b)=>(b.pct-a.pct)||((a.ms||9e15)-(b.ms||9e15)));}
+function recordLocalLB(d){
+  const lb=loadLB(); const arr=lb[d.mapId]||[];
+  arr.push({pct:d.pct, ms:d.durationMs||0, mode:d.mode, date:Date.now()});
+  lb[d.mapId]=rankEntries(arr).slice(0,10);
+  try{localStorage.setItem(LS_LB,JSON.stringify(lb));}catch(e){}
+}
+Bus.on('quiz:complete',d=>{recordLocalLB(d);lastRun=d;});
+function getPlayerName(){
+  let n=''; try{n=localStorage.getItem('gq:player')||'';}catch(e){}
+  if(!n){ n=(prompt('Name for the leaderboard:')||'').trim(); if(n){try{localStorage.setItem('gq:player',n);}catch(e){}} }
+  return n;
+}
+async function fetchGlobalLB(mapId){
+  if(!JSONBIN_LB_URL)return null;
+  const r=await fetch(JSONBIN_LB_URL+'/latest',{headers:{'X-Master-Key':JSONBIN_API_KEY}});
+  const data=await r.json(); const list=(data.record&&data.record.data)||data.record||[];
+  return rankEntries(list.filter(e=>e.map===mapId)).slice(0,25);
+}
+async function submitGlobalLB(){
+  if(!JSONBIN_LB_URL){alert('Global leaderboard not configured.\nCreate a second empty [] bin on jsonbin.io and set JSONBIN_LB_ID near the top of this file.');return;}
+  if(!lastRun){alert('Finish a quiz first, then submit.');return;}
+  const name=getPlayerName(); if(!name)return;
+  const btn=document.getElementById('lb-submit'); btn.disabled=true; btn.textContent='Submitting…';
+  try{
+    const r=await fetch(JSONBIN_LB_URL+'/latest',{headers:{'X-Master-Key':JSONBIN_API_KEY}});
+    const data=await r.json(); const list=(data.record&&data.record.data)||[];
+    list.push({map:lastRun.mapId,name,pct:lastRun.pct,ms:lastRun.durationMs||0,mode:lastRun.mode,date:Date.now()});
+    const w=await fetch(JSONBIN_LB_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_API_KEY},body:JSON.stringify({data:list})});
+    if(!w.ok)throw 0;
+    btn.textContent='✓ Submitted'; lbTab='global'; renderLeaderboard();
+  }catch(e){btn.textContent='Submit failed'; }
+  setTimeout(()=>{btn.disabled=false;btn.textContent='📤 Submit my last score to global';},1800);
+}
+function lbRowHtml(e,i,mine){
+  const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
+  return `<div class="lb-row${mine?' me':''}"><div class="lb-rank">${medal}</div><div class="lb-name">${e.name||'You'}</div><div class="lb-pct">${e.pct}%</div><div class="lb-time">${e.ms?fmtMs(e.ms):'—'}</div></div>`;
+}
+async function renderLeaderboard(){
+  document.getElementById('lb-tab-local').classList.toggle('active',lbTab==='local');
+  document.getElementById('lb-tab-global').classList.toggle('active',lbTab==='global');
+  const list=document.getElementById('lb-list');
+  document.getElementById('lb-submit').style.display=(lbTab==='global'&&lastRun&&lastRun.mapId===lbMapId)?'':'none';
+  if(lbTab==='local'){
+    const arr=rankEntries((loadLB()[lbMapId])||[]);
+    list.innerHTML=arr.length?arr.map((e,i)=>lbRowHtml(e,i,false)).join(''):'<div class="lb-empty">No local scores yet.<br>Play this map to set one!</div>';
+  }else{
+    if(!JSONBIN_LB_URL){list.innerHTML='<div class="lb-empty">Global leaderboard isn’t set up.<br>Create a second empty <code>[]</code> bin at jsonbin.io and put its id in <code>JSONBIN_LB_ID</code> near the top of the file.</div>';return;}
+    list.innerHTML='<div class="lb-empty">Loading…</div>';
+    try{
+      const arr=await fetchGlobalLB(lbMapId);
+      const me=getPlayerNameQuiet();
+      list.innerHTML=(arr&&arr.length)?arr.map((e,i)=>lbRowHtml(e,i,me&&e.name===me)).join(''):'<div class="lb-empty">No global scores yet for this map.</div>';
+    }catch(e){list.innerHTML='<div class="lb-empty">Couldn’t load the global leaderboard.</div>';}
+  }
+}
+function getPlayerNameQuiet(){try{return localStorage.getItem('gq:player')||'';}catch(e){return '';}}
+function openLeaderboard(mapId,name){
+  lbMapId=mapId; lbTab='local';
+  document.getElementById('lb-title').textContent=(name||'Leaderboard');
+  renderLeaderboard();
+  showScreen('leaderboard');
+}
+document.getElementById('lb-back').addEventListener('click',()=>showScreen('mapselect'));
+document.getElementById('lb-tab-local').addEventListener('click',()=>{lbTab='local';renderLeaderboard();});
+document.getElementById('lb-tab-global').addEventListener('click',()=>{lbTab='global';renderLeaderboard();});
+document.getElementById('lb-submit').addEventListener('click',submitGlobalLB);
+document.getElementById('btn-leaderboard').addEventListener('click',()=>{if(activeMap)openLeaderboard(activeMap.id,activeMap.name);});
+document.getElementById('btn-result-lb').addEventListener('click',()=>{if(activeMap)openLeaderboard(activeMap.id,activeMap.name);});
+
 function fmtMs(ms){if(ms==null)return '—';const s=Math.round(ms/1000);return s<60?s+'s':Math.floor(s/60)+'m '+(s%60)+'s';}
 function bestStreakOf(order,scores){let s=0,b=0;order.forEach(id=>{if(scores[id]==='0'){s++;if(s>b)b=s;}else s=0;});return b;}
 function renderStats(){
@@ -634,7 +791,20 @@ document.getElementById('stats-reset').addEventListener('click',()=>{
 // ════════════════════════════════════════════
 //  SCREEN
 // ════════════════════════════════════════════
-function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  const wb=document.getElementById('world-bg');
+  if(wb)wb.classList.toggle('show', id==='home'||id==='pickmap');
+  if(id==='home')setBgContinent('World');
+}
+const CONT_FOCUS={'North America':[18,30],'South America':[30,66],'Europe':[52,26],'Asia':[70,30],'Africa':[55,56],'Oceania':[85,70],'Antarctica':[50,95],'World':[50,50]};
+function setBgContinent(c){
+  const bg=document.querySelector('#world-bg svg'); if(!bg)return;
+  const f=CONT_FOCUS[c]||CONT_FOCUS.World;
+  bg.style.transformOrigin=f[0]+'% '+f[1]+'%';
+  bg.style.transform=(c&&c!=='World')?'scale(2.4)':'scale(1.08)';
+}
 
 // ════════════════════════════════════════════
 //  LOAD BUILT-IN
@@ -711,6 +881,7 @@ function makeMapItem(m){
 // ════════════════════════════════════════════
 function openContinent(c){
   selectedContinent=c; // null = "All maps"
+  setBgContinent(c||'World');
   document.getElementById('pickmap-title').textContent=c||'All maps';
   document.getElementById('map-search').value='';
   renderPickMap();
@@ -919,6 +1090,7 @@ document.getElementById('btn-rename-map').addEventListener('click',async()=>{
 document.getElementById('back-to-home').addEventListener('click',()=>showScreen('home'));
 document.getElementById('mode-click').addEventListener('click',()=>{quizMode='click';startClickQuiz(Object.keys(activeMap.regions));});
 document.getElementById('mode-type').addEventListener('click', ()=>{quizMode='type'; startFillQuiz(Object.keys(activeMap.regions));});
+document.getElementById('mode-learn').addEventListener('click',()=>{quizMode='learn'; startLearnMode(Object.keys(activeMap.regions));});
 
 // ════════════════════════════════════════════
 //  HELPERS
@@ -1037,6 +1209,8 @@ function startClickQuiz(regionIds){
   stopFlash();clearTimeout(feedbackTimeout);
   loadMapIntoQuiz();
   // clicks handled by one delegated listener on #quiz-map-wrap (set up once) — no per-shape listeners
+  document.getElementById('screen-quiz').classList.remove('learn-mode');
+  document.querySelector('#click-prompt .quiz-prompt-label').textContent='find and click';
   document.getElementById('click-prompt').style.display='';
   document.getElementById('type-bar').style.display='none';
   document.getElementById('guessed-panel').style.display='none';
@@ -1119,6 +1293,7 @@ function startFillQuiz(regionIds){
   quizStartTime=Date.now();
   loadMapIntoQuiz();
   const total=regionIds.length;
+  document.getElementById('screen-quiz').classList.remove('learn-mode');
   document.getElementById('click-prompt').style.display='none';
   document.getElementById('type-bar').style.display='';
   document.getElementById('guessed-panel').style.display='';
@@ -1157,6 +1332,44 @@ function fillGuessCell(id,name,exact){
   if(!c)return;
   c.textContent=name;
   c.classList.add(exact?'filled-exact':'filled-fuzzy');
+}
+
+// ── LEARN MODE ──
+function startLearnMode(regionIds){
+  loadMapIntoQuiz();
+  document.getElementById('screen-quiz').classList.add('learn-mode');
+  document.getElementById('type-bar').style.display='none';
+  document.getElementById('btn-giveup').style.display='none';
+  document.getElementById('click-prompt').style.display='';
+  document.querySelector('#click-prompt .quiz-prompt-label').textContent='learn mode';
+  document.getElementById('quiz-prompt-name').textContent='Tap any region or name';
+  document.getElementById('quiz-feedback').textContent='';
+  const panel=document.getElementById('guessed-panel');
+  panel.style.display='';
+  panel.querySelector('.guessed-panel-title').textContent='All regions';
+  renderLearnList();
+  showScreen('quiz');
+}
+function renderLearnList(){
+  const gl=document.getElementById('guessed-list');
+  gl.className='guessed-list-grid';
+  gl.innerHTML='';
+  fillAlphaIds().forEach(id=>{
+    const c=document.createElement('div');
+    c.className='guessed-cell filled-exact learn-cell';c.dataset.gid=id;
+    c.textContent=activeMap.regions[id]||id;
+    c.addEventListener('click',()=>learnSelect(id));
+    gl.appendChild(c);
+  });
+}
+function learnSelect(regionId){
+  const svg=getSvg();
+  svg?.querySelectorAll('.region-learn').forEach(el=>el.classList.remove('region-learn'));
+  regionShapes(regionId).forEach(sid=>getEl(sid)?.classList.add('region-learn'));
+  document.getElementById('quiz-prompt-name').textContent=activeMap.regions[regionId]||regionId;
+  document.querySelectorAll('#guessed-list .guessed-cell.learn-active').forEach(c=>c.classList.remove('learn-active'));
+  const cell=document.querySelector(`#guessed-list .guessed-cell[data-gid="${CSS.escape(regionId)}"]`);
+  if(cell)cell.classList.add('learn-active');
 }
 
 document.getElementById('type-input').addEventListener('input',function(){
@@ -1339,21 +1552,24 @@ document.getElementById('editor-zoom-reset')?.addEventListener('click',()=>edito
 (function(){
   const wrap=document.getElementById('quiz-map-wrap'); if(!wrap)return;
   wrap.addEventListener('click',e=>{
-    if(quizMode!=='click')return;                       // ignore clicks in type mode
     const shape=e.target.closest('path,polygon,polyline,circle,ellipse,rect');
-    if(shape&&shape.id)handleClick(shape.id);
+    if(!shape||!shape.id)return;
+    if(quizMode==='click')handleClick(shape.id);
+    else if(quizMode==='learn')learnSelect(shapeRegion[shape.id]||shape.id);
   });
 })();
 
 // ════════════════════════════════════════════
 //  SVG EDITOR  (click regions → name them → export / save / play)
 // ════════════════════════════════════════════
-let edAllShapes=[], edRegions={}, edShapeRegion={}, edSel=[], edEditing=null, edMulti=false, edClean='', edSourceId=null;
+let edAllShapes=[], edRegions={}, edShapeRegion={}, edSel=[], edEditing=null, edMulti=false, edClean='', edSourceId=null, edMarquee=false;
 const EDIT_SHAPES='path,polygon,polyline,circle,ellipse,rect';
 
 function resetEditorState(){
   edAllShapes=[];edRegions={};edShapeRegion={};edSel=[];edEditing=null;edClean='';edSourceId=null;
   edMulti=false; const t=document.getElementById('editor-multi'); if(t)t.classList.remove('on');
+  edMarquee=false; const mb=document.getElementById('editor-marquee'); if(mb)mb.classList.remove('on');
+  const ml=document.getElementById('ed-marquee'); if(ml)ml.classList.remove('on');
 }
 function openEditor(){
   resetEditorState();
@@ -1473,6 +1689,54 @@ function updateEditorProgress(){
   document.getElementById('editor-progress').textContent=r+' region'+(r===1?'':'s')+' · '+s+'/'+edAllShapes.length+' shapes';
 }
 document.getElementById('editor-multi').addEventListener('click',function(){edMulti=!edMulti;this.classList.toggle('on',edMulti);});
+
+// ── ARCHIPELAGO MARQUEE: drag a box to grab every shape inside it ──
+function rectsIntersect(a,b){return a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;}
+document.getElementById('editor-marquee').addEventListener('click',function(){
+  edMarquee=!edMarquee; this.classList.toggle('on',edMarquee);
+  document.getElementById('ed-marquee').classList.toggle('on',edMarquee);
+});
+(function(){
+  const layer=document.getElementById('ed-marquee'), box=document.getElementById('ed-marquee-box');
+  const wrap=document.getElementById('editor-map-wrap');
+  if(!layer||!wrap)return;
+  let sx=0,sy=0,active=false;
+  layer.addEventListener('pointerdown',e=>{
+    if(!edMarquee)return;
+    active=true; sx=e.clientX; sy=e.clientY;
+    const r=wrap.getBoundingClientRect();
+    box.style.left=(sx-r.left)+'px'; box.style.top=(sy-r.top)+'px'; box.style.width='0px'; box.style.height='0px'; box.style.display='block';
+    try{layer.setPointerCapture(e.pointerId);}catch(_){}
+  });
+  layer.addEventListener('pointermove',e=>{
+    if(!active)return;
+    const r=wrap.getBoundingClientRect();
+    const x1=Math.min(sx,e.clientX),y1=Math.min(sy,e.clientY),x2=Math.max(sx,e.clientX),y2=Math.max(sy,e.clientY);
+    box.style.left=(x1-r.left)+'px'; box.style.top=(y1-r.top)+'px'; box.style.width=(x2-x1)+'px'; box.style.height=(y2-y1)+'px';
+  });
+  layer.addEventListener('pointerup',e=>{
+    if(!active)return; active=false; box.style.display='none';
+    const moved=Math.abs(e.clientX-sx)+Math.abs(e.clientY-sy);
+    if(moved<6){ // tiny drag = tap: select the shape underneath
+      layer.style.pointerEvents='none';
+      const el=document.elementFromPoint(e.clientX,e.clientY);
+      layer.style.pointerEvents='';
+      const shape=el&&el.closest&&el.closest(EDIT_SHAPES);
+      if(shape&&shape.id&&edAllShapes.includes(shape.id))clickShape(shape.id);
+      return;
+    }
+    const marquee={left:Math.min(sx,e.clientX),top:Math.min(sy,e.clientY),right:Math.max(sx,e.clientX),bottom:Math.max(sy,e.clientY)};
+    const svg=edSvg(); if(!svg)return;
+    let added=0;
+    edAllShapes.forEach(id=>{
+      if(edShapeRegion[id])return;            // leave already-named shapes alone
+      const el=svg.getElementById(id); if(!el)return;
+      if(rectsIntersect(marquee, el.getBoundingClientRect())&&!edSel.includes(id)){edSel.push(id);added++;}
+    });
+    if(added){edEditing=null;highlightSel();document.getElementById('editor-name').focus();}
+  });
+  layer.addEventListener('pointercancel',()=>{active=false;box.style.display='none';});
+})();
 document.getElementById('editor-save').addEventListener('click',saveSelection);
 document.getElementById('editor-name').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();saveSelection();}});
 document.getElementById('editor-prev').addEventListener('click',()=>stepShape(-1));
