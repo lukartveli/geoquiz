@@ -189,11 +189,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 
 .result-best{font-size:.95rem;color:var(--text);font-weight:600;margin-top:.5rem;}
 .row-best{font-size:.7rem;color:var(--muted);margin-left:.4rem;}
-.home-add-btn{margin-top:.5rem;flex:none;}
+.home-add-btn{display:block;width:100%;margin-top:.5rem;}
 /* ── ZOOM reset buttons ── */
 .qz-zoom-reset,.ed-zoom-reset{position:absolute;top:8px;right:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:1rem;line-height:1;padding:.35rem .5rem;cursor:pointer;z-index:10;}
 .qz-zoom-reset:hover,.ed-zoom-reset:hover{border-color:var(--accent);}
-.quiz-map-wrap svg{touch-action:none;}
+.quiz-map-wrap svg{touch-action:none;will-change:transform;}
 
 /* ── SVG EDITOR ── */
 #screen-editor{flex-direction:column;overflow:hidden;}
@@ -209,6 +209,29 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 #editor-map-wrap svg path,#editor-map-wrap svg polygon,#editor-map-wrap svg polyline,#editor-map-wrap svg circle,#editor-map-wrap svg ellipse,#editor-map-wrap svg rect{fill:var(--surface2)!important;stroke:var(--border)!important;stroke-width:0.8!important;cursor:pointer;transition:fill .1s;}
 #editor-map-wrap svg .ed-named{fill:var(--gold)!important;}
 #editor-map-wrap svg .ed-current{fill:var(--accent)!important;stroke:#ffffff!important;stroke-width:1.6!important;}
+#editor-upload .btn{display:block;width:100%;flex:none;text-align:center;}
+.ed-toggle{flex:none;}
+.ed-toggle.on{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important;}
+.ed-help{font-size:.72rem;color:var(--muted);padding:.1rem 1rem .4rem;line-height:1.5;}
+/* ── STATS & ACHIEVEMENTS ── */
+#screen-stats{flex-direction:column;overflow:hidden;}
+.stats-cards{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;}
+.stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:.8rem .9rem;}
+.stat-card .v{font-size:1.5rem;font-weight:700;line-height:1;}
+.stat-card .l{font-size:.74rem;color:var(--muted);margin-top:.25rem;}
+.ach-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;}
+.ach-card{display:flex;gap:.55rem;align-items:flex-start;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:.65rem .7rem;opacity:.5;}
+.ach-card.unlocked{opacity:1;border-color:var(--gold);}
+.ach-ic{font-size:1.35rem;line-height:1;}
+.ach-name{font-size:.84rem;font-weight:600;line-height:1.2;}
+.ach-desc{font-size:.7rem;color:var(--muted);margin-top:.15rem;line-height:1.35;}
+.stat-row{display:flex;justify-content:space-between;gap:.6rem;align-items:center;padding:.55rem .15rem;border-bottom:1px solid var(--border);font-size:.88rem;}
+.stat-row .sm{color:var(--muted);font-size:.76rem;margin-top:.1rem;}
+.ach-toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,90px);background:var(--surface2);border:1px solid var(--gold);border-radius:12px;padding:.7rem .95rem;display:flex;gap:.65rem;align-items:center;box-shadow:0 10px 34px rgba(0,0,0,.45);opacity:0;transition:transform .4s,opacity .4s;z-index:1000;max-width:90vw;}
+.ach-toast.show{transform:translate(-50%,0);opacity:1;}
+.ach-toast-ic{font-size:1.7rem;}
+.ach-toast-t{font-size:.66rem;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;}
+.ach-toast-n{font-size:.92rem;font-weight:600;}
 </style>
 </head>
 <body>
@@ -227,6 +250,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
       <div class="continent-grid" id="map-list"></div>
       <button class="btn home-add-btn" id="btn-all-maps">📂 All maps / import a map</button>
       <button class="btn home-add-btn" id="btn-open-editor">🛠 Build a map (SVG editor)</button>
+      <button class="btn home-add-btn" id="btn-open-stats">📊 Stats &amp; achievements</button>
     </div>
 
     <!-- Community maps -->
@@ -309,6 +333,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
       </div>
       <button class="btn" id="btn-share-map" style="flex:none;padding:.4rem .8rem;font-size:.78rem;display:none;">🌐 Share online</button>
     </div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+      <button class="btn" id="btn-edit-map" style="flex:1;">✏️ Edit in editor</button>
+      <button class="btn" id="btn-rename-map" style="flex:1;display:none;">🏷️ Rename</button>
+    </div>
   </div>
 </div>
 
@@ -376,6 +404,23 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 
 <!-- SHARE MODAL -->
    <!-- (continent browsing now lives on the home screen) -->
+<!-- STATS & ACHIEVEMENTS -->
+<div id="screen-stats" class="screen">
+  <div class="ed-top back-row">
+    <button class="back-btn" id="stats-back">←</button>
+    <h2 class="screen-title">Stats &amp; achievements</h2>
+  </div>
+  <div style="flex:1;min-height:0;overflow-y:auto;padding:0 1rem 1.5rem;">
+    <div class="section-label" style="margin-top:1rem;">Overview</div>
+    <div class="stats-cards" id="stats-overview"></div>
+    <div class="section-label" style="margin-top:1.2rem;">Achievements</div>
+    <div class="ach-grid" id="ach-grid"></div>
+    <div class="section-label" style="margin-top:1.2rem;">Per-map</div>
+    <div id="stats-maps"></div>
+    <button class="btn" id="stats-reset" style="margin-top:1.3rem;width:100%;">Reset all stats</button>
+  </div>
+</div>
+
 <!-- SVG EDITOR -->
 <div id="screen-editor" class="screen">
   <div class="ed-top back-row">
@@ -405,11 +450,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
         <button class="ed-zoom-reset" id="editor-zoom-reset" title="Reset zoom">⤢</button>
       </div>
     </div>
+    <div class="ed-help">Click a region → type its name → Save. Type <b>Name | short</b> to also accept “short”. Tap <b>⧉</b> then several shapes to make them one region.</div>
     <div class="ed-name-bar">
-      <button class="btn" id="editor-prev" style="flex:none;">‹</button>
-      <input class="type-input" id="editor-name" type="text" placeholder="Name this region…" autocomplete="off" autocorrect="off" spellcheck="false"/>
+      <button class="btn ed-toggle" id="editor-multi" title="Multi-part region: tap several shapes, then Save">⧉</button>
+      <button class="btn" id="editor-prev" style="flex:none;" title="Previous shape">‹</button>
+      <input class="type-input" id="editor-name" type="text" placeholder="Name this region…  (Name | alias)" autocomplete="off" autocorrect="off" spellcheck="false"/>
       <button class="btn btn-primary" id="editor-save" style="flex:none;">Save</button>
-      <button class="btn" id="editor-next" style="flex:none;">›</button>
+      <button class="btn" id="editor-next" style="flex:none;" title="Next shape">›</button>
     </div>
     <div class="ed-actions">
       <button class="btn" id="editor-export-json">⬇ JSON</button>
@@ -464,7 +511,7 @@ function openDB(){
     r.onerror=e=>rej(e.target.error);
   });
 }
-function dbSave(m){return new Promise((res,rej)=>{const tx=db.transaction(STORE,'readwrite');const r=tx.objectStore(STORE).put({id:m.id,name:m.name,svgText:m.svgText,regions:m.regions});r.onsuccess=res;r.onerror=e=>rej(e.target.error);});}
+function dbSave(m){return new Promise((res,rej)=>{const tx=db.transaction(STORE,'readwrite');const r=tx.objectStore(STORE).put({id:m.id,name:m.name,svgText:m.svgText,regions:m.regions,groups:m.groups||null,aliases:m.aliases||null});r.onsuccess=res;r.onerror=e=>rej(e.target.error);});}
 function dbDel(id){return new Promise((res,rej)=>{const tx=db.transaction(STORE,'readwrite');const r=tx.objectStore(STORE).delete(id);r.onsuccess=res;r.onerror=e=>rej(e.target.error);});}
 function dbAll(){return new Promise((res,rej)=>{const tx=db.transaction(STORE,'readonly');const r=tx.objectStore(STORE).getAll();r.onsuccess=e=>res(e.target.result);r.onerror=e=>rej(e.target.error);});}
 
@@ -478,6 +525,8 @@ let quizQueue=[], quizIndex=0, mistakeCount=0, waitingForNext=false;
 let feedbackTimeout=null, scoreMap={}, wrongIds=[];
 // fill mode
 let fillRemaining=[], fillScores={}, guessedNames=[];
+let shapeRegion={}; // svg shape id -> region id (for multi-part regions)
+let quizStartTime=0; // for duration / speed stats
 
 // ── category + persistence (localStorage) + event bus ──
 const CONTINENTS=['Africa','Europe','Asia','North America','South America','Oceania','Antarctica','World'];
@@ -496,6 +545,82 @@ const Bus={_:{},on(e,f){(this._[e]||(this._[e]=[])).push(f);},emit(e,d){(this._[
 Bus.on('quiz:complete',d=>setBest(d.mapId,d.pct));
 
 // ════════════════════════════════════════════
+//  STATISTICS + ACHIEVEMENTS
+// ════════════════════════════════════════════
+const LS_STATS='gq:stats', LS_ACH='gq:achievements';
+function loadStats(){try{return JSON.parse(localStorage.getItem(LS_STATS))||{};}catch(e){return {};}}
+function saveStats(s){try{localStorage.setItem(LS_STATS,JSON.stringify(s));}catch(e){}}
+function loadAch(){try{return JSON.parse(localStorage.getItem(LS_ACH))||[];}catch(e){return [];}}
+function saveAch(a){try{localStorage.setItem(LS_ACH,JSON.stringify(a));}catch(e){}}
+
+const ACHIEVEMENTS=[
+  {id:'first',     icon:'📍', name:'First Pin Dropped',        desc:'Complete a map with 100%',        test:g=>(g.perfectPlays||0)>=1},
+  {id:'warmup',    icon:'🔥', name:'Warm-Up Lap',              desc:'Three 100% completions',          test:g=>(g.perfectPlays||0)>=3},
+  {id:'training',  icon:'🗺️', name:'Cartographer in Training', desc:'Ten 100% completions',            test:g=>(g.perfectPlays||0)>=10},
+  {id:'rookie',    icon:'🌍', name:'Atlas Rookie',             desc:'Twenty-five 100% completions',    test:g=>(g.perfectPlays||0)>=25},
+  {id:'speed',     icon:'⚡', name:'Speed Sketcher',           desc:'A 100% in under 3 minutes',       test:(g,d)=>!!d&&d.perfect&&d.durationMs>0&&d.durationMs<180000},
+  {id:'streak',    icon:'🎯', name:'Streak Builder',           desc:'10 correct in a row (click mode)',test:g=>(g.bestStreakEver||0)>=10},
+  {id:'collector', icon:'🧭', name:'Region Collector',         desc:'100 regions correct in total',    test:g=>(g.totalCorrect||0)>=100},
+];
+
+function recordPlay(d){
+  const s=loadStats(); s.maps=s.maps||{}; s.global=s.global||{};
+  const m=s.maps[d.mapId]||{name:d.name,plays:0,perfects:0,bestPct:0,sumPct:0,fastestMs:null,bestStreak:0,correct:0};
+  m.name=d.name||m.name; m.plays++; m.sumPct+=d.pct; if(d.pct>m.bestPct)m.bestPct=d.pct;
+  if(d.perfect){m.perfects++; if(d.durationMs>0&&(m.fastestMs==null||d.durationMs<m.fastestMs))m.fastestMs=d.durationMs;}
+  if((d.bestStreak||0)>m.bestStreak)m.bestStreak=d.bestStreak;
+  m.correct+=d.correct||0; s.maps[d.mapId]=m;
+  const g=s.global;
+  g.perfectPlays=(g.perfectPlays||0)+(d.perfect?1:0);
+  g.totalCorrect=(g.totalCorrect||0)+(d.correct||0);
+  g.totalAnswered=(g.totalAnswered||0)+(d.total||0);
+  if((d.bestStreak||0)>(g.bestStreakEver||0))g.bestStreakEver=d.bestStreak;
+  if(d.perfect&&d.durationMs>0&&(g.fastestPerfectMs==null||d.durationMs<g.fastestPerfectMs))g.fastestPerfectMs=d.durationMs;
+  saveStats(s); return s;
+}
+function evaluateAchievements(stats,d){
+  const have=new Set(loadAch()); const g=stats.global||{}; const newly=[];
+  ACHIEVEMENTS.forEach(a=>{ if(!have.has(a.id) && a.test(g,d)){have.add(a.id);newly.push(a);} });
+  if(newly.length)saveAch([...have]);
+  return newly;
+}
+function showAchievementToast(list){
+  list.forEach((a,i)=>setTimeout(()=>{
+    const t=document.createElement('div'); t.className='ach-toast';
+    t.innerHTML=`<span class="ach-toast-ic">${a.icon}</span><div><div class="ach-toast-t">Achievement unlocked</div><div class="ach-toast-n">${a.name}</div></div>`;
+    document.body.appendChild(t);
+    requestAnimationFrame(()=>t.classList.add('show'));
+    setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),400);},3200);
+  }, i*650));
+}
+Bus.on('quiz:complete',d=>{ const s=recordPlay(d); const newly=evaluateAchievements(s,d); if(newly.length)showAchievementToast(newly); });
+
+function fmtMs(ms){if(ms==null)return '—';const s=Math.round(ms/1000);return s<60?s+'s':Math.floor(s/60)+'m '+(s%60)+'s';}
+function bestStreakOf(order,scores){let s=0,b=0;order.forEach(id=>{if(scores[id]==='0'){s++;if(s>b)b=s;}else s=0;});return b;}
+function renderStats(){
+  const s=loadStats(), maps=s.maps||{}, g=s.global||{};
+  const acc=g.totalAnswered?Math.round(g.totalCorrect/g.totalAnswered*100):0;
+  document.getElementById('stats-overview').innerHTML=[
+    ['Maps played',Object.keys(maps).length],['100% completions',g.perfectPlays||0],
+    ['Regions correct',g.totalCorrect||0],['Accuracy',acc+'%'],
+  ].map(c=>`<div class="stat-card"><div class="v">${c[1]}</div><div class="l">${c[0]}</div></div>`).join('');
+  const have=new Set(loadAch());
+  document.getElementById('ach-grid').innerHTML=ACHIEVEMENTS.map(a=>`<div class="ach-card${have.has(a.id)?' unlocked':''}"><div class="ach-ic">${have.has(a.id)?a.icon:'🔒'}</div><div><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div></div></div>`).join('');
+  const rows=Object.keys(maps).sort((a,b)=>maps[b].plays-maps[a].plays).map(id=>{
+    const m=maps[id], avg=m.plays?Math.round(m.sumPct/m.plays):0;
+    return `<div class="stat-row"><div>${m.name}<div class="sm">${m.plays} play${m.plays===1?'':'s'} · best ${m.bestPct}% · avg ${avg}%</div></div><div class="sm" style="text-align:right;white-space:nowrap;">⚡ ${fmtMs(m.fastestMs)}<br>🎯 ${m.bestStreak}</div></div>`;
+  }).join('');
+  document.getElementById('stats-maps').innerHTML=rows||'<div class="sm" style="color:var(--muted);font-size:.85rem;padding:.5rem 0;">No plays yet — finish a quiz to see stats here.</div>';
+}
+document.getElementById('btn-open-stats').addEventListener('click',()=>{renderStats();showScreen('stats');});
+document.getElementById('stats-back').addEventListener('click',()=>showScreen('home'));
+document.getElementById('stats-reset').addEventListener('click',()=>{
+  if(!confirm('Reset all stats and achievements? This cannot be undone.'))return;
+  try{localStorage.removeItem(LS_STATS);localStorage.removeItem(LS_ACH);}catch(e){}
+  renderStats();
+});
+
+// ════════════════════════════════════════════
 //  SCREEN
 // ════════════════════════════════════════════
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');}
@@ -509,7 +634,7 @@ async function loadBuiltIn(){
       const [sr,jr]=await Promise.all([fetch(m.svgFile),fetch(m.jsonFile)]);
       if(!sr.ok||!jr.ok)continue;
       const svgText=await sr.text(), jd=await jr.json();
-      maps.push({id:m.id,name:jd.name||m.name,svgText,regions:jd.regions,builtin:true});
+      maps.push({id:m.id,name:jd.name||m.name,svgText,regions:jd.regions,groups:jd.groups||null,aliases:jd.aliases||null,builtin:true});
     }catch(e){}
   }
   renderMapList();
@@ -644,7 +769,7 @@ async function loadCommunityMaps(){
     if(!entries.length){list.innerHTML='<div class="community-empty">No community maps yet. Be the first to share!</div>';return;}
     list.innerHTML='';
     entries.slice().reverse().forEach(e=>{
-      const m={id:'comm-'+e.id,name:e.name,svgText:e.svgText,regions:e.regions,community:true,author:e.author||''};
+      const m={id:'comm-'+e.id,name:e.name,svgText:e.svgText,regions:e.regions,groups:e.groups||null,aliases:e.aliases||null,community:true,author:e.author||''};
       const existing=maps.find(x=>x.id===m.id);
       if(!existing)maps.push(m);
       list.appendChild(makeMapItem(m));
@@ -728,9 +853,22 @@ function openMapSelect(mapId){
   document.getElementById('mapselect-title').textContent=activeMap.name;
   document.getElementById('mapselect-sub').textContent=Object.keys(activeMap.regions).length+' regions';
   // show share button only for local/saved maps (not community, not built-in)
-  document.getElementById('btn-share-map').style.display=(savedIds.has(activeMap.id)||(!activeMap.builtin&&!activeMap.community))?'':'none';
+  const owned=(savedIds.has(activeMap.id)||(!activeMap.builtin&&!activeMap.community));
+  document.getElementById('btn-share-map').style.display=owned?'':'none';
+  document.getElementById('btn-rename-map').style.display=owned?'':'none';
   showScreen('mapselect');
 }
+document.getElementById('btn-edit-map').addEventListener('click',()=>{ if(activeMap)editExistingMap(activeMap); });
+document.getElementById('btn-rename-map').addEventListener('click',async()=>{
+  if(!activeMap)return;
+  const nn=prompt('Rename this map:', activeMap.name);
+  if(nn==null)return;
+  const name=nn.trim(); if(!name)return;
+  activeMap.name=name;
+  document.getElementById('mapselect-title').textContent=name;
+  if(savedIds.has(activeMap.id)){try{await dbSave(activeMap);}catch(e){}}
+  renderMapList();
+});
 document.getElementById('back-to-home').addEventListener('click',()=>showScreen('home'));
 document.getElementById('mode-click').addEventListener('click',()=>{quizMode='click';startClickQuiz(Object.keys(activeMap.regions));});
 document.getElementById('mode-type').addEventListener('click', ()=>{quizMode='type'; startFillQuiz(Object.keys(activeMap.regions));});
@@ -754,21 +892,32 @@ function levenshtein(a,b){
 }
 function fuzzyTol(len){return len<=4?0:len<=8?1:2;}
 // returns {id, exact} or null. exact normalized match is always preferred; ambiguous near-misses rejected.
+// acceptable normalized answers for a region: display name + any aliases
+function acceptStrings(rid){
+  const out=[normalize(activeMap.regions[rid]||rid)];
+  const al=activeMap&&activeMap.aliases&&activeMap.aliases[rid];
+  if(al)al.forEach(a=>{const n=normalize(a);if(n&&!out.includes(n))out.push(n);});
+  return out;
+}
 function fuzzyFind(input, ids){
   const q=normalize(input);
   if(!q)return null;
-  for(const id of ids){if(normalize(activeMap.regions[id]||id)===q)return {id,exact:true};}
+  // exact against display name or any alias
+  for(const id of ids){if(acceptStrings(id).includes(q))return {id,exact:true};}
   if(q.length<3)return null;
-  // still typing toward an exact answer? (input is a prefix of an unguessed name) — don't steal it with a hint
-  for(const id of ids){const nm=normalize(activeMap.regions[id]||id);if(nm.length>q.length&&nm.startsWith(q))return null;}
+  // still typing toward an exact answer? (prefix of an acceptable name) — don't steal it with a hint
+  for(const id of ids){for(const s of acceptStrings(id)){if(s.length>q.length&&s.startsWith(q))return null;}}
   const cands=[];
   for(const id of ids){
-    const name=normalize(activeMap.regions[id]||id);
-    const tol=fuzzyTol(name.length);
-    if(tol===0)continue;
-    if(Math.abs(name.length-q.length)>tol+1)continue;
-    const d=levenshtein(name,q);
-    if(d<=tol)cands.push({id,d});
+    let best=Infinity;
+    for(const s of acceptStrings(id)){
+      const tol=fuzzyTol(s.length);
+      if(tol===0)continue;
+      if(Math.abs(s.length-q.length)>tol+1)continue;
+      const d=levenshtein(s,q);
+      if(d<=tol&&d<best)best=d;
+    }
+    if(best<Infinity)cands.push({id,d:best});
   }
   if(!cands.length)return null;
   cands.sort((a,b)=>a.d-b.d);
@@ -799,10 +948,9 @@ function stripStyles(svg){
 }
 function sanitizeSvg(){stripStyles(getSvg());}
 
-function applyScore(id,score){
-  const el=getEl(id);if(!el)return;
-  el.classList.remove('region-wrong-flash','region-flashing');
-  el.setAttribute('data-score',score);
+function regionShapes(rid){return (activeMap&&activeMap.groups&&activeMap.groups[rid])||[rid];}
+function applyScore(regionId,score){
+  regionShapes(regionId).forEach(sid=>{const el=getEl(sid);if(!el)return;el.classList.remove('region-wrong-flash','region-flashing');el.setAttribute('data-score',score);});
 }
 
 let flashTimer=null;
@@ -811,11 +959,12 @@ function stopFlash(){
   getSvg()?.querySelectorAll('.region-flashing').forEach(el=>el.classList.remove('region-flashing'));
 }
 
-function startFlash(id){
+function startFlash(regionId){
   stopFlash();
-  const el=getEl(id);if(!el)return;
-  let on=true;el.classList.add('region-flashing');
-  flashTimer=setInterval(()=>{on=!on;el.classList.toggle('region-flashing',on);},340);
+  const els=regionShapes(regionId).map(getEl).filter(Boolean);
+  if(!els.length)return;
+  let on=true;els.forEach(el=>el.classList.add('region-flashing'));
+  flashTimer=setInterval(()=>{on=!on;els.forEach(el=>el.classList.toggle('region-flashing',on));},340);
 }
 
 function loadMapIntoQuiz(){
@@ -826,6 +975,8 @@ function loadMapIntoQuiz(){
   wrap.appendChild(giveup);
   if(zr)wrap.appendChild(zr);
   sanitizeSvg();
+  shapeRegion={};
+  Object.keys(activeMap.regions).forEach(rid=>regionShapes(rid).forEach(s=>{shapeRegion[s]=rid;}));
   if(window.quizZoom)quizZoom.reset();
 }
 
@@ -834,13 +985,10 @@ function loadMapIntoQuiz(){
 // ════════════════════════════════════════════
 function startClickQuiz(regionIds){
   quizQueue=shuffle(regionIds);quizIndex=0;wrongIds=[];scoreMap={};mistakeCount=0;waitingForNext=false;
+  quizStartTime=Date.now();
   stopFlash();clearTimeout(feedbackTimeout);
   loadMapIntoQuiz();
-  getSvg()?.querySelectorAll('path,polygon,circle,ellipse').forEach(el=>{
-    if(!el.id)return;
-    el.addEventListener('click',()=>handleClick(el.id));
-    el.addEventListener('touchend',e=>{e.preventDefault();handleClick(el.id);});
-  });
+  // clicks handled by one delegated listener on #quiz-map-wrap (set up once) — no per-shape listeners
   document.getElementById('click-prompt').style.display='';
   document.getElementById('type-bar').style.display='none';
   document.getElementById('guessed-panel').style.display='none';
@@ -860,21 +1008,20 @@ function renderClickQuestion(){
   document.getElementById('quiz-feedback').className='quiz-feedback';
   document.getElementById('btn-giveup').style.display='none';
   updateClickPills();
-  // restore scored, clear rest
-  getSvg()?.querySelectorAll('path,polygon,circle,ellipse').forEach(el=>{
-    el.classList.remove('region-wrong-flash','region-flashing');
-    el.removeAttribute('data-score');
-    if(scoreMap[el.id])el.setAttribute('data-score',scoreMap[el.id]);
-  });
+  // scored colors persist on their shapes (set once by applyScore), so we only clear any lingering
+  // flash from the previous question — O(active) not O(all shapes), which keeps huge maps smooth.
+  getSvg()?.querySelectorAll('.region-flashing,.region-wrong-flash').forEach(el=>el.classList.remove('region-flashing','region-wrong-flash'));
 }
 
 function handleClick(cid){
   const w=document.getElementById('quiz-map-wrap');
   if(w&&w._dragMoved){w._dragMoved=false;return;}
   if(waitingForNext){advanceClick();return;}
+  const clickedShape=cid;
+  const rid=shapeRegion[cid]||cid;            // resolve multi-part region
   const correctId=quizQueue[quizIndex];
   const fb=document.getElementById('quiz-feedback');
-  if(cid===correctId){
+  if(rid===correctId){
     const score=mistakeCount===0?'0':mistakeCount===1?'1':mistakeCount===2?'2':'giveup';
     scoreMap[correctId]=score;stopFlash();applyScore(correctId,score);setProgress(clickCompletionPct());
     if(score!=='giveup')wrongIds=wrongIds.filter(i=>i!==correctId);
@@ -885,12 +1032,12 @@ function handleClick(cid){
   }else{
     mistakeCount++;if(!wrongIds.includes(correctId))wrongIds.push(correctId);
     document.getElementById('btn-giveup').style.display='';
-    const wrongEl=getEl(cid);
+    const wrongEl=getEl(clickedShape);
     if(wrongEl&&!wrongEl.getAttribute('data-score')){
       wrongEl.classList.add('region-wrong-flash');
       setTimeout(()=>wrongEl.classList.remove('region-wrong-flash'),350);
     }
-    const clickedName=activeMap.regions[cid]||'?';
+    const clickedName=activeMap.regions[rid]||'?';
     fb.className='quiz-feedback feedback-wrong';
     fb.textContent=mistakeCount>=3?`✗ ${clickedName} — it's flashing!`:`✗ That was ${clickedName}`;
     if(mistakeCount>=3)startFlash(correctId);
@@ -920,6 +1067,7 @@ document.getElementById('back-to-select').addEventListener('click',()=>{stopFlas
 // ════════════════════════════════════════════
 function startFillQuiz(regionIds){
   fillRemaining=[...regionIds];fillScores={};wrongIds=[];guessedNames=[];
+  quizStartTime=Date.now();
   loadMapIntoQuiz();
   const total=regionIds.length;
   document.getElementById('click-prompt').style.display='none';
@@ -992,7 +1140,7 @@ function showFillResults(){
   const done=exact+fuzzy;
   const pct=Math.round(done/total*100);
   wrongIds=fillRemaining.slice();
-  Bus.emit('quiz:complete',{mapId:activeMap.id,pct,perfect:pct===100,mode:'fill'});
+  Bus.emit('quiz:complete',{mapId:activeMap.id,name:activeMap.name,pct,perfect:pct===100,mode:'fill',durationMs:Date.now()-quizStartTime,total,correct:done,exact,bestStreak:0});
   document.getElementById('result-score').textContent=pct+'%';
   document.getElementById('result-best').textContent='Best: '+getBest(activeMap.id)+'%';
   colorBar(document.getElementById('result-bar-fill'),pct);
@@ -1018,7 +1166,9 @@ function showClickResults(){
   const gold=sc.filter(s=>s==='0').length,orange=sc.filter(s=>s==='1').length;
   const dark=sc.filter(s=>s==='2').length,red=sc.filter(s=>s==='giveup').length;
   const pct=Math.round((total-red)/total*100);
-  Bus.emit('quiz:complete',{mapId:activeMap.id,pct,perfect:pct===100,mode:'click'});
+  const correct=gold+orange+dark;
+  const bestStreak=bestStreakOf(quizQueue,scoreMap);
+  Bus.emit('quiz:complete',{mapId:activeMap.id,name:activeMap.name,pct,perfect:pct===100,mode:'click',durationMs:Date.now()-quizStartTime,total,correct,exact:gold,bestStreak});
   document.getElementById('result-score').textContent=pct+'%';
   document.getElementById('result-best').textContent='Best: '+getBest(activeMap.id)+'%';
   colorBar(document.getElementById('result-bar-fill'),pct);
@@ -1065,7 +1215,7 @@ document.getElementById('import-json').addEventListener('change',async function(
 
 document.getElementById('btn-add-import').addEventListener('click',async()=>{
   const id='custom-'+Date.now();
-  const newMap={id,name:pendingImport.json.name||pendingImport.svgName||'Custom Map',svgText:pendingImport.svg,regions:pendingImport.json.regions||{}};
+  const newMap={id,name:pendingImport.json.name||pendingImport.svgName||'Custom Map',svgText:pendingImport.svg,regions:pendingImport.json.regions||{},groups:pendingImport.json.groups||null,aliases:pendingImport.json.aliases||null};
   const parser=new DOMParser();
   const doc=parser.parseFromString(pendingImport.svg,'image/svg+xml');
   const svgIds=[...doc.querySelectorAll('[id]')].map(e=>e.id);
@@ -1133,13 +1283,29 @@ window.quizZoom=quizZoom; window.editorZoom=editorZoom;
 document.getElementById('quiz-zoom-reset')?.addEventListener('click',()=>quizZoom&&quizZoom.reset());
 document.getElementById('editor-zoom-reset')?.addEventListener('click',()=>editorZoom&&editorZoom.reset());
 
+// One delegated click listener for the whole quiz map (scales to 1000s of regions; replaces per-shape listeners).
+// touch-action:none on the svg makes taps fire 'click' instantly, and the browser suppresses 'click' after a pan/pinch.
+(function(){
+  const wrap=document.getElementById('quiz-map-wrap'); if(!wrap)return;
+  wrap.addEventListener('click',e=>{
+    if(quizMode!=='click')return;                       // ignore clicks in type mode
+    const shape=e.target.closest('path,polygon,polyline,circle,ellipse,rect');
+    if(shape&&shape.id)handleClick(shape.id);
+  });
+})();
+
 // ════════════════════════════════════════════
 //  SVG EDITOR  (click regions → name them → export / save / play)
 // ════════════════════════════════════════════
-let edIds=[], edNames={}, edIndex=0, edClean='';
+let edAllShapes=[], edRegions={}, edShapeRegion={}, edSel=[], edEditing=null, edMulti=false, edClean='', edSourceId=null;
 const EDIT_SHAPES='path,polygon,polyline,circle,ellipse,rect';
 
+function resetEditorState(){
+  edAllShapes=[];edRegions={};edShapeRegion={};edSel=[];edEditing=null;edClean='';edSourceId=null;
+  edMulti=false; const t=document.getElementById('editor-multi'); if(t)t.classList.remove('on');
+}
 function openEditor(){
+  resetEditorState();
   document.getElementById('editor-upload').style.display='';
   document.getElementById('editor-work').style.display='none';
   document.getElementById('editor-upload-status').textContent='';
@@ -1152,10 +1318,13 @@ document.getElementById('editor-back').addEventListener('click',()=>showScreen('
 document.getElementById('editor-svg').addEventListener('change',async function(){
   if(!this.files[0])return;
   const text=await readFile(this.files[0]);
-  loadEditorSvg(text, this.files[0].name.replace(/\.svg$/i,''));
+  startEditorWith(text, this.files[0].name.replace(/\.svg$/i,''), null, null, null, null);
 });
 
-function loadEditorSvg(svgText, baseName){
+// inject svg, detect/auto-id shapes, wire clicks; optionally preload an existing map (copy-to-editor)
+function startEditorWith(svgText, baseName, regions, groups, aliases, sourceId){
+  resetEditorState();
+  edSourceId=sourceId||null;
   const wrap=document.getElementById('editor-map-wrap');
   const resetBtn=document.getElementById('editor-zoom-reset');
   wrap.innerHTML='';
@@ -1164,65 +1333,121 @@ function loadEditorSvg(svgText, baseName){
   const svg=wrap.querySelector('svg');
   if(!svg){document.getElementById('editor-upload-status').textContent='That file is not a valid SVG.';return;}
   stripStyles(svg);
-  edIds=[]; let auto=0;
+  let auto=0;
   svg.querySelectorAll(EDIT_SHAPES).forEach(el=>{
     if(!el.id)el.id='r'+(++auto);
-    edIds.push(el.id);
-    el.addEventListener('click',()=>{ if(wrap._dragMoved){wrap._dragMoved=false;return;} selectRegion(edIds.indexOf(el.id)); });
+    edAllShapes.push(el.id);
+    el.addEventListener('click',()=>{ if(wrap._dragMoved){wrap._dragMoved=false;return;} clickShape(el.id); });
   });
-  if(!edIds.length){document.getElementById('editor-upload-status').textContent='No shapes found in this SVG to name.';return;}
+  if(!edAllShapes.length){document.getElementById('editor-upload-status').textContent='No shapes found in this SVG to name.';return;}
   edClean=new XMLSerializer().serializeToString(svg);
-  edNames={}; edIndex=0;
+  if(regions){ // preload existing regions/groups/aliases
+    Object.keys(regions).forEach(rid=>{
+      const ids=((groups&&groups[rid])||[rid]).filter(id=>edAllShapes.includes(id));
+      if(!ids.length)return;
+      edRegions[rid]={name:regions[rid], ids, aliases:(aliases&&aliases[rid])?aliases[rid].slice():[]};
+      ids.forEach(id=>{edShapeRegion[id]=rid; svg.getElementById(id)?.classList.add('ed-named');});
+    });
+  }
   document.getElementById('editor-map-name').value=baseName||'My map';
   document.getElementById('editor-upload').style.display='none';
   document.getElementById('editor-work').style.display='flex';
   if(editorZoom)editorZoom.reset();
-  selectRegion(0);
+  const firstUn=edAllShapes.find(id=>!edShapeRegion[id]);
+  if(firstUn)selectSingle(firstUn); else clearSelection();
   updateEditorProgress();
+}
+// open editor preloaded with an existing map (Edit / copy-to-editor)
+function editExistingMap(map){
+  startEditorWith(map.svgText, map.name, map.regions||{}, map.groups||null, map.aliases||null, savedIds.has(map.id)?map.id:null);
+  showScreen('editor');
 }
 
-function selectRegion(i){
-  if(!edIds.length)return;
-  edIndex=(i+edIds.length)%edIds.length;
-  const svg=document.querySelector('#editor-map-wrap svg');
+function edSvg(){return document.querySelector('#editor-map-wrap svg');}
+function highlightSel(){
+  const svg=edSvg();
   svg?.querySelectorAll('.ed-current').forEach(el=>el.classList.remove('ed-current'));
-  const id=edIds[edIndex];
-  svg?.getElementById(id)?.classList.add('ed-current');
-  const inp=document.getElementById('editor-name');
-  inp.value=edNames[id]||''; inp.focus();
+  edSel.forEach(id=>svg?.getElementById(id)?.classList.add('ed-current'));
 }
-function saveEditorName(){
-  const id=edIds[edIndex];
-  const name=document.getElementById('editor-name').value.trim();
-  const el=document.querySelector('#editor-map-wrap svg')?.getElementById(id);
-  if(name){edNames[id]=name; el&&el.classList.add('ed-named');}
-  else{delete edNames[id]; el&&el.classList.remove('ed-named');}
+function setNameField(){
+  const inp=document.getElementById('editor-name');
+  if(edEditing&&edRegions[edEditing]){
+    const r=edRegions[edEditing];
+    inp.value=r.name+(r.aliases&&r.aliases.length?' | '+r.aliases.join(' | '):'');
+  }else inp.value='';
+  inp.focus();
+}
+function clearSelection(){edSel=[];edEditing=null;highlightSel();setNameField();}
+function selectSingle(shapeId){
+  edEditing=edShapeRegion[shapeId]||null;
+  edSel = edEditing? edRegions[edEditing].ids.slice() : [shapeId];
+  highlightSel(); setNameField();
+}
+function clickShape(shapeId){
+  const assigned=edShapeRegion[shapeId];
+  if(assigned && assigned!==edEditing){ edEditing=assigned; edSel=edRegions[assigned].ids.slice(); highlightSel(); setNameField(); return; }
+  const accumulate = edMulti || !!edEditing;     // editing a region also accumulates parts
+  if(accumulate){
+    const i=edSel.indexOf(shapeId);
+    if(i>=0){ if(edSel.length>1) edSel.splice(i,1); }   // keep at least one
+    else edSel.push(shapeId);
+    highlightSel(); document.getElementById('editor-name').focus();
+  }else selectSingle(shapeId);
+}
+function saveSelection(){
+  const parts=document.getElementById('editor-name').value.split('|').map(s=>s.trim()).filter(Boolean);
+  const name=parts[0]||''; const aliases=parts.slice(1);
+  const svg=edSvg();
+  if(edEditing){
+    if(!name){ edRegions[edEditing].ids.forEach(id=>{delete edShapeRegion[id];svg?.getElementById(id)?.classList.remove('ed-named','ed-current');}); delete edRegions[edEditing]; }
+    else{ edRegions[edEditing].name=name; edRegions[edEditing].aliases=aliases; edRegions[edEditing].ids=edSel.slice(); edSel.forEach(id=>{edShapeRegion[id]=edEditing;svg?.getElementById(id)?.classList.add('ed-named');}); }
+  }else{
+    if(!edSel.length||!name)return;
+    const rid=edSel[0];
+    edRegions[rid]={name, ids:edSel.slice(), aliases};
+    edSel.forEach(id=>{edShapeRegion[id]=rid;svg?.getElementById(id)?.classList.add('ed-named');});
+  }
   updateEditorProgress();
-  const nextUn=edIds.findIndex((x,k)=>k>edIndex && !edNames[x]);
-  const anyUn=edIds.findIndex(x=>!edNames[x]);
-  selectRegion(nextUn>=0?nextUn:(anyUn>=0?anyUn:edIndex+1));
+  clearSelection();
+  const nextUn=edAllShapes.find(id=>!edShapeRegion[id]);
+  if(nextUn)selectSingle(nextUn);
+}
+function stepShape(dir){
+  if(!edAllShapes.length)return;
+  const base = edSel.length? edAllShapes.indexOf(edSel[edSel.length-1]) : -1;
+  selectSingle(edAllShapes[(base+dir+edAllShapes.length)%edAllShapes.length]);
 }
 function updateEditorProgress(){
-  document.getElementById('editor-progress').textContent=Object.keys(edNames).length+' / '+edIds.length+' named';
+  const r=Object.keys(edRegions).length, s=Object.keys(edShapeRegion).length;
+  document.getElementById('editor-progress').textContent=r+' region'+(r===1?'':'s')+' · '+s+'/'+edAllShapes.length+' shapes';
 }
-document.getElementById('editor-save').addEventListener('click',saveEditorName);
-document.getElementById('editor-name').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();saveEditorName();}});
-document.getElementById('editor-prev').addEventListener('click',()=>selectRegion(edIndex-1));
-document.getElementById('editor-next').addEventListener('click',()=>selectRegion(edIndex+1));
+document.getElementById('editor-multi').addEventListener('click',function(){edMulti=!edMulti;this.classList.toggle('on',edMulti);});
+document.getElementById('editor-save').addEventListener('click',saveSelection);
+document.getElementById('editor-name').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();saveSelection();}});
+document.getElementById('editor-prev').addEventListener('click',()=>stepShape(-1));
+document.getElementById('editor-next').addEventListener('click',()=>stepShape(1));
 
-function editorMapMeta(){return {name:(document.getElementById('editor-map-name').value.trim()||'My map'), regions:{...edNames}};}
+function editorMapMeta(){
+  const regions={}, groups={}, aliases={};
+  Object.keys(edRegions).forEach(rid=>{
+    const r=edRegions[rid];
+    regions[rid]=r.name;
+    if(r.ids.length>1)groups[rid]=r.ids.slice();
+    if(r.aliases&&r.aliases.length)aliases[rid]=r.aliases.slice();
+  });
+  const meta={name:(document.getElementById('editor-map-name').value.trim()||'My map'), regions};
+  if(Object.keys(groups).length)meta.groups=groups;
+  if(Object.keys(aliases).length)meta.aliases=aliases;
+  return meta;
+}
 function downloadFile(filename, text, type){
   const url=URL.createObjectURL(new Blob([text],{type}));
   const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click();
   a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
-function editorNeedsRegions(){
-  if(Object.keys(edNames).length)return true;
-  alert('Name at least one region first.'); return false;
-}
+function editorNeedsRegions(){ if(Object.keys(edRegions).length)return true; alert('Name at least one region first.'); return false; }
 document.getElementById('editor-export-json').addEventListener('click',()=>{
-  if(!editorNeedsRegions())return;
-  const m=editorMapMeta();
+  if(!editorNeedsRegions())return; const m=editorMapMeta();
   downloadFile((m.name||'map')+'.json', JSON.stringify(m,null,2), 'application/json');
 });
 document.getElementById('editor-export-svg').addEventListener('click',()=>{
@@ -1232,15 +1457,17 @@ document.getElementById('editor-export-svg').addEventListener('click',()=>{
 document.getElementById('editor-save-local').addEventListener('click',async()=>{
   if(!editorNeedsRegions())return;
   const m=editorMapMeta();
-  const map={id:'custom-'+Date.now(), name:m.name, svgText:edClean, regions:m.regions};
+  const updating = edSourceId && savedIds.has(edSourceId);
+  const map={id: updating?edSourceId:'custom-'+Date.now(), name:m.name, svgText:edClean, regions:m.regions, groups:m.groups||null, aliases:m.aliases||null};
   try{await dbSave(map);savedIds.add(map.id);}catch(e){console.warn('save failed',e);}
-  maps.push(map); renderMapList();
-  alert(`"${m.name}" saved to your library (under ${getContinent(map)}).`);
+  if(updating){const k=maps.findIndex(x=>x.id===map.id);if(k>=0)maps[k]=map;else maps.push(map);}else maps.push(map);
+  edSourceId=map.id; renderMapList();
+  alert(`"${m.name}" ${updating?'updated':'saved'} in your library (under ${getContinent(map)}).`);
 });
 document.getElementById('editor-start-quiz').addEventListener('click',()=>{
   if(!editorNeedsRegions())return;
   const m=editorMapMeta();
-  activeMap={id:'editor-'+Date.now(), name:m.name, svgText:edClean, regions:m.regions};
+  activeMap={id:'editor-'+Date.now(), name:m.name, svgText:edClean, regions:m.regions, groups:m.groups||null, aliases:m.aliases||null};
   document.getElementById('mapselect-title').textContent=activeMap.name;
   document.getElementById('mapselect-sub').textContent=Object.keys(activeMap.regions).length+' regions';
   document.getElementById('btn-share-map').style.display='none';
