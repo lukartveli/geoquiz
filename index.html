@@ -239,7 +239,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 #world-bg{position:fixed;inset:0;z-index:-1;background:#bfe6f5;overflow:hidden;opacity:0;transition:opacity .55s ease;pointer-events:none;}
 #world-bg.show{opacity:1;}
 #world-bg svg{position:absolute;inset:0;width:100%;height:100%;filter:blur(44px) saturate(1.15);transform:scale(1.08);transform-origin:50% 50%;transition:transform .7s ease;}
-#world-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,17,23,.60),rgba(15,17,23,.72));}
+#world-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,17,23,.40),rgba(15,17,23,.58));}
 .wbg-land{fill:#5a8a64;}
 /* ── LEARN MODE ── */
 .quiz-map-wrap svg .region-learn{fill:var(--accent)!important;stroke:#fff!important;stroke-width:1.2!important;}
@@ -263,6 +263,49 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .lb-pct{font-weight:700;}
 .lb-time{color:var(--muted);font-size:.78rem;width:3.5rem;text-align:right;flex:none;}
 .lb-empty{color:var(--muted);font-size:.85rem;text-align:center;padding:1.5rem 0;line-height:1.6;}
+/* ── UI POLISH: glass cards, transitions, hover lift ── */
+.map-item,.mode-card,.continent-card,.map-row,.stat-card,.ach-card,.wrong-item,.daily-card{
+  background:rgba(26,29,39,.55);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  transition:transform .18s ease,border-color .18s,background .18s,box-shadow .18s;
+}
+.map-item:hover,.mode-card:hover,.continent-card:hover,.map-row:hover,.daily-card:hover{
+  transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.35);
+}
+.btn{transition:background .15s,transform .12s,box-shadow .15s;}
+.btn:active{transform:scale(.985);}
+.screen.active{animation:screenIn .22s ease;}
+@keyframes screenIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+#world-bg.dim{opacity:.28;}
+/* ── DAILY CHALLENGE ── */
+.daily-card{border:1px solid var(--accent);border-radius:var(--radius);padding:1rem 1.1rem;display:flex;flex-direction:column;gap:.5rem;}
+.daily-head{display:flex;justify-content:space-between;align-items:center;font-weight:700;}
+.daily-head .dc-date{color:var(--muted);font-size:.78rem;font-weight:500;}
+.daily-map{font-size:.95rem;}
+.daily-status{font-size:.8rem;color:var(--muted);}
+.daily-status .done{color:var(--gold);font-weight:600;}
+/* ── COMMUNITY META / RATINGS / COMMENTS ── */
+.comm-box{background:rgba(26,29,39,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--border);border-radius:var(--radius);padding:.9rem 1rem;display:flex;flex-direction:column;gap:.6rem;}
+.comm-meta{font-size:.82rem;color:var(--muted);line-height:1.7;}
+.comm-meta b{color:var(--text);}
+.stars{color:var(--gold);letter-spacing:.05em;}
+.stars .off{color:var(--border);}
+.rate-stars{display:flex;gap:.15rem;font-size:1.45rem;cursor:pointer;user-select:none;}
+.rate-stars span{color:var(--border);transition:color .12s,transform .12s;}
+.rate-stars span.on{color:var(--gold);}
+.rate-stars span:hover{transform:scale(1.15);}
+.comm-comment{border-top:1px solid var(--border);padding-top:.55rem;font-size:.85rem;}
+.comm-comment .who{font-weight:600;}
+.comm-comment .when{color:var(--muted);font-size:.72rem;margin-left:.4rem;}
+.comm-comment .txt{margin-top:.2rem;line-height:1.5;word-break:break-word;}
+.comm-add{display:flex;gap:.45rem;}
+.comm-add input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:.88rem;padding:.5rem .7rem;outline:none;}
+.comm-sort{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:.75rem;padding:.3rem .45rem;cursor:pointer;flex-shrink:0;}
+/* ── LEADERBOARD windows ── */
+.lb-wins{display:flex;gap:.4rem;padding:.55rem 1rem 0;}
+.lb-win{flex:1;text-align:center;font-size:.74rem;padding:.32rem .4rem;border-radius:99px;border:1px solid var(--border);color:var(--muted);cursor:pointer;background:var(--surface);}
+.lb-win.active{border-color:var(--accent);color:var(--text);background:rgba(79,124,255,.12);}
+.lb-map{color:var(--muted);font-size:.7rem;display:block;}
 </style>
 </head>
 <body>
@@ -306,6 +349,24 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
     <input id="home-search" class="map-search" type="text" placeholder="🔍 Search all quizzes…" autocomplete="off"/>
     <div id="home-results" class="map-list" style="display:none;"></div>
     <div id="home-default" style="display:flex;flex-direction:column;gap:1.25rem;">
+      <!-- Daily challenge -->
+      <div class="daily-card" id="daily-card" style="display:none;">
+        <div class="daily-head"><span>🗓 Daily Challenge</span><span class="dc-date" id="daily-date"></span></div>
+        <div class="daily-map" id="daily-map"></div>
+        <div class="daily-status" id="daily-status"></div>
+        <button class="btn btn-primary" id="daily-play">▶ Play today's challenge</button>
+      </div>
+      <!-- Quick actions -->
+      <div style="display:flex;flex-direction:column;gap:.5rem;">
+        <button class="btn home-add-btn" id="btn-open-stats">📊 Statistics &amp; achievements</button>
+        <button class="btn home-add-btn" id="btn-all-maps">📂 All maps / import a map</button>
+        <button class="btn home-add-btn" id="btn-open-editor">🛠 Build a map (SVG editor)</button>
+      </div>
+      <!-- My maps (saved on this device) -->
+      <div id="mymaps-section" style="display:none;">
+        <div class="section-label">📁 My maps</div>
+        <div class="map-list" id="mymaps-list"></div>
+      </div>
       <!-- Favorites -->
       <div id="fav-section" style="display:none;">
         <div class="section-label">⭐ Favorites</div>
@@ -315,16 +376,20 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
       <div>
         <div class="section-label">Browse by continent</div>
         <div class="continent-grid" id="map-list"></div>
-        <button class="btn home-add-btn" id="btn-all-maps">📂 All maps / import a map</button>
-        <button class="btn home-add-btn" id="btn-open-editor">🛠 Build a map (SVG editor)</button>
-        <button class="btn home-add-btn" id="btn-open-stats">📊 Stats &amp; achievements</button>
       </div>
 
       <!-- Community maps -->
       <div class="community-section">
         <div style="display:flex;align-items:center;justify-content:space-between;">
           <div class="section-label" style="margin-bottom:0">🌐 Community Maps</div>
-          <button class="btn" id="btn-refresh-community" style="flex:none;padding:.35rem .7rem;font-size:.75rem;">↺ Refresh</button>
+          <div style="display:flex;gap:.4rem;align-items:center;">
+            <select class="comm-sort" id="comm-sort" title="Sort community maps">
+              <option value="newest">Newest</option>
+              <option value="rated">Highest rated</option>
+              <option value="played">Most played</option>
+            </select>
+            <button class="btn" id="btn-refresh-community" style="flex:none;padding:.35rem .7rem;font-size:.75rem;">↺ Refresh</button>
+          </div>
         </div>
         <div class="map-list" id="community-list"><div class="community-empty">Loading…</div></div>
       </div>
@@ -378,6 +443,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
       <h2 class="screen-title" id="mapselect-title">Choose mode</h2>
     </div>
     <p id="mapselect-sub" style="color:var(--muted);font-size:.85rem;"></p>
+    <div class="comm-box" id="comm-details" style="display:none;">
+      <div class="comm-meta" id="comm-meta"></div>
+      <div id="comm-rate-row" style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;">
+        <div class="rate-stars" id="comm-rate" title="Rate this map"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+        <span style="font-size:.75rem;color:var(--muted);" id="comm-rate-hint">Tap to rate</span>
+      </div>
+      <div id="comm-comments"></div>
+      <div class="comm-add">
+        <input id="comm-input" maxlength="300" placeholder="Add a comment… (max 300 chars)" autocomplete="off"/>
+        <button class="btn" id="comm-send" style="flex:none;">Send</button>
+      </div>
+    </div>
     <div class="mode-cards">
       <div class="mode-card" id="mode-click">
         <div class="mode-icon">🖱️</div>
@@ -485,7 +562,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
   </div>
   <div class="lb-tabs">
     <div class="lb-tab active" id="lb-tab-local">Local</div>
+    <div class="lb-tab" id="lb-tab-country">Country</div>
     <div class="lb-tab" id="lb-tab-global">Global</div>
+  </div>
+  <div class="lb-wins">
+    <span class="lb-win active" data-win="all">All time</span>
+    <span class="lb-win" data-win="week">Weekly</span>
+    <span class="lb-win" data-win="day">Daily</span>
   </div>
   <div class="lb-list" id="lb-list"></div>
   <div style="padding:.6rem 1rem 1rem;"><button class="btn btn-primary" id="lb-submit" style="width:100%;display:none;">📤 Submit my last score to global</button></div>
@@ -538,10 +621,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
         <div id="ed-marquee"><div id="ed-marquee-box"></div></div>
       </div>
     </div>
-    <div class="ed-help">Click a region → name it → Save. <b>Name | short</b> also accepts “short”. <b>⧉</b> tap several shapes = one region. <b>▦</b> drag a box to grab a cluster of islands at once.</div>
+    <div class="ed-help">Click a region → name it → Save. <b>Name | short</b> also accepts “short”. <b>🪣</b> paint-bucket: tap several shapes, give them one name. <b>▦</b> drag a box to grab an island cluster. <b>🏝</b> auto-detects tiny islands.</div>
     <div class="ed-name-bar">
-      <button class="btn ed-toggle" id="editor-multi" title="Multi-part region: tap several shapes, then Save">⧉</button>
+      <button class="btn ed-toggle" id="editor-multi" title="Paint bucket: tap several shapes, then give them one name">🪣</button>
       <button class="btn ed-toggle" id="editor-marquee" title="Archipelago: drag a box to select all shapes inside it">▦</button>
+      <button class="btn" id="editor-tiny" style="flex:none;" title="Detect tiny islands and merge them into nearby regions">🏝</button>
       <button class="btn" id="editor-prev" style="flex:none;" title="Previous shape">‹</button>
       <input class="type-input" id="editor-name" type="text" placeholder="Name this region…  (Name | alias)" autocomplete="off" autocorrect="off" spellcheck="false"/>
       <button class="btn btn-primary" id="editor-save" style="flex:none;">Save</button>
@@ -562,6 +646,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
     <p>Give your map a name and upload it so anyone with this app can play it. It will appear in the Community Maps section.</p>
     <input type="text" id="share-name" placeholder="Map name (e.g. Regions of Georgia)"/>
     <input type="text" id="share-author" placeholder="Your name / nickname (optional)"/>
+    <input type="text" id="share-desc" maxlength="200" placeholder="Short description (optional)"/>
     <div class="modal-status" id="share-status"></div>
     <div class="modal-row">
       <button class="btn" id="share-cancel">Cancel</button>
@@ -691,13 +776,19 @@ Bus.on('quiz:complete',d=>{ const s=recordPlay(d); const newly=evaluateAchieveme
 //  LEADERBOARDS  (local always; global via optional jsonbin bin)
 // ════════════════════════════════════════════
 const LS_LB='gq:lb-local';
-let lastRun=null, lbMapId=null, lbTab='local';
+let lastRun=null, lbMapId=null, lbTab='local', lbWin='all';
 function loadLB(){try{return JSON.parse(localStorage.getItem(LS_LB))||{};}catch(e){return {};}}
 function rankEntries(list){return list.slice().sort((a,b)=>(b.pct-a.pct)||((a.ms||9e15)-(b.ms||9e15)));}
+function filterByWindow(list,win,now){
+  now=now||Date.now();
+  if(win==='day'){const d=new Date(now);const start=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();return list.filter(e=>(e.date||0)>=start);}
+  if(win==='week')return list.filter(e=>(e.date||0)>=now-7*86400000);
+  return list;
+}
 function recordLocalLB(d){
   const lb=loadLB(); const arr=lb[d.mapId]||[];
-  arr.push({pct:d.pct, ms:d.durationMs||0, mode:d.mode, date:Date.now()});
-  lb[d.mapId]=rankEntries(arr).slice(0,10);
+  arr.push({name:getPlayerNameQuiet()||'You', pct:d.pct, ms:d.durationMs||0, mode:d.mode, date:Date.now(), mapId:d.mapId});
+  lb[d.mapId]=rankEntries(arr).slice(0,25);
   try{localStorage.setItem(LS_LB,JSON.stringify(lb));}catch(e){}
 }
 Bus.on('quiz:complete',d=>{recordLocalLB(d);lastRun=d;});
@@ -706,48 +797,61 @@ function getPlayerName(){
   if(!n){ n=(prompt('Name for the leaderboard:')||'').trim(); if(n){try{localStorage.setItem('gq:player',n);}catch(e){}} }
   return n;
 }
-async function fetchGlobalLB(mapId){
+function getCountry(){
+  let c=''; try{c=localStorage.getItem('gq:country')||'';}catch(e){}
+  if(!c){ c=(prompt('Your country (for the country leaderboard):')||'').trim(); if(c){try{localStorage.setItem('gq:country',c);}catch(e){}} }
+  return c;
+}
+function getCountryQuiet(){try{return localStorage.getItem('gq:country')||'';}catch(e){return '';}}
+async function fetchGlobalLB(){
   if(!JSONBIN_LB_URL)return null;
   const r=await fetch(JSONBIN_LB_URL+'/latest',{headers:{'X-Master-Key':JSONBIN_API_KEY}});
-  const data=await r.json(); const list=(data.record&&data.record.data)||data.record||[];
-  return rankEntries(list.filter(e=>e.map===mapId)).slice(0,25);
+  const data=await r.json(); return (data.record&&data.record.data)||data.record||[];
 }
 async function submitGlobalLB(){
   if(!JSONBIN_LB_URL){alert('Global leaderboard not configured.\nCreate a second empty [] bin on jsonbin.io and set JSONBIN_LB_ID near the top of this file.');return;}
   if(!lastRun){alert('Finish a quiz first, then submit.');return;}
   const name=getPlayerName(); if(!name)return;
+  const country=getCountry();
   const btn=document.getElementById('lb-submit'); btn.disabled=true; btn.textContent='Submitting…';
   try{
     const r=await fetch(JSONBIN_LB_URL+'/latest',{headers:{'X-Master-Key':JSONBIN_API_KEY}});
     const data=await r.json(); const list=(data.record&&data.record.data)||[];
-    list.push({map:lastRun.mapId,name,pct:lastRun.pct,ms:lastRun.durationMs||0,mode:lastRun.mode,date:Date.now()});
+    list.push({mapId:lastRun.mapId,name,country,pct:lastRun.pct,ms:lastRun.durationMs||0,mode:lastRun.mode,date:Date.now()});
     const w=await fetch(JSONBIN_LB_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_API_KEY},body:JSON.stringify({data:list})});
     if(!w.ok)throw 0;
     btn.textContent='✓ Submitted'; lbTab='global'; renderLeaderboard();
   }catch(e){btn.textContent='Submit failed'; }
   setTimeout(()=>{btn.disabled=false;btn.textContent='📤 Submit my last score to global';},1800);
 }
-function lbRowHtml(e,i,mine){
+function lbRowHtml(e,i,mine,showMap){
   const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
-  return `<div class="lb-row${mine?' me':''}"><div class="lb-rank">${medal}</div><div class="lb-name">${e.name||'You'}</div><div class="lb-pct">${e.pct}%</div><div class="lb-time">${e.ms?fmtMs(e.ms):'—'}</div></div>`;
+  const mapLbl=showMap?`<span class="lb-map">${(maps.find(m=>m.id===e.mapId)||{}).name||e.mapId||''}</span>`:'';
+  return `<div class="lb-row${mine?' me':''}"><div class="lb-rank">${medal}</div><div class="lb-name">${e.name||'You'}${mapLbl}</div><div class="lb-pct">${e.pct}%</div><div class="lb-time">${e.ms?fmtMs(e.ms):'—'}</div></div>`;
 }
 async function renderLeaderboard(){
-  document.getElementById('lb-tab-local').classList.toggle('active',lbTab==='local');
-  document.getElementById('lb-tab-global').classList.toggle('active',lbTab==='global');
+  ['local','country','global'].forEach(t=>document.getElementById('lb-tab-'+t).classList.toggle('active',lbTab===t));
+  document.querySelectorAll('.lb-win').forEach(w=>w.classList.toggle('active',w.dataset.win===lbWin));
   const list=document.getElementById('lb-list');
-  document.getElementById('lb-submit').style.display=(lbTab==='global'&&lastRun&&lastRun.mapId===lbMapId)?'':'none';
+  document.getElementById('lb-submit').style.display=(lbTab!=='local'&&lastRun)?'':'none';
   if(lbTab==='local'){
-    const arr=rankEntries((loadLB()[lbMapId])||[]);
-    list.innerHTML=arr.length?arr.map((e,i)=>lbRowHtml(e,i,false)).join(''):'<div class="lb-empty">No local scores yet.<br>Play this map to set one!</div>';
-  }else{
-    if(!JSONBIN_LB_URL){list.innerHTML='<div class="lb-empty">Global leaderboard isn’t set up.<br>Create a second empty <code>[]</code> bin at jsonbin.io and put its id in <code>JSONBIN_LB_ID</code> near the top of the file.</div>';return;}
-    list.innerHTML='<div class="lb-empty">Loading…</div>';
-    try{
-      const arr=await fetchGlobalLB(lbMapId);
-      const me=getPlayerNameQuiet();
-      list.innerHTML=(arr&&arr.length)?arr.map((e,i)=>lbRowHtml(e,i,me&&e.name===me)).join(''):'<div class="lb-empty">No global scores yet for this map.</div>';
-    }catch(e){list.innerHTML='<div class="lb-empty">Couldn’t load the global leaderboard.</div>';}
+    const arr=rankEntries(filterByWindow((loadLB()[lbMapId])||[],lbWin));
+    list.innerHTML=arr.length?arr.map((e,i)=>lbRowHtml(e,i,false,false)).join(''):'<div class="lb-empty">No local scores in this period.<br>Play this map to set one!</div>';
+    return;
   }
+  if(!JSONBIN_LB_URL){list.innerHTML='<div class="lb-empty">Global leaderboard isn’t set up.<br>Create a second empty <code>[]</code> bin at jsonbin.io and put its id in <code>JSONBIN_LB_ID</code> near the top of the file.</div>';return;}
+  list.innerHTML='<div class="lb-empty">Loading…</div>';
+  try{
+    let arr=await fetchGlobalLB()||[];
+    if(lbTab==='country'){
+      const c=getCountryQuiet()||getCountry();
+      arr=arr.filter(e=>(e.country||'').toLowerCase()===(c||'').toLowerCase());
+      if(!c){list.innerHTML='<div class="lb-empty">Set your country to see this board.</div>';return;}
+    }
+    arr=rankEntries(filterByWindow(arr,lbWin)).slice(0,50);
+    const me=getPlayerNameQuiet();
+    list.innerHTML=arr.length?arr.map((e,i)=>lbRowHtml(e,i,me&&e.name===me,true)).join(''):'<div class="lb-empty">No scores in this period yet.</div>';
+  }catch(e){list.innerHTML='<div class="lb-empty">Couldn’t load the leaderboard.</div>';}
 }
 function getPlayerNameQuiet(){try{return localStorage.getItem('gq:player')||'';}catch(e){return '';}}
 function openLeaderboard(mapId,name){
@@ -756,12 +860,57 @@ function openLeaderboard(mapId,name){
   renderLeaderboard();
   showScreen('leaderboard');
 }
-document.getElementById('lb-back').addEventListener('click',()=>showScreen('mapselect'));
+document.getElementById('lb-back').addEventListener('click',()=>goBack());
 document.getElementById('lb-tab-local').addEventListener('click',()=>{lbTab='local';renderLeaderboard();});
+document.getElementById('lb-tab-country').addEventListener('click',()=>{lbTab='country';renderLeaderboard();});
 document.getElementById('lb-tab-global').addEventListener('click',()=>{lbTab='global';renderLeaderboard();});
+document.querySelectorAll('.lb-win').forEach(w=>w.addEventListener('click',()=>{lbWin=w.dataset.win;renderLeaderboard();}));
 document.getElementById('lb-submit').addEventListener('click',submitGlobalLB);
 document.getElementById('btn-leaderboard').addEventListener('click',()=>{if(activeMap)openLeaderboard(activeMap.id,activeMap.name);});
 document.getElementById('btn-result-lb').addEventListener('click',()=>{if(activeMap)openLeaderboard(activeMap.id,activeMap.name);});
+
+// ════════════════════════════════════════════
+//  DAILY CHALLENGE  (same for everyone: date-seeded map pick + region order)
+// ════════════════════════════════════════════
+function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function mulberry32(seed){return function(){seed|=0;seed=(seed+0x6D2B79F5)|0;let t=Math.imul(seed^(seed>>>15),1|seed);t=(t+Math.imul(t^(t>>>7),61|t))^t;return ((t^(t>>>14))>>>0)/4294967296;};}
+function seededShuffle(arr,seed){const a=arr.slice(),rnd=mulberry32(seed);for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+
+const LS_DAILY='gq:daily';
+let dailyActive=false;
+function loadDaily(){try{const d=JSON.parse(localStorage.getItem(LS_DAILY));return (d&&d.date===todayStr())?d:null;}catch(e){return null;}}
+function saveDaily(d){try{localStorage.setItem(LS_DAILY,JSON.stringify(d));}catch(e){}}
+function dailyPool(){const b=maps.filter(m=>m.builtin);return b.length?b:maps.slice().sort((a,x)=>a.id<x.id?-1:1);}
+function pickDailyMap(){const pool=dailyPool();if(!pool.length)return null;return pool[hashStr(todayStr())%pool.length];}
+function dailyOrder(map){return seededShuffle(Object.keys(map.regions),hashStr(todayStr()+'|'+map.id));}
+function updateDailyBest(d){
+  const t=(d.durationMs||0)/1000;
+  const cur=loadDaily();
+  const better=!cur || d.pct>cur.score || (d.pct===cur.score && t<cur.time);
+  if(better)saveDaily({date:todayStr(),mapId:d.mapId,score:d.pct,time:Math.round(t*10)/10});
+  renderDailyCard();
+}
+Bus.on('quiz:complete',d=>{ if(dailyActive&&d.mode==='click')updateDailyBest(d); dailyActive=false; });
+function fmtSec(t){const m=Math.floor(t/60),s=Math.round(t%60);return m?`${m}:${String(s).padStart(2,'0')}`:`${t}s`;}
+function renderDailyCard(){
+  const card=document.getElementById('daily-card');if(!card)return;
+  const map=pickDailyMap();
+  if(!map){card.style.display='none';return;}
+  card.style.display='';
+  document.getElementById('daily-date').textContent=todayStr();
+  document.getElementById('daily-map').textContent='Today\u2019s map: '+map.name+' ('+Object.keys(map.regions).length+' regions, click mode)';
+  const best=loadDaily();
+  document.getElementById('daily-status').innerHTML=best
+    ? `<span class="done">✔ Completed today</span> — best ${best.score}% in ${fmtSec(best.time)}. Play again to improve!`
+    : 'Not completed yet — same map and order for every player today.';
+  document.getElementById('daily-play').textContent=best?'▶ Improve today\u2019s score':'▶ Play today\u2019s challenge';
+}
+document.getElementById('daily-play').addEventListener('click',()=>{
+  const map=pickDailyMap();if(!map)return;
+  activeMap=map;quizMode='click';
+  startClickQuiz(dailyOrder(map),{ordered:true,daily:true});
+});
 
 function fmtMs(ms){if(ms==null)return '—';const s=Math.round(ms/1000);return s<60?s+'s':Math.floor(s/60)+'m '+(s%60)+'s';}
 function bestStreakOf(order,scores){let s=0,b=0;order.forEach(id=>{if(scores[id]==='0'){s++;if(s>b)b=s;}else s=0;});return b;}
@@ -781,7 +930,7 @@ function renderStats(){
   document.getElementById('stats-maps').innerHTML=rows||'<div class="sm" style="color:var(--muted);font-size:.85rem;padding:.5rem 0;">No plays yet — finish a quiz to see stats here.</div>';
 }
 document.getElementById('btn-open-stats').addEventListener('click',()=>{renderStats();showScreen('stats');});
-document.getElementById('stats-back').addEventListener('click',()=>showScreen('home'));
+document.getElementById('stats-back').addEventListener('click',()=>goBack());
 document.getElementById('stats-reset').addEventListener('click',()=>{
   if(!confirm('Reset all stats and achievements? This cannot be undone.'))return;
   try{localStorage.removeItem(LS_STATS);localStorage.removeItem(LS_ACH);}catch(e){}
@@ -791,13 +940,22 @@ document.getElementById('stats-reset').addEventListener('click',()=>{
 // ════════════════════════════════════════════
 //  SCREEN
 // ════════════════════════════════════════════
-function showScreen(id){
+let screenHistory=[];
+function showScreen(id, isBack){
+  const cur=document.querySelector('.screen.active');
+  const curId=cur?cur.id.replace('screen-',''):null;
+  if(!isBack && curId && curId!==id) screenHistory.push(curId);
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+id).classList.add('active');
   const wb=document.getElementById('world-bg');
-  if(wb)wb.classList.toggle('show', id==='home'||id==='pickmap');
+  if(wb){
+    const full=(id==='home'||id==='pickmap');
+    wb.classList.add('show');
+    wb.classList.toggle('dim',!full);   // low opacity behind gameplay, full on home/browse
+  }
   if(id==='home')setBgContinent('World');
 }
+function goBack(){ showScreen(screenHistory.pop()||'home', true); }
 const CONT_FOCUS={'North America':[18,30],'South America':[30,66],'Europe':[52,26],'Asia':[70,30],'Africa':[55,56],'Oceania':[85,70],'Antarctica':[50,95],'World':[50,50]};
 function setBgContinent(c){
   const bg=document.querySelector('#world-bg svg'); if(!bg)return;
@@ -826,6 +984,7 @@ async function loadBuiltIn(){
 // ════════════════════════════════════════════
 function renderMapList(){
   renderFavorites();
+  renderMyMaps();
   if(document.getElementById('home-search')&&document.getElementById('home-search').value.trim())runHomeSearch();
   const grid=document.getElementById('map-list');
   grid.innerHTML='';
@@ -933,7 +1092,7 @@ function makePickRow(m){
   sel.addEventListener('change',e=>{setContinent(m.id,e.target.value);renderPickMap();renderMapList();});
   return row;
 }
-document.getElementById('pickmap-back').addEventListener('click',()=>showScreen('home'));
+document.getElementById('pickmap-back').addEventListener('click',()=>goBack());
 document.getElementById('map-search').addEventListener('input',renderPickMap);
 document.getElementById('btn-all-maps').addEventListener('click',()=>openContinent(null));
 
@@ -952,6 +1111,14 @@ function renderFavorites(){
   sec.style.display=''; list.innerHTML='';
   favs.forEach(m=>list.appendChild(makeMapItem(m)));
 }
+function renderMyMaps(){
+  const sec=document.getElementById('mymaps-section'), list=document.getElementById('mymaps-list');
+  if(!sec||!list)return;
+  const mine=maps.filter(m=>savedIds.has(m.id));
+  if(!mine.length){sec.style.display='none';list.innerHTML='';return;}
+  sec.style.display=''; list.innerHTML='';
+  mine.forEach(m=>list.appendChild(makeMapItem(m)));
+}
 function runHomeSearch(){
   const input=document.getElementById('home-search'); if(!input)return;
   const raw=input.value||'', q=normalize(raw);
@@ -968,6 +1135,7 @@ document.getElementById('home-search').addEventListener('input',runHomeSearch);
 // ════════════════════════════════════════════
 //  COMMUNITY MAPS
 // ════════════════════════════════════════════
+let commEntries=[];
 async function loadCommunityMaps(){
   const list=document.getElementById('community-list');
   if(!JSONBIN_URL){
@@ -983,20 +1151,118 @@ async function loadCommunityMaps(){
   try{
     const r=await fetch(JSONBIN_URL+'/latest',{headers:{'X-Master-Key':JSONBIN_API_KEY}});
     const data = await r.json();
-    const entries = data.record.data || [];
-    if(!entries.length){list.innerHTML='<div class="community-empty">No community maps yet. Be the first to share!</div>';return;}
-    list.innerHTML='';
-    entries.slice().reverse().forEach(e=>{
-      const m={id:'comm-'+e.id,name:e.name,svgText:e.svgText,regions:e.regions,groups:e.groups||null,aliases:e.aliases||null,community:true,author:e.author||''};
-      const existing=maps.find(x=>x.id===m.id);
-      if(!existing)maps.push(m);
-      list.appendChild(makeMapItem(m));
-    });
-    renderMapList();
+    commEntries = data.record.data || [];
+    renderCommunityList();
   }catch(err){
     list.innerHTML='<div class="community-empty">Could not load community maps.</div>';
   }
 }
+function commAvg(ratings){if(!ratings||!ratings.length)return 0;return Math.round(ratings.reduce((s,r)=>s+(r.stars||0),0)/ratings.length*10)/10;}
+function starsHtml(avg){let h='';for(let i=1;i<=5;i++)h+=`<span${i<=Math.round(avg)?'':' class="off"'}>★</span>`;return `<span class="stars">${h}</span>`;}
+function sortCommEntries(entries,mode){
+  const a=entries.slice();
+  if(mode==='rated')a.sort((x,y)=>commAvg(y.ratings)-commAvg(x.ratings)||((y.ratings||[]).length-(x.ratings||[]).length));
+  else if(mode==='played')a.sort((x,y)=>(y.plays||0)-(x.plays||0));
+  else a.sort((x,y)=>(y.id||0)-(x.id||0)); // newest
+  return a;
+}
+function renderCommunityList(){
+  const list=document.getElementById('community-list');
+  if(!commEntries.length){list.innerHTML='<div class="community-empty">No community maps yet. Be the first to share!</div>';return;}
+  const mode=document.getElementById('comm-sort')?.value||'newest';
+  list.innerHTML='';
+  sortCommEntries(commEntries,mode).forEach(e=>{
+    let m=maps.find(x=>x.id==='comm-'+e.id);
+    if(!m){
+      m={id:'comm-'+e.id,name:e.name,svgText:e.svgText,regions:e.regions,groups:e.groups||null,aliases:e.aliases||null,community:true,author:e.author||'',meta:e};
+      maps.push(m);
+    }else m.meta=e;
+    const item=makeMapItem(m);
+    const metaRow=item.querySelector('.map-item-meta');
+    if(metaRow){
+      const extra=document.createElement('span');
+      extra.style.cssText='display:flex;gap:.45rem;align-items:center;';
+      const avg=commAvg(e.ratings);
+      extra.innerHTML=(avg?`${starsHtml(avg)} <span>(${avg})</span>`:'<span style="color:var(--muted)">unrated</span>')+` · ▶ ${e.plays||0}`;
+      metaRow.appendChild(extra);
+    }
+    list.appendChild(item);
+  });
+  renderMapList();
+}
+document.getElementById('comm-sort').addEventListener('change',renderCommunityList);
+
+// ════════════════════════════════════════════
+//  COMMUNITY DETAILS: ratings, comments, plays
+// ════════════════════════════════════════════
+async function updateCommunityEntry(rawId, mutate){
+  if(!JSONBIN_URL)throw new Error('no backend');
+  const r=await fetch(JSONBIN_URL+'/latest',{headers:{'X-Master-Key':JSONBIN_API_KEY}});
+  const data=await r.json(); const list=data.record.data||[];
+  const e=list.find(x=>x.id===rawId); if(!e)throw new Error('entry gone');
+  mutate(e);
+  const w=await fetch(JSONBIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_API_KEY},body:JSON.stringify({data:list})});
+  if(!w.ok)throw new Error('write failed');
+  return e;
+}
+function applyRating(ratings,user,stars){
+  const out=(ratings||[]).filter(r=>r.user!==user);   // one rating per user — re-rating replaces
+  out.push({user,stars});
+  return out;
+}
+function limitComment(text){return (text||'').trim().slice(0,300);}
+function timeAgo(iso){
+  const t=typeof iso==='number'?iso:Date.parse(iso); if(!t)return '';
+  const s=(Date.now()-t)/1000;
+  if(s<60)return 'just now'; if(s<3600)return Math.floor(s/60)+' min ago';
+  if(s<86400)return Math.floor(s/3600)+' h ago';
+  const d=Math.floor(s/86400); return d===1?'1 day ago':d+' days ago';
+}
+function renderCommDetails(){
+  const box=document.getElementById('comm-details');
+  const e=activeMap&&activeMap.meta;
+  if(!activeMap||!activeMap.community||!e){box.style.display='none';return;}
+  box.style.display='';
+  const avg=commAvg(e.ratings), n=(e.ratings||[]).length;
+  document.getElementById('comm-meta').innerHTML=
+    `<b>${e.author||'Anonymous'}</b>${e.description?' — '+e.description:''}<br>`+
+    `${avg?`${starsHtml(avg)} (${avg}) · ${n} rating${n===1?'':'s'}`:'No ratings yet'} · ▶ ${e.plays||0} plays`+
+    `${e.dateCreated?' · created '+timeAgo(e.dateCreated):''}`;
+  const me=getPlayerNameQuiet();
+  const mine=me&&(e.ratings||[]).find(r=>r.user===me);
+  document.querySelectorAll('#comm-rate span').forEach((s,i)=>s.classList.toggle('on',mine&&i<mine.stars));
+  document.getElementById('comm-rate-hint').textContent=mine?`You rated ${mine.stars}★ (tap to change)`:'Tap to rate';
+  const cl=document.getElementById('comm-comments');
+  const cs=(e.comments||[]).slice().sort((a,b)=>Date.parse(b.date||0)-Date.parse(a.date||0));
+  cl.innerHTML=cs.length?cs.map(c=>{
+    const r=(e.ratings||[]).find(x=>x.user===c.user);
+    return `<div class="comm-comment"><span class="who">${c.user||'Anonymous'}</span><span class="when">${timeAgo(c.date)}</span>${r?`<div>${starsHtml(r.stars)}</div>`:''}<div class="txt">${c.text}</div></div>`;
+  }).join(''):'<div style="color:var(--muted);font-size:.8rem;">No comments yet — be the first!</div>';
+}
+document.querySelectorAll('#comm-rate span').forEach((s,idx)=>s.addEventListener('click',async()=>{
+  const e=activeMap&&activeMap.meta; if(!e)return;
+  const user=getPlayerName(); if(!user)return;
+  const stars=idx+1;
+  e.ratings=applyRating(e.ratings,user,stars); renderCommDetails();   // optimistic
+  try{await updateCommunityEntry(e.id,x=>{x.ratings=applyRating(x.ratings,user,stars);});}
+  catch(_){document.getElementById('comm-rate-hint').textContent='Rating failed to sync.';}
+}));
+document.getElementById('comm-send').addEventListener('click',async()=>{
+  const e=activeMap&&activeMap.meta; if(!e)return;
+  const inp=document.getElementById('comm-input');
+  const text=limitComment(inp.value); if(!text)return;
+  const user=getPlayerName(); if(!user)return;
+  const c={user,date:new Date().toISOString(),text};
+  e.comments=e.comments||[]; e.comments.push(c); inp.value=''; renderCommDetails();  // optimistic
+  try{await updateCommunityEntry(e.id,x=>{x.comments=x.comments||[];x.comments.push(c);});}catch(_){}
+});
+// count a play on every completed community-map quiz (best effort)
+Bus.on('quiz:complete',d=>{
+  if(!d.mapId||!String(d.mapId).startsWith('comm-'))return;
+  const m=maps.find(x=>x.id===d.mapId); const e=m&&m.meta; if(!e)return;
+  e.plays=(e.plays||0)+1;
+  updateCommunityEntry(e.id,x=>{x.plays=(x.plays||0)+1;}).catch(()=>{});
+});
 
 document.getElementById('btn-refresh-community').addEventListener('click',loadCommunityMaps);
 
@@ -1037,7 +1303,15 @@ document.getElementById('share-confirm').addEventListener('click', async () => {
       id: Date.now(),
       name,
       author,
+      description: (document.getElementById('share-desc').value||'').trim().slice(0,200),
+      dateCreated: new Date().toISOString(),
+      downloads: 0,
+      plays: 0,
+      ratings: [],
+      comments: [],
       regions: activeMap.regions,
+      groups: activeMap.groups||null,
+      aliases: activeMap.aliases||null,
       svgText: activeMap.svgText
     });
 
@@ -1074,6 +1348,7 @@ function openMapSelect(mapId){
   const owned=(savedIds.has(activeMap.id)||(!activeMap.builtin&&!activeMap.community));
   document.getElementById('btn-share-map').style.display=owned?'':'none';
   document.getElementById('btn-rename-map').style.display=owned?'':'none';
+  renderCommDetails();
   showScreen('mapselect');
 }
 document.getElementById('btn-edit-map').addEventListener('click',()=>{ if(activeMap)editExistingMap(activeMap); });
@@ -1087,7 +1362,7 @@ document.getElementById('btn-rename-map').addEventListener('click',async()=>{
   if(savedIds.has(activeMap.id)){try{await dbSave(activeMap);}catch(e){}}
   renderMapList();
 });
-document.getElementById('back-to-home').addEventListener('click',()=>showScreen('home'));
+document.getElementById('back-to-home').addEventListener('click',()=>goBack());
 document.getElementById('mode-click').addEventListener('click',()=>{quizMode='click';startClickQuiz(Object.keys(activeMap.regions));});
 document.getElementById('mode-type').addEventListener('click', ()=>{quizMode='type'; startFillQuiz(Object.keys(activeMap.regions));});
 document.getElementById('mode-learn').addEventListener('click',()=>{quizMode='learn'; startLearnMode(Object.keys(activeMap.regions));});
@@ -1202,8 +1477,10 @@ function loadMapIntoQuiz(){
 // ════════════════════════════════════════════
 //  CLICK MODE
 // ════════════════════════════════════════════
-function startClickQuiz(regionIds){
-  quizQueue=shuffle(regionIds);quizIndex=0;wrongIds=[];scoreMap={};mistakeCount=0;waitingForNext=false;
+function startClickQuiz(regionIds, opts){
+  quizQueue=(opts&&opts.ordered)?regionIds.slice():shuffle(regionIds);
+  dailyActive=!!(opts&&opts.daily);
+  quizIndex=0;wrongIds=[];scoreMap={};mistakeCount=0;waitingForNext=false;
   correctClicks=0;wrongClicks=0;
   quizStartTime=Date.now();
   stopFlash();clearTimeout(feedbackTimeout);
@@ -1283,12 +1560,13 @@ document.getElementById('btn-giveup').addEventListener('click',()=>{
   waitingForNext=true;clearTimeout(feedbackTimeout);
   feedbackTimeout=setTimeout(()=>advanceClick(),1600);
 });
-document.getElementById('back-to-select').addEventListener('click',()=>{stopFlash();clearTimeout(feedbackTimeout);showScreen('mapselect');});
+document.getElementById('back-to-select').addEventListener('click',()=>{stopFlash();clearTimeout(feedbackTimeout);goBack();});
 
 // ════════════════════════════════════════════
 //  FILL / TYPE MODE
 // ════════════════════════════════════════════
 function startFillQuiz(regionIds){
+  dailyActive=false;
   fillRemaining=[...regionIds];fillScores={};wrongIds=[];guessedNames=[];
   quizStartTime=Date.now();
   loadMapIntoQuiz();
@@ -1456,7 +1734,7 @@ function showClickResults(){
 }
 document.getElementById('btn-review').addEventListener('click',()=>{if(quizMode==='click')startClickQuiz(wrongIds);else startFillQuiz(wrongIds);});
 document.getElementById('btn-restart').addEventListener('click',()=>{if(quizMode==='click')startClickQuiz(Object.keys(activeMap.regions));else startFillQuiz(Object.keys(activeMap.regions));});
-document.getElementById('btn-home').addEventListener('click',()=>showScreen('home'));
+document.getElementById('btn-home').addEventListener('click',()=>{screenHistory=[];showScreen('home',true);});
 
 // ════════════════════════════════════════════
 //  IMPORT
@@ -1580,7 +1858,7 @@ function openEditor(){
   showScreen('editor');
 }
 document.getElementById('btn-open-editor').addEventListener('click',openEditor);
-document.getElementById('editor-back').addEventListener('click',()=>showScreen('home'));
+document.getElementById('editor-back').addEventListener('click',()=>goBack());
 
 document.getElementById('editor-svg').addEventListener('change',async function(){
   if(!this.files[0])return;
@@ -1690,6 +1968,48 @@ function updateEditorProgress(){
 }
 document.getElementById('editor-multi').addEventListener('click',function(){edMulti=!edMulti;this.classList.toggle('on',edMulti);});
 
+// ── TINY-ISLAND DETECTION: find very small unnamed shapes, merge into nearest named region (with approval) ──
+function classifyTiny(areas, ratio){
+  ratio=ratio||0.004;                       // tiny = under 0.4% of the largest area in the list
+  const max=Math.max.apply(null,areas);
+  if(!isFinite(max)||max<=0)return [];
+  const out=[]; areas.forEach((a,i)=>{if(a<max*ratio)out.push(i);}); return out;
+}
+function nearestIndex(centers, p){
+  let best=-1,bd=Infinity;
+  centers.forEach((c,i)=>{const d=(c.x-p.x)*(c.x-p.x)+(c.y-p.y)*(c.y-p.y);if(d<bd){bd=d;best=i;}});
+  return best;
+}
+document.getElementById('editor-tiny').addEventListener('click',()=>{
+  const svg=edSvg(); if(!svg)return;
+  const unnamed=edAllShapes.filter(id=>!edShapeRegion[id]);
+  if(!unnamed.length){alert('No unnamed shapes left to check.');return;}
+  const bbox=id=>{const el=svg.getElementById(id);try{const b=el.getBBox();return {area:b.width*b.height,cx:b.x+b.width/2,cy:b.y+b.height/2};}catch(_){return {area:0,cx:0,cy:0};}};
+  const all=edAllShapes.map(id=>({id,...bbox(id)}));
+  const tinyIdxAll=classifyTiny(all.map(b=>b.area));      // threshold vs the largest shape on the map
+  const tiny=tinyIdxAll.map(i=>all[i]).filter(b=>!edShapeRegion[b.id]);
+  if(!tiny.length){alert('No tiny islands found among the unnamed shapes.');return;}
+  const named=Object.keys(edRegions).map(rid=>{const b=bbox(edRegions[rid].ids[0]);return {rid,x:b.cx,y:b.cy};});
+  tiny.forEach(t=>svg.getElementById(t.id)?.classList.add('ed-current'));   // preview highlight
+  if(named.length){
+    const plan=tiny.map(t=>({id:t.id, rid:named[nearestIndex(named,{x:t.cx,y:t.cy})].rid}));
+    const summary={}; plan.forEach(p=>{const nm=edRegions[p.rid].name;summary[nm]=(summary[nm]||0)+1;});
+    const msg='Found '+tiny.length+' tiny island'+(tiny.length===1?'':'s')+' (highlighted). Merge each into its nearest named region?\n\n'+
+      Object.keys(summary).map(n=>`• ${summary[n]} → ${n}`).join('\n');
+    if(confirm(msg)){
+      plan.forEach(p=>{
+        edRegions[p.rid].ids.push(p.id); edShapeRegion[p.id]=p.rid;
+        const el=svg.getElementById(p.id); el?.classList.remove('ed-current'); el?.classList.add('ed-named');
+      });
+      updateEditorProgress(); clearSelection();
+    }else tiny.forEach(t=>svg.getElementById(t.id)?.classList.remove('ed-current'));
+  }else{
+    if(confirm('Found '+tiny.length+' tiny islands (highlighted), but there are no named regions yet to merge into.\nSelect them all as ONE group so you can name them now?')){
+      edSel=tiny.map(t=>t.id); edEditing=null; highlightSel(); document.getElementById('editor-name').focus();
+    }else tiny.forEach(t=>svg.getElementById(t.id)?.classList.remove('ed-current'));
+  }
+});
+
 // ── ARCHIPELAGO MARQUEE: drag a box to grab every shape inside it ──
 function rectsIntersect(a,b){return a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;}
 document.getElementById('editor-marquee').addEventListener('click',function(){
@@ -1786,6 +2106,7 @@ document.getElementById('editor-start-quiz').addEventListener('click',()=>{
   document.getElementById('mapselect-title').textContent=activeMap.name;
   document.getElementById('mapselect-sub').textContent=Object.keys(activeMap.regions).length+' regions';
   document.getElementById('btn-share-map').style.display='none';
+  renderCommDetails();
   showScreen('mapselect');
 });
 
@@ -1793,12 +2114,14 @@ document.getElementById('editor-start-quiz').addEventListener('click',()=>{
 //  INIT
 // ════════════════════════════════════════════
 async function init(){
+  showScreen('home');   // activate home through the switcher so the world background shows immediately
   try{
     await openDB();
     const saved=await dbAll();
     saved.forEach(m=>{savedIds.add(m.id);maps.push(m);});
   }catch(e){console.warn('IndexedDB unavailable:',e);}
   await loadBuiltIn();
+  renderDailyCard();
   loadCommunityMaps();
 }
 init();
