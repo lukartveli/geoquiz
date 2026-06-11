@@ -93,7 +93,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 
 /* Quiz body: map + guessed list side by side in fill mode */
 .quiz-body{flex:1;overflow:hidden;display:flex;gap:0;}
-.quiz-map-wrap{flex:1;overflow:hidden;position:relative;padding:.5rem;display:flex;align-items:center;justify-content:center;}
+.quiz-map-wrap{flex:1;overflow:hidden;position:relative;padding:.5rem;display:flex;align-items:center;justify-content:center;contain:layout paint;}
 .quiz-map-wrap svg{width:100%;height:100%;max-height:100%;display:block;}
 
 /* Guessed names panel (fill mode) */
@@ -236,9 +236,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .ach-toast-t{font-size:.66rem;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;}
 .ach-toast-n{font-size:.92rem;font-weight:600;}
 /* ── BLURRED WORLD BACKGROUND ── */
-#world-bg{position:fixed;inset:0;z-index:-1;background:#bfe6f5;overflow:hidden;opacity:0;transition:opacity .55s ease;pointer-events:none;}
+#world-bg{position:fixed;inset:0;z-index:-1;background:#bfe6f5;overflow:hidden;opacity:0;transition:opacity .55s ease;pointer-events:none;contain:strict;}
 #world-bg.show{opacity:1;}
-#world-bg svg{position:absolute;inset:0;width:100%;height:100%;filter:blur(44px) saturate(1.15);transform:scale(1.08);transform-origin:50% 50%;transition:transform .7s ease;}
+#world-bg svg{position:absolute;inset:0;width:100%;height:100%;filter:blur(30px) saturate(1.15);transform:scale(1.08) translateZ(0);will-change:transform;transform-origin:50% 50%;transition:transform .7s ease;}
 #world-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,17,23,.40),rgba(15,17,23,.58));}
 .wbg-land{fill:#5a8a64;}
 /* ── LEARN MODE ── */
@@ -267,11 +267,17 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .lb-time{color:var(--muted);font-size:.78rem;width:3.5rem;text-align:right;flex:none;}
 .lb-empty{color:var(--muted);font-size:.85rem;text-align:center;padding:1.5rem 0;line-height:1.6;}
 /* ── UI POLISH: glass cards, transitions, hover lift ── */
-.map-item,.mode-card,.continent-card,.map-row,.stat-card,.ach-card,.wrong-item,.daily-card{
+/* backdrop-filter is GPU-expensive; apply only on the FEW prominent cards, never on rows that repeat 200+ times */
+.mode-card,.continent-card,.stat-card,.ach-card,.daily-card{
   background:rgba(26,29,39,.55);
   backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
   transition:transform .18s ease,border-color .18s,background .18s,box-shadow .18s;
 }
+.map-item,.map-row,.wrong-item{
+  background:rgba(26,29,39,.72);            /* solid-ish translucent — no filter, cheap to paint */
+  transition:transform .15s ease,border-color .15s,background .15s;
+}
+.map-list,#community-list,#mymaps-list,#fav-list,#home-results{contain:layout style;}   /* scope layout/paint to each list */
 .map-item:hover,.mode-card:hover,.continent-card:hover,.map-row:hover,.daily-card:hover{
   transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.35);
 }
@@ -1787,8 +1793,9 @@ document.getElementById('btn-add-import').addEventListener('click',async()=>{
 //  ZOOM / PAN  (wheel + drag + pinch, per map wrap)
 //  Pans only when zoomed in, so default-zoom clicks behave exactly as before.
 // ════════════════════════════════════════════
-function attachZoom(wrap){
+function attachZoom(wrap, isInactive){
   if(!wrap)return null;
+  isInactive=isInactive||(()=>false);                      // bail out (e.g. marquee owns the editor map)
   // Zoom by mutating the SVG's viewBox (keeps vectors crisp at every zoom level —
   // CSS transforms would rasterize the SVG into a bitmap and re-scale it).
   let vb=null, vb0=null, dragging=false, sx=0, sy=0, pinch=0, pinchVB=null, raf=null, pending=null;
@@ -1843,16 +1850,19 @@ function attachZoom(wrap){
     setVB({x:vb.x-dxPx*(vb.w/r.width), y:vb.y-dyPx*(vb.h/r.height), w:vb.w, h:vb.h});
   }
   wrap.addEventListener('wheel',e=>{
+    if(isInactive())return;
     if(!svgEl())return; e.preventDefault();
     if(!vb)bind();
     zoomAt(e.clientX,e.clientY,e.deltaY<0?1.15:1/1.15);
   },{passive:false});
   wrap.addEventListener('pointerdown',e=>{
+    if(isInactive())return;
     if(e.pointerType==='touch')return;
     if(!vb)bind();
     dragging=true; wrap._dragMoved=false; sx=e.clientX; sy=e.clientY;
   });
   wrap.addEventListener('pointermove',e=>{
+    if(isInactive())return;
     if(!dragging||!isZoomed())return;
     const dx=e.clientX-sx, dy=e.clientY-sy; sx=e.clientX; sy=e.clientY;
     if(Math.abs(dx)+Math.abs(dy)>2){wrap._dragMoved=true; panBy(dx,dy);}
@@ -1861,11 +1871,13 @@ function attachZoom(wrap){
   function tdist(e){const a=e.touches[0],b=e.touches[1];return Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);}
   function tcenter(e){const a=e.touches[0],b=e.touches[1];return {x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2};}
   wrap.addEventListener('touchstart',e=>{
+    if(isInactive())return;
     if(!vb)bind();
     if(e.touches.length===1){dragging=true; wrap._dragMoved=false; sx=e.touches[0].clientX; sy=e.touches[0].clientY;}
     else if(e.touches.length===2){pinch=tdist(e); pinchVB={...vb}; dragging=false;}
   },{passive:true});
   wrap.addEventListener('touchmove',e=>{
+    if(isInactive())return;
     if(e.touches.length===2&&pinch&&pinchVB){
       e.preventDefault();
       vb={...pinchVB};                              // restart from pinch-start, then zoom by current factor
@@ -1879,7 +1891,7 @@ function attachZoom(wrap){
   return {reset, bind};
 }
 const quizZoom=attachZoom(document.getElementById('quiz-map-wrap'));
-const editorZoom=attachZoom(document.getElementById('editor-map-wrap'));
+const editorZoom=attachZoom(document.getElementById('editor-map-wrap'), ()=>edMarquee);
 window.quizZoom=quizZoom; window.editorZoom=editorZoom;
 document.getElementById('quiz-zoom-reset')?.addEventListener('click',()=>quizZoom&&quizZoom.reset());
 document.getElementById('editor-zoom-reset')?.addEventListener('click',()=>editorZoom&&editorZoom.reset());
@@ -2100,42 +2112,54 @@ document.getElementById('editor-marquee').addEventListener('click',function(){
   const layer=document.getElementById('ed-marquee'), box=document.getElementById('ed-marquee-box');
   const wrap=document.getElementById('editor-map-wrap');
   if(!layer||!wrap)return;
-  let sx=0,sy=0,active=false;
-  layer.addEventListener('pointerdown',e=>{
+  let active=false, sx=0, sy=0;
+  function start(cx,cy,e){
     if(!edMarquee)return;
-    active=true; sx=e.clientX; sy=e.clientY;
+    active=true; sx=cx; sy=cy;
     const r=wrap.getBoundingClientRect();
-    box.style.left=(sx-r.left)+'px'; box.style.top=(sy-r.top)+'px'; box.style.width='0px'; box.style.height='0px'; box.style.display='block';
-    try{layer.setPointerCapture(e.pointerId);}catch(_){}
-  });
-  layer.addEventListener('pointermove',e=>{
+    box.style.left=(cx-r.left)+'px'; box.style.top=(cy-r.top)+'px';
+    box.style.width='0px'; box.style.height='0px'; box.style.display='block';
+    if(e){e.preventDefault();e.stopPropagation();}
+  }
+  function move(cx,cy,e){
     if(!active)return;
     const r=wrap.getBoundingClientRect();
-    const x1=Math.min(sx,e.clientX),y1=Math.min(sy,e.clientY),x2=Math.max(sx,e.clientX),y2=Math.max(sy,e.clientY);
-    box.style.left=(x1-r.left)+'px'; box.style.top=(y1-r.top)+'px'; box.style.width=(x2-x1)+'px'; box.style.height=(y2-y1)+'px';
-  });
-  layer.addEventListener('pointerup',e=>{
-    if(!active)return; active=false; box.style.display='none';
-    const moved=Math.abs(e.clientX-sx)+Math.abs(e.clientY-sy);
-    if(moved<6){ // tiny drag = tap: select the shape underneath
+    const x1=Math.min(sx,cx),y1=Math.min(sy,cy),x2=Math.max(sx,cx),y2=Math.max(sy,cy);
+    box.style.left=(x1-r.left)+'px'; box.style.top=(y1-r.top)+'px';
+    box.style.width=(x2-x1)+'px'; box.style.height=(y2-y1)+'px';
+    if(e)e.preventDefault();
+  }
+  function end(cx,cy){
+    if(!active)return;
+    active=false; box.style.display='none';
+    const moved=Math.abs(cx-sx)+Math.abs(cy-sy);
+    if(moved<6){                                          // tap, not a drag → toggle the shape underneath
       layer.style.pointerEvents='none';
-      const el=document.elementFromPoint(e.clientX,e.clientY);
+      const el=document.elementFromPoint(cx,cy);
       layer.style.pointerEvents='';
       const shape=el&&el.closest&&el.closest(EDIT_SHAPES);
       if(shape&&shape.id&&edAllShapes.includes(shape.id))clickShape(shape.id);
       return;
     }
-    const marquee={left:Math.min(sx,e.clientX),top:Math.min(sy,e.clientY),right:Math.max(sx,e.clientX),bottom:Math.max(sy,e.clientY)};
+    const marquee={left:Math.min(sx,cx),top:Math.min(sy,cy),right:Math.max(sx,cx),bottom:Math.max(sy,cy)};
     const svg=edSvg(); if(!svg)return;
     let added=0;
     edAllShapes.forEach(id=>{
-      if(edShapeRegion[id])return;            // leave already-named shapes alone
+      if(edShapeRegion[id])return;                        // already named — skip
       const el=svg.getElementById(id); if(!el)return;
       if(rectsIntersect(marquee, el.getBoundingClientRect())&&!edSel.includes(id)){edSel.push(id);added++;}
     });
     if(added){edEditing=null;highlightSel();document.getElementById('editor-name').focus();}
-  });
-  layer.addEventListener('pointercancel',()=>{active=false;box.style.display='none';});
+  }
+  // Mouse: down on the layer, move/up on the window so the drag keeps working off-element
+  layer.addEventListener('mousedown',e=>{if(e.button===0)start(e.clientX,e.clientY,e);});
+  window.addEventListener('mousemove',e=>move(e.clientX,e.clientY,e));
+  window.addEventListener('mouseup',e=>end(e.clientX,e.clientY));
+  // Touch
+  layer.addEventListener('touchstart',e=>{const t=e.touches[0];if(t)start(t.clientX,t.clientY,e);},{passive:false});
+  layer.addEventListener('touchmove',e=>{const t=e.touches[0];if(t)move(t.clientX,t.clientY,e);},{passive:false});
+  layer.addEventListener('touchend',e=>{const t=e.changedTouches[0];if(t)end(t.clientX,t.clientY);});
+  layer.addEventListener('touchcancel',()=>{active=false;box.style.display='none';});
 })();
 document.getElementById('editor-save').addEventListener('click',saveSelection);
 document.getElementById('editor-name').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();saveSelection();}});
