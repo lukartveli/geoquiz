@@ -196,7 +196,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 /* ── ZOOM reset buttons ── */
 .qz-zoom-reset,.ed-zoom-reset{position:absolute;top:8px;right:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:1rem;line-height:1;padding:.35rem .5rem;cursor:pointer;z-index:10;}
 .qz-zoom-reset:hover,.ed-zoom-reset:hover{border-color:var(--accent);}
-.quiz-map-wrap svg{touch-action:none;will-change:transform;}
+.quiz-map-wrap svg{touch-action:none;}
 
 /* ── SVG EDITOR ── */
 #screen-editor{flex-direction:column;overflow:hidden;}
@@ -248,7 +248,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 #screen-quiz.learn-mode .quiz-score-pill,#screen-quiz.learn-mode .quiz-progress-bar,#screen-quiz.learn-mode #quiz-pct,#screen-quiz.learn-mode #quiz-counter{display:none;}
 /* ── ARCHIPELAGO MARQUEE ── */
 #ed-marquee{position:absolute;inset:0;z-index:8;display:none;}
-#ed-marquee.on{display:block;cursor:crosshair;}
+#ed-marquee.on{display:block;cursor:crosshair;touch-action:none;}
+#ed-mode-banner{display:none;padding:.55rem .85rem;margin:.4rem 1rem 0;border-radius:10px;background:rgba(79,124,255,.16);border:1px solid var(--accent);color:var(--text);font-size:.82rem;line-height:1.45;}
+#ed-mode-banner.on{display:block;}
+#ed-mode-banner b{color:var(--accent);}
 #ed-marquee-box{position:absolute;border:1.5px dashed var(--accent);background:rgba(79,124,255,.18);border-radius:3px;display:none;pointer-events:none;}
 /* ── LEADERBOARD ── */
 #screen-leaderboard{flex-direction:column;overflow:hidden;}
@@ -615,6 +618,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
       <input class="map-search" id="editor-map-name" type="text" placeholder="Map name (e.g. Regions of Georgia)" autocomplete="off"/>
       <div class="ed-progress" id="editor-progress">0 / 0 named</div>
     </div>
+    <div id="ed-mode-banner"></div>
     <div class="quiz-body" style="flex:1;min-height:0;">
       <div class="quiz-map-wrap" id="editor-map-wrap">
         <button class="ed-zoom-reset" id="editor-zoom-reset" title="Reset zoom">⤢</button>
@@ -624,7 +628,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
     <div class="ed-help">Click a region → name it → Save. <b>Name | short</b> also accepts “short”. <b>🪣</b> paint-bucket: tap several shapes, give them one name. <b>▦</b> drag a box to grab an island cluster. <b>🏝</b> auto-detects tiny islands.</div>
     <div class="ed-name-bar">
       <button class="btn ed-toggle" id="editor-multi" title="Paint bucket: tap several shapes, then give them one name">🪣</button>
-      <button class="btn ed-toggle" id="editor-marquee" title="Archipelago: drag a box to select all shapes inside it">▦</button>
+      <button class="btn ed-toggle" id="editor-marquee" title="Box-select: drag a rectangle over the map to grab every shape inside it">▦ Box</button>
       <button class="btn" id="editor-tiny" style="flex:none;" title="Detect tiny islands and merge them into nearby regions">🏝</button>
       <button class="btn" id="editor-prev" style="flex:none;" title="Previous shape">‹</button>
       <input class="type-input" id="editor-name" type="text" placeholder="Name this region…  (Name | alias)" autocomplete="off" autocorrect="off" spellcheck="false"/>
@@ -1785,39 +1789,94 @@ document.getElementById('btn-add-import').addEventListener('click',async()=>{
 // ════════════════════════════════════════════
 function attachZoom(wrap){
   if(!wrap)return null;
-  let scale=1,tx=0,ty=0,dragging=false,sx=0,sy=0,pinch=0,pinchScale=1;
+  // Zoom by mutating the SVG's viewBox (keeps vectors crisp at every zoom level —
+  // CSS transforms would rasterize the SVG into a bitmap and re-scale it).
+  let vb=null, vb0=null, dragging=false, sx=0, sy=0, pinch=0, pinchVB=null, raf=null, pending=null;
   const svgEl=()=>wrap.querySelector('svg');
-  const clamp=v=>Math.min(12,Math.max(1,v));
-  function apply(){const s=svgEl();if(s){s.style.transformOrigin='0 0';s.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`;}}
-  function reset(){scale=1;tx=0;ty=0;wrap._dragMoved=false;apply();}
+  function bind(){
+    const s=svgEl(); if(!s){vb=vb0=null;return;}
+    let v=s.getAttribute('viewBox');
+    if(v){
+      const p=v.trim().split(/[\s,]+/).map(parseFloat);
+      if(p.length===4&&p.every(n=>!isNaN(n)))vb0={x:p[0],y:p[1],w:p[2],h:p[3]};
+    }
+    if(!vb0){
+      const w=parseFloat(s.getAttribute('width'))||s.clientWidth||1000;
+      const h=parseFloat(s.getAttribute('height'))||s.clientHeight||1000;
+      vb0={x:0,y:0,w,h};
+      s.setAttribute('viewBox','0 0 '+w+' '+h);
+    }
+    vb={...vb0};
+  }
+  function setVB(v){
+    vb=v; pending=v;
+    if(raf)return;
+    raf=requestAnimationFrame(()=>{                 // batch DOM writes — one update per frame even during fast drags
+      const s=svgEl();
+      if(s&&pending)s.setAttribute('viewBox',pending.x+' '+pending.y+' '+pending.w+' '+pending.h);
+      raf=null; pending=null;
+    });
+  }
+  function reset(){bind(); if(vb)setVB({...vb0}); wrap._dragMoved=false;}
+  function isZoomed(){return vb&&vb0&&vb.w<vb0.w-0.001;}
+  function clientToSvg(cx,cy){
+    if(!vb)return null;
+    const r=wrap.getBoundingClientRect();
+    if(r.width<1||r.height<1)return null;
+    return {x:vb.x+(cx-r.left)/r.width*vb.w, y:vb.y+(cy-r.top)/r.height*vb.h};
+  }
+  function zoomAt(cx,cy,factor){
+    if(!vb){bind(); if(!vb)return;}
+    const minW=vb0.w/12, maxW=vb0.w;
+    let nw=Math.max(minW,Math.min(maxW,vb.w/factor));
+    let nh=vb.h*(nw/vb.w);
+    const r=wrap.getBoundingClientRect();
+    const p=clientToSvg(cx,cy); if(!p)return;
+    let nx=p.x-(cx-r.left)/r.width*nw, ny=p.y-(cy-r.top)/r.height*nh;
+    if(Math.abs(nw-vb0.w)<.001){nx=vb0.x; ny=vb0.y; nw=vb0.w; nh=vb0.h;}
+    setVB({x:nx,y:ny,w:nw,h:nh});
+  }
+  function panBy(dxPx,dyPx){
+    if(!vb)return;
+    const r=wrap.getBoundingClientRect();
+    if(r.width<1||r.height<1)return;
+    setVB({x:vb.x-dxPx*(vb.w/r.width), y:vb.y-dyPx*(vb.h/r.height), w:vb.w, h:vb.h});
+  }
   wrap.addEventListener('wheel',e=>{
     if(!svgEl())return; e.preventDefault();
-    const r=wrap.getBoundingClientRect(), cx=e.clientX-r.left, cy=e.clientY-r.top;
-    const ns=clamp(scale*(e.deltaY<0?1.15:1/1.15));
-    tx=cx-(cx-tx)*(ns/scale); ty=cy-(cy-ty)*(ns/scale); scale=ns;
-    if(scale===1){tx=0;ty=0;} apply();
+    if(!vb)bind();
+    zoomAt(e.clientX,e.clientY,e.deltaY<0?1.15:1/1.15);
   },{passive:false});
-  wrap.addEventListener('pointerdown',e=>{ if(e.pointerType==='touch')return; dragging=true; wrap._dragMoved=false; sx=e.clientX; sy=e.clientY; });
+  wrap.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='touch')return;
+    if(!vb)bind();
+    dragging=true; wrap._dragMoved=false; sx=e.clientX; sy=e.clientY;
+  });
   wrap.addEventListener('pointermove',e=>{
-    if(!dragging||scale<=1)return;
+    if(!dragging||!isZoomed())return;
     const dx=e.clientX-sx, dy=e.clientY-sy; sx=e.clientX; sy=e.clientY;
-    if(Math.abs(dx)+Math.abs(dy)>2){wrap._dragMoved=true; tx+=dx; ty+=dy; apply();}
+    if(Math.abs(dx)+Math.abs(dy)>2){wrap._dragMoved=true; panBy(dx,dy);}
   });
   window.addEventListener('pointerup',()=>{dragging=false;});
+  function tdist(e){const a=e.touches[0],b=e.touches[1];return Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);}
+  function tcenter(e){const a=e.touches[0],b=e.touches[1];return {x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2};}
   wrap.addEventListener('touchstart',e=>{
-    if(e.touches.length===1){dragging=true;wrap._dragMoved=false;sx=e.touches[0].clientX;sy=e.touches[0].clientY;}
-    else if(e.touches.length===2){pinch=tdist(e);pinchScale=scale;dragging=false;}
+    if(!vb)bind();
+    if(e.touches.length===1){dragging=true; wrap._dragMoved=false; sx=e.touches[0].clientX; sy=e.touches[0].clientY;}
+    else if(e.touches.length===2){pinch=tdist(e); pinchVB={...vb}; dragging=false;}
   },{passive:true});
   wrap.addEventListener('touchmove',e=>{
-    if(e.touches.length===2&&pinch){e.preventDefault();scale=clamp(pinchScale*tdist(e)/pinch);if(scale===1){tx=0;ty=0;}apply();}
-    else if(e.touches.length===1&&dragging&&scale>1){
+    if(e.touches.length===2&&pinch&&pinchVB){
+      e.preventDefault();
+      vb={...pinchVB};                              // restart from pinch-start, then zoom by current factor
+      zoomAt(tcenter(e).x, tcenter(e).y, tdist(e)/pinch);
+    }else if(e.touches.length===1&&dragging&&isZoomed()){
       const dx=e.touches[0].clientX-sx, dy=e.touches[0].clientY-sy; sx=e.touches[0].clientX; sy=e.touches[0].clientY;
-      if(Math.abs(dx)+Math.abs(dy)>2){e.preventDefault();wrap._dragMoved=true; tx+=dx; ty+=dy; apply();}
+      if(Math.abs(dx)+Math.abs(dy)>2){e.preventDefault(); wrap._dragMoved=true; panBy(dx,dy);}
     }
   },{passive:false});
   wrap.addEventListener('touchend',e=>{ if(e.touches.length<2)pinch=0; if(e.touches.length===0)dragging=false; });
-  function tdist(e){const a=e.touches[0],b=e.touches[1];return Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);}
-  return {reset,apply};
+  return {reset, bind};
 }
 const quizZoom=attachZoom(document.getElementById('quiz-map-wrap'));
 const editorZoom=attachZoom(document.getElementById('editor-map-wrap'));
@@ -1848,6 +1907,7 @@ function resetEditorState(){
   edMulti=false; const t=document.getElementById('editor-multi'); if(t)t.classList.remove('on');
   edMarquee=false; const mb=document.getElementById('editor-marquee'); if(mb)mb.classList.remove('on');
   const ml=document.getElementById('ed-marquee'); if(ml)ml.classList.remove('on');
+  const bn=document.getElementById('ed-mode-banner'); if(bn){bn.classList.remove('on');bn.innerHTML='';}
 }
 function openEditor(){
   resetEditorState();
@@ -1913,6 +1973,7 @@ function highlightSel(){
   const svg=edSvg();
   svg?.querySelectorAll('.ed-current').forEach(el=>el.classList.remove('ed-current'));
   edSel.forEach(id=>svg?.getElementById(id)?.classList.add('ed-current'));
+  updateEditorHelp();
 }
 function setNameField(){
   const inp=document.getElementById('editor-name');
@@ -1931,7 +1992,7 @@ function selectSingle(shapeId){
 function clickShape(shapeId){
   const assigned=edShapeRegion[shapeId];
   if(assigned && assigned!==edEditing){ edEditing=assigned; edSel=edRegions[assigned].ids.slice(); highlightSel(); setNameField(); return; }
-  const accumulate = edMulti || !!edEditing;     // editing a region also accumulates parts
+  const accumulate = edMulti || edMarquee || !!edEditing;   // marquee mode also accumulates so a single tap doesn't wipe the box-selection
   if(accumulate){
     const i=edSel.indexOf(shapeId);
     if(i>=0){ if(edSel.length>1) edSel.splice(i,1); }   // keep at least one
@@ -1965,8 +2026,26 @@ function stepShape(dir){
 function updateEditorProgress(){
   const r=Object.keys(edRegions).length, s=Object.keys(edShapeRegion).length;
   document.getElementById('editor-progress').textContent=r+' region'+(r===1?'':'s')+' · '+s+'/'+edAllShapes.length+' shapes';
+  updateEditorHelp();
 }
-document.getElementById('editor-multi').addEventListener('click',function(){edMulti=!edMulti;this.classList.toggle('on',edMulti);});
+function updateEditorHelp(){
+  const banner=document.getElementById('ed-mode-banner');
+  const n=edSel.length;
+  if(edMarquee){
+    banner.classList.add('on');
+    banner.innerHTML = n
+      ? `<b>${n} shape${n>1?'s':''} selected</b> — type a name above and press <b>Save</b>. Drag again to add more, or tap <b>▦ Box</b> to exit.`
+      : `<b>Box-select active</b> — drag a rectangle over the islands. Tap <b>▦ Box</b> again to exit.`;
+  } else if(edMulti){
+    banner.classList.add('on');
+    banner.innerHTML = n>1
+      ? `<b>${n} shapes selected</b> (paint-bucket) — type one name and Save. Tap <b>🪣</b> to exit.`
+      : `<b>Paint-bucket active</b> — tap each shape that belongs together, then name them. Tap <b>🪣</b> to exit.`;
+  } else {
+    banner.classList.remove('on'); banner.innerHTML='';
+  }
+}
+document.getElementById('editor-multi').addEventListener('click',function(){edMulti=!edMulti;this.classList.toggle('on',edMulti);updateEditorHelp();});
 
 // ── TINY-ISLAND DETECTION: find very small unnamed shapes, merge into nearest named region (with approval) ──
 function classifyTiny(areas, ratio){
@@ -2015,6 +2094,7 @@ function rectsIntersect(a,b){return a.left<b.right&&a.right>b.left&&a.top<b.bott
 document.getElementById('editor-marquee').addEventListener('click',function(){
   edMarquee=!edMarquee; this.classList.toggle('on',edMarquee);
   document.getElementById('ed-marquee').classList.toggle('on',edMarquee);
+  updateEditorHelp();
 });
 (function(){
   const layer=document.getElementById('ed-marquee'), box=document.getElementById('ed-marquee-box');
