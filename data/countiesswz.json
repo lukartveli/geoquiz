@@ -1,0 +1,74 @@
+{
+  "name": "countiesswz",
+  "regions": {
+    "Geneva": "Geneva",
+    "Vaud": "Vaud",
+    "Valais": "Valais",
+    "Fribourg": "Fribourg",
+    "Nangarhar": "Nangarhar",
+    "Neuchatel": "Neuchatel",
+    "Bern": "Bern",
+    "Jura": "Jura",
+    "Solothurn": "Solothurn",
+    "BL": "Basel-Landschaft",
+    "BS": "Basel-Stadt",
+    "Aargau": "Aargau",
+    "Luzern": "Luzern",
+    "Obwalden": "Obwalden",
+    "Nidwalden": "Nidwalden",
+    "Uri": "Uri",
+    "Zug": "Zug",
+    "Schwyz": "Schwyz",
+    "Glarus": "Glarus",
+    "Ticino": "Ticino",
+    "Graubunden": "Graubünden",
+    "Stgallen": "Sankt Gallen",
+    "Zurich": "Zurich",
+    "Thurgau": "Thurgau",
+    "Schaffhausen": "Schaffhausen",
+    "AA": "Appenzell Ausserrhoden",
+    "AI": "Appenzell Innerrhoden"
+  },
+  "aliases": {
+    "AI": [
+      "Appenzell",
+      "Innerrhoden"
+    ],
+    "AA": [
+      "Appenzell",
+      "Ausserrhoden"
+    ],
+    "Graubunden": [
+      "Grisons"
+    ],
+    "Luzern": [
+      "Lucerne"
+    ],
+    "Stgallen": [
+      "Stgalle",
+      "St. Galle"
+    ],
+    "BL": [
+      "Basel Landschaft",
+      "Basel",
+      "Landschaft"
+    ],
+    "BS": [
+      "Basel Stadt",
+      "Basel",
+      "Stadt"
+    ],
+    "Fribourg": [
+      "Freiburg"
+    ],
+    "Bern": [
+      "Berne"
+    ],
+    "Thurgau": [
+      "Thurgovia"
+    ],
+    "Zug": [
+      "Zoug"
+    ]
+  }
+}
