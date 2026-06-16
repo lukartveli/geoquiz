@@ -1,0 +1,53 @@
+{
+  "name": "regionsafgh",
+  "regions": {
+    "r4": "Badakhshan",
+    "r28": "Nuristan",
+    "r22": "Kunar",
+    "r18": "Kabul",
+    "r26": "Nangarhar",
+    "r20": "Kapisa",
+    "r24": "Laghman",
+    "r32": "Parwan",
+    "r31": "Panjshir",
+    "r36": "Takhar",
+    "r23": "Kunduz",
+    "r29": "Paktika",
+    "r6": "Baghlan",
+    "r34": "Samangan",
+    "r35": "Sar-e Pol",
+    "r7": "Balkh",
+    "r17": "Jowzjan",
+    "r21": "Khost",
+    "r30": "Paktia",
+    "r25": "Logar",
+    "r12": "Ghazni",
+    "r38": "Wardak",
+    "r8": "Baghlan",
+    "r9": "Daykundi",
+    "r39": "Zabul",
+    "r37": "Urozgan",
+    "r11": "Faryab",
+    "r5": "Badghis",
+    "r13": "Ghor",
+    "r15": "Herat",
+    "r10": "Farah",
+    "r27": "Nimruz",
+    "r14": "Helmand",
+    "r19": "Kandahar"
+  },
+  "aliases": {
+    "r35": [
+      "Sare Pol"
+    ],
+    "r30": [
+      "Paktiya"
+    ],
+    "r37": [
+      "Uruzgan"
+    ],
+    "r27": [
+      "Nimroz"
+    ]
+  }
+}
