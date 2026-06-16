@@ -1,6 +1,6 @@
 # GeoQuiz
 
-A Seterra-style geography quiz app. Runs in any browser — phone or laptop. Free to host on GitHub Pages.
+A geography quiz app. Runs in any browses, phone or laptop.:)
 
 ---
 
