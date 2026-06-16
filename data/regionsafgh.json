@@ -1,52 +1,54 @@
 {
   "name": "regionsafgh",
   "regions": {
-    "r4": "Badakhshan",
-    "r28": "Nuristan",
-    "r22": "Kunar",
-    "r18": "Kabul",
-    "r26": "Nangarhar",
-    "r20": "Kapisa",
-    "r24": "Laghman",
-    "r32": "Parwan",
-    "r31": "Panjshir",
-    "r36": "Takhar",
-    "r23": "Kunduz",
-    "r29": "Paktika",
-    "r6": "Baghlan",
-    "r34": "Samangan",
-    "r35": "Sar-e Pol",
-    "r7": "Balkh",
-    "r17": "Jowzjan",
-    "r21": "Khost",
-    "r30": "Paktia",
-    "r25": "Logar",
-    "r12": "Ghazni",
-    "r38": "Wardak",
-    "r8": "Baghlan",
-    "r9": "Daykundi",
-    "r39": "Zabul",
-    "r37": "Urozgan",
-    "r11": "Faryab",
-    "r5": "Badghis",
-    "r13": "Ghor",
-    "r15": "Herat",
-    "r10": "Farah",
-    "r27": "Nimruz",
-    "r14": "Helmand",
-    "r19": "Kandahar"
+    "Badakhshan": "Badakhshan",
+    "Nuristan": "Nuristan",
+    "Kunar": "Kunar",
+    "Kabul": "Kabul",
+    "Nangarhar": "Nangarhar",
+    "Kapisa": "Kapisa",
+    "Laghman": "Laghman",
+    "Parwan": "Parwan",
+    "Panjshir": "Panjshir",
+    "Takhar": "Takhar",
+    "Kunduz": "Kunduz",
+    "Paktika": "Paktika",
+    "Baghlan": "Baghlan",
+    "Samangan": "Samangan",
+    "Sarepol": "Sar-e Pol",
+    "Balkh": "Balkh",
+    "Jowzjan": "Jowzjan",
+    "Khost": "Khost",
+    "Paktia": "Paktia",
+    "Logar": "Logar",
+    "Ghazni": "Ghazni",
+    "Wardak": "Wardak",
+    "Baghlan": "Baghlan",
+    "Daykundi": "Daykundi",
+    "Zabul": "Zabul",
+    "Urozgan": "Urozgan",
+    "Faryab": "Faryab",
+    "Badghis": "Badghis",
+    "Ghor": "Ghor",
+    "Herat": "Herat",
+    "Farah": "Farah",
+    "Nimruz": "Nimruz",
+    "Helmand": "Helmand",
+    "Kandahar": "Kandahar"
   },
   "aliases": {
-    "r35": [
-      "Sare Pol"
+    "Sarepol": [
+      "Sare Pol",
+      "Sar-e Pul",
+      "Sare Pul"
     ],
-    "r30": [
+    "Paktia": [
       "Paktiya"
     ],
-    "r37": [
+    "Urozgan": [
       "Uruzgan"
     ],
-    "r27": [
+    "Nimruz": [
       "Nimroz"
     ]
   }
