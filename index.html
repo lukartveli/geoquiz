@@ -10,6 +10,17 @@
   --text:#e8eaf0; --muted:#7b80a0; --accent:#4f7cff; --font:'Segoe UI',system-ui,sans-serif;
   --radius:10px;
   --gold:#f5c518; --orange:#f0821e; --darkorange:#c94a00; --red:#e85555;
+  --card:rgba(26,29,39,.72); --glass:rgba(26,29,39,.55);
+  --scrim:linear-gradient(180deg,rgba(15,17,23,.40),rgba(15,17,23,.58));
+  --shadow:0 8px 22px rgba(0,0,0,.35);
+}
+body.light{
+  --bg:#dceaf6; --surface:#eef4fb; --surface2:#ffffff; --border:#bdcce0;
+  --text:#1a2333; --muted:#5a6b80; --accent:#2a5cdb;
+  --gold:#cf9410; --orange:#d76d1a; --darkorange:#a23a00; --red:#c93c3c;
+  --card:rgba(255,255,255,.78); --glass:rgba(255,255,255,.55);
+  --scrim:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.35));
+  --shadow:0 8px 22px rgba(60,80,120,.18);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100dvh;display:flex;flex-direction:column;}
@@ -239,7 +250,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 #world-bg{position:fixed;inset:0;z-index:-1;background:#bfe6f5;overflow:hidden;opacity:0;transition:opacity .55s ease;pointer-events:none;contain:strict;}
 #world-bg.show{opacity:1;}
 #world-bg svg{position:absolute;inset:0;width:100%;height:100%;filter:blur(30px) saturate(1.15);transform:scale(1.08) translateZ(0);will-change:transform;transform-origin:50% 50%;transition:transform .7s ease;}
-#world-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,17,23,.40),rgba(15,17,23,.58));}
+#world-bg::after{content:"";position:absolute;inset:0;background:var(--scrim);}
 .wbg-land{fill:#5a8a64;}
 /* ── LEARN MODE ── */
 .quiz-map-wrap svg .region-learn{fill:var(--accent)!important;stroke:#fff!important;stroke-width:1.2!important;}
@@ -269,12 +280,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 /* ── UI POLISH: glass cards, transitions, hover lift ── */
 /* backdrop-filter is GPU-expensive; apply only on the FEW prominent cards, never on rows that repeat 200+ times */
 .mode-card,.continent-card,.stat-card,.ach-card,.daily-card{
-  background:rgba(26,29,39,.55);
+  background:var(--glass);
   backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
   transition:transform .18s ease,border-color .18s,background .18s,box-shadow .18s;
 }
 .map-item,.map-row,.wrong-item{
-  background:rgba(26,29,39,.72);            /* solid-ish translucent — no filter, cheap to paint */
+  background:var(--card);            /* solid-ish translucent — no filter, cheap to paint */
   transition:transform .15s ease,border-color .15s,background .15s;
 }
 .map-list,#community-list,#mymaps-list,#fav-list,#home-results{contain:layout style;}   /* scope layout/paint to each list */
@@ -294,7 +305,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .daily-status{font-size:.8rem;color:var(--muted);}
 .daily-status .done{color:var(--gold);font-weight:600;}
 /* ── COMMUNITY META / RATINGS / COMMENTS ── */
-.comm-box{background:rgba(26,29,39,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--border);border-radius:var(--radius);padding:.9rem 1rem;display:flex;flex-direction:column;gap:.6rem;}
+.comm-box{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--border);border-radius:var(--radius);padding:.9rem 1rem;display:flex;flex-direction:column;gap:.6rem;}
 .comm-meta{font-size:.82rem;color:var(--muted);line-height:1.7;}
 .comm-meta b{color:var(--text);}
 .stars{color:var(--gold);letter-spacing:.05em;}
@@ -315,9 +326,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .lb-win{flex:1;text-align:center;font-size:.74rem;padding:.32rem .4rem;border-radius:99px;border:1px solid var(--border);color:var(--muted);cursor:pointer;background:var(--surface);}
 .lb-win.active{border-color:var(--accent);color:var(--text);background:rgba(79,124,255,.12);}
 .lb-map{color:var(--muted);font-size:.7rem;display:block;}
+/* ── THEME TOGGLE (always-visible, top-right) ── */
+.theme-toggle{position:fixed;top:14px;right:14px;z-index:1500;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;cursor:pointer;transition:transform .2s,background .2s,border-color .2s;box-shadow:var(--shadow);}
+.theme-toggle:hover{transform:scale(1.06);border-color:var(--accent);}
+body.light .quiz-feedback,body.light .map-item-name{color:var(--text);}
 </style>
 </head>
 <body>
+
+<button class="theme-toggle" id="theme-toggle" title="Switch theme">🌙</button>
 
 <div id="world-bg" aria-hidden="true">
   <svg viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid slice">
@@ -2045,10 +2062,9 @@ function startEditorWith(svgText, baseName, regions, groups, aliases, sourceId){
   resetEditorState();
   edSourceId=sourceId||null;
   const wrap=document.getElementById('editor-map-wrap');
-  const resetBtn=document.getElementById('editor-zoom-reset');
-  wrap.innerHTML='';
-  wrap.insertAdjacentHTML('afterbegin', svgText);
-  if(resetBtn)wrap.appendChild(resetBtn);
+  const oldSvg=wrap.querySelector('svg');
+  if(oldSvg)oldSvg.remove();                                  // surgical: keep #editor-zoom-reset AND #ed-marquee in the wrap
+  wrap.insertAdjacentHTML('afterbegin', svgText);             // SVG becomes the first child; reset button + marquee layer stay above it
   const svg=wrap.querySelector('svg');
   if(!svg){document.getElementById('editor-upload-status').textContent='That file is not a valid SVG.';return;}
   stripStyles(svg);
@@ -2319,7 +2335,20 @@ document.getElementById('editor-start-quiz').addEventListener('click',()=>{
 // ════════════════════════════════════════════
 //  INIT
 // ════════════════════════════════════════════
+function applyTheme(t){
+  document.body.classList.toggle('light', t==='light');
+  const btn=document.getElementById('theme-toggle');
+  if(btn){btn.textContent=t==='light'?'☀️':'🌙';btn.title=t==='light'?'Switch to dark':'Switch to light';}
+  try{localStorage.setItem('gq:theme',t);}catch(_){}
+}
+
 async function init(){
+  // theme — apply BEFORE the screen system runs so first paint is correct
+  let savedTheme='dark'; try{savedTheme=localStorage.getItem('gq:theme')||'dark';}catch(_){}
+  applyTheme(savedTheme);
+  document.getElementById('theme-toggle').addEventListener('click',()=>{
+    applyTheme(document.body.classList.contains('light')?'dark':'light');
+  });
   showScreen('home');   // activate home through the switcher so the world background shows immediately
   try{
     await openDB();
