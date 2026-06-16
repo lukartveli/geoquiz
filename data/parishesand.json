@@ -1,0 +1,27 @@
+{
+  "name": "parishesand",
+  "parishes": {
+    "Lavella": "Andorra La Vella",
+    "Massana": "Massana",
+    "SJDL": "Sant Julia De Loria",
+    "EE": "Escaldes-Engordany",
+    "Encamp": "Encamp",
+    "Canillo": "Canillo",
+    "Ordino": "Ordino",
+  },
+  "aliases": {
+    "SJDL": [
+      "SJDL",
+      "Saint Julia De Loria",
+      "St Julia",
+    ],
+    "Lavella": [
+      "La vella",
+      "Andorra"
+    ],
+    "EE": [
+      "Escaldes",
+      "Engordany"
+    ]
+  }
+}
