@@ -1032,7 +1032,7 @@ async function loadBuiltIn(){
       const [sr,jr]=await Promise.all([fetch(m.svgFile),fetch(m.jsonFile)]);
       if(!sr.ok||!jr.ok)continue;
       const svgText=await sr.text(), jd=await jr.json();
-      maps.push({id:m.id,name:jd.name||m.name,svgText,regions:jd.regions,groups:jd.groups||null,aliases:jd.aliases||null,builtin:true});
+      maps.push({id:m.id,name:m.name||jd.name,svgText,regions:jd.regions,groups:jd.groups||null,aliases:jd.aliases||null,builtin:true});
     }catch(e){}
   }
   renderMapList();
