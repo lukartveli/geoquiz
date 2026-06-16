@@ -13,6 +13,8 @@
   --card:rgba(26,29,39,.72); --glass:rgba(26,29,39,.55);
   --scrim:linear-gradient(180deg,rgba(15,17,23,.40),rgba(15,17,23,.58));
   --shadow:0 8px 22px rgba(0,0,0,.35);
+  /* Map-specific colors — high contrast vs. the page background, regardless of theme */
+  --map-fill:#4a5168; --map-border:#d0d6e6; --map-hover:#5a627e;
 }
 body.light{
   --bg:#dceaf6; --surface:#eef4fb; --surface2:#ffffff; --border:#bdcce0;
@@ -21,6 +23,7 @@ body.light{
   --card:rgba(255,255,255,.78); --glass:rgba(255,255,255,.55);
   --scrim:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.35));
   --shadow:0 8px 22px rgba(60,80,120,.18);
+  --map-fill:#f0f4fa; --map-border:#3a4a60; --map-hover:#dde6f1;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100dvh;display:flex;flex-direction:column;}
@@ -119,16 +122,17 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .quiz-map-wrap svg circle,
 .quiz-map-wrap svg ellipse,
 .quiz-map-wrap svg rect {
-  fill: var(--surface2) !important;
-  stroke: var(--border) !important;
-  stroke-width: 0.8 !important;
+  fill: var(--map-fill) !important;
+  stroke: var(--map-border) !important;
+  stroke-width: 1.2 !important;
+  vector-effect: non-scaling-stroke;   /* keep borders 1.2px on screen at any zoom level */
   cursor: pointer;
   transition: fill 0.1s;
 }
 /* Hover — unscored only */
 .quiz-map-wrap svg path:not([data-score]):hover,
 .quiz-map-wrap svg polygon:not([data-score]):hover {
-  fill: #2e3560 !important;
+  fill: var(--map-hover) !important;
 }
 /* ── COLOR FIX: score selectors match the SAME specificity chain ── */
 .quiz-map-wrap svg [data-score="0"]      { fill: var(--gold)       !important; }
@@ -220,7 +224,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .ed-actions{padding:.55rem 1rem;display:flex;gap:.45rem;flex-wrap:wrap;border-top:1px solid var(--border);flex-shrink:0;}
 .ed-actions .btn{flex:1;min-width:84px;padding:.55rem .5rem;font-size:.85rem;}
 #editor-map-wrap svg{width:100%;height:100%;max-height:100%;display:block;touch-action:none;}
-#editor-map-wrap svg path,#editor-map-wrap svg polygon,#editor-map-wrap svg polyline,#editor-map-wrap svg circle,#editor-map-wrap svg ellipse,#editor-map-wrap svg rect{fill:var(--surface2)!important;stroke:var(--border)!important;stroke-width:0.8!important;cursor:pointer;transition:fill .1s;}
+#editor-map-wrap svg path,#editor-map-wrap svg polygon,#editor-map-wrap svg polyline,#editor-map-wrap svg circle,#editor-map-wrap svg ellipse,#editor-map-wrap svg rect{fill:var(--map-fill)!important;stroke:var(--map-border)!important;stroke-width:1!important;vector-effect:non-scaling-stroke;cursor:pointer;transition:fill .1s;}
 #editor-map-wrap svg .ed-named{fill:var(--gold)!important;}
 #editor-map-wrap svg .ed-current{fill:var(--accent)!important;stroke:#ffffff!important;stroke-width:1.6!important;}
 #editor-upload .btn{display:block;width:100%;flex:none;text-align:center;}
@@ -1028,7 +1032,7 @@ async function loadBuiltIn(){
       const [sr,jr]=await Promise.all([fetch(m.svgFile),fetch(m.jsonFile)]);
       if(!sr.ok||!jr.ok)continue;
       const svgText=await sr.text(), jd=await jr.json();
-      maps.push({id:m.id,name:m.name||jd.name,svgText,regions:jd.regions,groups:jd.groups||null,aliases:jd.aliases||null,builtin:true});
+      maps.push({id:m.id,name:jd.name||m.name,svgText,regions:jd.regions,groups:jd.groups||null,aliases:jd.aliases||null,builtin:true});
     }catch(e){}
   }
   renderMapList();
