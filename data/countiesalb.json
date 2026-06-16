@@ -1,0 +1,23 @@
+{
+  "name": "countiesalb",
+  "regions": {
+    "Vlore": "Vlorë",
+    "Kukes": "Kukës",
+    "Gjirokaster": "Gjirokastër",
+    "Fier": "Fier",
+    "Berat": "Berat",
+    "Elbasan": "Elbasan",
+    "Tirana": "Tirana",
+    "Durres": "Durrës",
+    "Lezhe": "Lezhë",
+    "Diber": "Dibër",
+    "Korce": "Korçë",
+    "Shkoder": "Shkodër",
+    
+  },
+  "aliases": {
+    "Tirana": [
+      "Tiranë",
+    ]
+  }
+}
