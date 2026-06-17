@@ -1,6 +1,6 @@
 {
   "name": "regionsafgh",
-  "Provinces": {
+  "regions": {
     "Badakhshan": "Badakhshan",
     "Nuristan": "Nuristan",
     "Kunar": "Kunar",
