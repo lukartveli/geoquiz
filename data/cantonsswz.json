@@ -1,6 +1,6 @@
 {
   "name": "cantonsswz",
-  "Cantons": {
+  "regions": {
     "Geneva": "Geneva",
     "Vaud": "Vaud",
     "Valais": "Valais",
