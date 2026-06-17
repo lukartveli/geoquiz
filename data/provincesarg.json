@@ -1,0 +1,36 @@
+{
+  "name": "provincesarg"
+  "regions": {
+    "Jujuy": "Jujuy",
+    "Chaco": "Chaco",
+    "Salta": "Salta",
+    "Formosa": "Formosa",
+    "Misiones": "Misiones",
+    "Corrientes": "Corrientes",
+    "EntreRios": "Entre Rios",
+    "SantaFe": "Santa Fe",
+    "Cordoba": "Cordoba",
+    "Catamarca": "Catamarca",
+    "Tucuman": "Tucuman",
+    "SantiagoDelEstero" : "Santiago Del Estero",
+    "LaRioja": "La Rioja",
+    "SanJuan": "San Juan",
+    "SanLuis": "San Luis",
+    "LaPampa": "La Pampa",
+    "Mendoza": "Mendoza",
+    "Neuquen": "Neuquen",
+    "RioNegro": "Rio Negro",
+    "Chubut": "Chubut",
+    "SantaCruz": "Santa Cruz",
+    "TierraDelFuego": "Tierra Del Fuego",
+    "BuenosAires": "Buenos Aires"
+  }
+  "aliases": {
+    "SantiagoDelEstero": [
+      "Santiago"
+    ],
+    "LaRioja": [
+      "Rioja"
+    ]
+  }
+}
