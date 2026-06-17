@@ -1,0 +1,39 @@
+{
+  "name": "parishesaab",
+  "regions": {
+    "Redonda": "Redonda",
+    "Barbuda": "Barbuda",
+    "Stjohn": "Saint John",
+    "Stmary": "Saint Mary",
+    "Stpaul": "Saint Paul",
+    "Stgeorge": "Saint George",
+    "Stpeter": "Saint Peter",
+    "Stphilip": "Saint Philip"    
+  },
+  "aliases": {
+    "Stjohn": [
+      "St John",
+      "John"
+    ],
+    "Stmary": [
+      "St Mary",
+      "Mary"
+    ],
+    "Stpaul": [
+      "St Paul",
+      "Paul"
+    ],
+    "Stgeorge": [
+      "St George",
+      "George"
+    ],
+    "Stpeter": [
+      "St Peter",
+      "Peter"
+    ],
+    "Stphilip": [
+      "St Philip",
+      "Philip"
+    ]
+  }
+}
