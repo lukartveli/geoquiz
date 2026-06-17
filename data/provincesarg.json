@@ -1,5 +1,5 @@
 {
-  "name": "provincesarg"
+  "name": "provincesarg",
   "regions": {
     "Jujuy": "Jujuy",
     "Chaco": "Chaco",
@@ -24,7 +24,7 @@
     "SantaCruz": "Santa Cruz",
     "TierraDelFuego": "Tierra Del Fuego",
     "BuenosAires": "Buenos Aires"
-  }
+  },
   "aliases": {
     "SantiagoDelEstero": [
       "Santiago"
