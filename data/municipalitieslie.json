@@ -1,0 +1,16 @@
+{
+  "name": "municipalitieslie",
+  "regions": {
+    "Ruggell": "Ruggell",
+    "Mauren": "Mauren",
+    "Gamprin": "Gamprin",
+    "Balzers": "Balzers",
+    "Eschen": "Eschen",
+    "Planken": "Planken",
+    "Triesen": "Triesen",
+    "Triesenberg": "Triesenberg",
+    "Schaan": "Schaan",
+    "Vaduz": "Vaduz",
+    "Schellenberg": "Schellenberg"
+  },
+}
