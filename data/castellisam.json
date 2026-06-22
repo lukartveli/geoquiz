@@ -1,0 +1,20 @@
+{
+  "name": "castellisam",
+  "regions": {
+    "Serravalle": "Serravalle",
+    "Domagnano":  "Domagnano",
+    "Faetano": "Faetano",
+    "BorgoMaggiore": "Borgo Maggiore",
+    "Acquaviva": "Acquaviva",
+    "SanMarino": "Città del San Marino",
+    "Montegiardino": "Montegiardino",
+    "Fiorentino": "Fiorentino",
+    "Chiesanouva": "Chiesanouva"
+    },
+  "aliases": {
+    "SanMarino": [
+      "San Marino",
+      "City of San Marino"
+   ]
+ }
+}
