@@ -1,0 +1,53 @@
+{
+  "name": "cantonslux",
+  "regions": {
+    "Clerveaux": "Clerveaux",
+    "Vianden": "Vianden",
+    "Wiltz": "Wiltz",
+    "Diekirch": "Diekirch",
+    "Redange": "Redange",
+    "Mersch": "Mersch",
+    "Echternach": "Echternach",
+    "Grevenmacher": "Grevenmacher",
+    "Capellen": "Capellen",
+    "Esch": "Esch-sur-Alzette",
+    "Remich": "Remich",
+    "Luxembourg": "Luxembourg"
+  },
+  "aliases": {
+    "Esch": [
+      "Esch",
+      "Alzette",
+      "Esch sur Alzette",
+      "Esch-Uelzecht"
+    ],
+    "Clerveaux": [
+      "Klierf"
+    ],
+    "Vianden": [
+      "Veianen"
+    ],
+    "Wiltz": [
+      "Wolz"
+    ],
+    "Redange": [
+      "Réiden",
+      "Reiden"
+    ],
+    "Diekirch": [
+      "Dikrech"
+    ],
+    "Echternach": [
+      "Iechternach"
+    ],
+    "Luxembourg": [
+      "Lëtzebuerg"
+    ],
+    "Grevenmacher": [
+      "Gréiwemaacher"
+    ],
+    "Remich": [
+      "Réimech"
+    ]
+  }
+}
