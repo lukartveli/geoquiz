@@ -1,0 +1,43 @@
+{
+  "name": "regionsgeo",
+  "regions": {
+    "Kakheti": "Kakheti",
+    "Mtskheta": "Mtskheta-Mtianeti",
+    "Racha": "Racha-Lechkhumi and Kvemo Svaneti",
+    "Samegrelo": "Samegrelo and Zemo Svaneti",
+    "Imereti": "Imereti",
+    "ShidaKartli": "Shida Kartli",
+    "KvemoKartli": "Kvemo Kartli",
+    "Tbilisi": "Tbilisi",
+    "Samtskhe": "Samtskhe-Javakheti",
+    "Abkhazia": "Abkhazia",
+    "Adjara": "Adjara",
+    "Guria": "Guria"
+  },
+  "aliases": {
+    "Mtskheta": [
+      "Mtskheta Mtianeti",
+      "Mtskheta Tianeti"
+    ],
+    "Racha": [
+      "Racha",
+      "Svaneti"
+    ],
+    "Samegrelo": [
+      "Samegrelo",
+      "Svaneti"
+    ],
+    "ShidaKartli": [
+      "Kartli",
+      "Shida"
+    ],
+    "KvemoKartli": [
+      "Kvemo",
+      "Kartli"
+    ],
+    "Samtskhe": [
+      "Samtskhe",
+      "Javakheti"
+    ]
+  }
+}
