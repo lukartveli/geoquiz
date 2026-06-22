@@ -1,6 +1,6 @@
 {
   "name": "municipalitiesgeo",
-  "regions": "{
+  "regions": {
     "Tbilisi": "Tbilisi",
     "Gagra": "Gagra",
     "Gali": "Gali",
@@ -46,7 +46,7 @@
     "Tsageri": "Tsageri",
     "Abasha": "Abasha",
     "Zugdidi": "Zugdidi",
-    "Martvili": "Martvili"
+    "Martvili": "Martvili",
     "Mestia": "Mestia",
     "Senaki": "Senaki",
     "Chkhorotsku": "Chkhorotsku",
