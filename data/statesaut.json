@@ -1,0 +1,36 @@
+{
+  "name": "statesaut",
+  "regions": {
+    "Vorarlberg": "Vorarlberg",
+    "Tyrol": "Tyrol",
+    "Salzburg": "Salzburg",
+    "Carinthia": "Carinthia",
+    "Styria": "Styria",
+    "UpperAustria": "Upper Austria",
+    "LowerAustria": "Lower Austria",
+    "Vienna": "Vienna",
+    "Burgenland": "Burgenland"
+  },
+  "aliases": {
+    "UpperAustria": [
+      "Upper",
+      "Ober ­österreich"
+    ],
+    "LowerAustria": [
+      "Lower",
+      "Nieder österreich"
+    ],
+    "Vienna": [
+      "Wien"
+    ],
+    "Tyrol": [
+      "Tirol"
+    ],
+    "Styria": [
+      "Steiermark"
+    ],
+    "Carinthia": [
+      "Kärnten"
+    ]
+  }
+}
