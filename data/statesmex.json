@@ -1,0 +1,51 @@
+{
+  "name": "statesmex",
+  "regions": {
+    "Baja": "Baja California",
+    "BajaSur": "Baja California Sur",
+    "Sonora": "Sonora",
+    "Chihuahua": "Chihuahua",
+    "Coahuila": "Coahuila",
+    "NuevoLeon": "Nuevo León",
+    "Tamaulipas": "Tamaulipas",
+    "SLP": "San Luis Potosí",
+    "Durango": "Durango",
+    "Sinaloa": "Sinaloa",
+    "Nayarit": "Nayarit",
+    "Zacatecas": "Zacatecas",
+    "Hidalgo": "Hidalgo",
+    "Aguascalientes": "Aguascalientes",
+    "Jalisco": "Jalisco",
+    "Colima": "Colima",
+    "Guanajuato": "Guanajuato",
+    "Queretaro": "Querétaro",
+    "Michoacan": "Michoacán",
+    "Guerrero": "Guerrero",
+    "Capital": "Ciudad De México",
+    "Mexico": "México",
+    "Morelos": "Morelos",
+    "Tlaxcala": "Tlaxcala",
+    "Puebla": "Puebla",
+    "Veracruz": "Veracruz",
+    "Oaxaca": "Oaxaca",
+    "Tabasco": "Tabasco",
+    "Chiapas": "Chiapas",
+    "Campeche": "Campeche",
+    "Yucatan": "Yucatán",
+    "QuintanaRoo": "Quintana Roo"
+  },
+  "aliases": {
+    "Capital": [
+      "Mexico City"
+    ],
+    "SLP": [
+      "SLP"
+    ],
+    "Baja": [
+      "Baja"
+    ],
+    "BajaSur": [
+      "Baja Sur"
+    ]
+  }
+}
