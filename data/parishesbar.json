@@ -1,0 +1,53 @@
+{
+  "name": "parishesbar",
+  "regions": {
+    "Stlucy": "St Lucy",
+    "Stpeter": "St Peter",
+    "Standrew": "St Andrew",
+    "Stjames": "St James",
+    "Stthomas": "St Thomas",
+    "Stmichael": "St Michael",
+    "Stgeorge": "St George",
+    "Stjohn": "St John",
+    "Stphilip": "St Philip",
+    "Christchurch": "Christ Church"
+  },
+  "aliases": {
+    "Stlucy": [
+      "Saint Lucy",
+      "Lucy"
+    ],
+    "Stpeter": [
+      "Saint Peter",
+      "Peter"
+    ],
+    "Standrew": [
+      "Saint Andrew",
+      "Andrew"
+    ],
+    "Stjames": [
+      "Saint James",
+      "James"
+    ],
+    "Stthomas": [
+      "Saint Thomas",
+      "Thomas"
+    ],
+    "Stmichael": [
+      "Saint Michael",
+      "Michael"
+    ],
+    "Stgeorge": [
+      "Saint George",
+      "George"
+    ],
+    "Stjohn": [
+      "Saint John",
+      "John"
+    ],
+    "Stphilip": [
+      "Saint Philip",
+      "Philip"
+    ]
+  }
+}
