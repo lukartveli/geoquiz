@@ -1,0 +1,50 @@
+{
+  "name": "regionsguy",
+  "regions": {
+    "EIWD": "Essequibo Islands-West Demerara",
+    "PomeroonSupenaam": "Pomeroon-Supenaam",
+    "BarimaWaini": "Barima-Waini",
+    "CuyuniMazaruni": "Cuyuni-Mazaruni",
+    "PotaroSiparuni": "Potaro-Siparuni",
+    "UTUE": "Upper Takutu-Upper Essequibo",
+    "EBC": "East Berbice-Corentyne",
+    "UDB": "Upper Demerara-Berbice",
+    "MahaicaBerbice": "Mahaica-Berbice",
+    "DemeraraMahaica": "Demerara-Mahaica"
+  },
+  "aliases": {
+    "EIWD": [
+      "Essequibo Islands",
+      "EIWD"
+    ],
+    "PomeroonSupenaam": [
+      "Pomeroon"
+    ],
+    "BarmaWaini": [
+      "Warima"
+    ],
+    "CuyuniMazaruni": [
+      "Cuyuni"
+    ],
+    "PotaroSiparuni": [
+      "Potaro"
+    ],
+    "UTUE": [
+      "UTUE",
+      "Takutu"
+    ],
+    "EBC": [
+      "EBC",
+      "Corentyne"
+    ],
+    "UDB": [
+      "UDB"
+    ],
+    "MahaicaBerbice": [
+      "Mahaica Berbice"
+    ],
+    "DemeraraMahaica": [
+      "Demerara Mahaica"
+    ]
+  }
+}
