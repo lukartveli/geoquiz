@@ -1,0 +1,40 @@
+{
+  "name": "provincesmog",
+  "regions": {
+    "Ulaanbaatar": "Ulaanbaatar",
+    "Tov": "Töv",
+    "Govisumber": "Govisümber",
+    "Khentii": "Khentii",
+    "Dornod": "Dornod",
+    "Sukhbaatar": "Sükhbaatar",
+    "Dornogovi": "Dornogovi",
+    "Dundgovi": "Dundgovi",
+    "Omnogovi": "Ömnögovi",
+    "Ovorkhangal": "Övörkhangai",
+    "Bayakhongor": "Bayakhongor",
+    "Bulgan": "Bulgan",
+    "Khovsgol": "Khövsgöl",
+    "Zavkhan": "Zavkhan",
+    "GoviAltai": "Govi-Altai",
+    "Selenge": "Selenge",
+    "DarkhanUul": "Darkhan-Uul",
+    "Orkhon": "Orkhon",
+    "Uvs": "Uvs",
+    "Khovd": "Khovd",
+    "BayanOlgii": "Bayan-Ölgii"
+  },
+  "aliases": {
+    "GoviAltai": [
+      "Govi",
+      "Altai"
+    ],
+    "BayanOlgii": [
+      "Bayan",
+      "Ölgii"
+    ],
+    "DarkhanUul": [
+      "Darkhan",
+      "Uul"
+    ]
+  }
+}
