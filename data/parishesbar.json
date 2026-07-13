@@ -10,7 +10,8 @@
     "Stgeorge": "St George",
     "Stjohn": "St John",
     "Stphilip": "St Philip",
-    "Christchurch": "Christ Church"
+    "Christchurch": "Christ Church",
+    "Stjoseph": "St Joseph"
   },
   "aliases": {
     "Stlucy": [
@@ -44,6 +45,10 @@
     "Stjohn": [
       "Saint John",
       "John"
+    ],
+    "Stjoseph": [
+      "Saint Joseph",
+      "Joseph"
     ],
     "Stphilip": [
       "Saint Philip",
