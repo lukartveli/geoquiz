@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
 <title>GeoQuiz</title>
 <style>
@@ -44,7 +45,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .map-item-meta{font-size:.75rem;color:var(--muted);margin-top:2px;display:flex;gap:.5rem;align-items:center;}
 .badge{font-size:.65rem;padding:1px 6px;border-radius:99px;border:1px solid var(--border);color:var(--muted);}
 .badge-saved{border-color:#2a3d5c;color:#6aa3d4;background:rgba(106,163,212,.08);}
-.badge-community{border-color:#3d2a5c;color:#a06ad4;background:rgba(160,106,212,.08);}
 .map-item-actions{display:flex;align-items:center;gap:.3rem;flex-shrink:0;}
 .icon-btn{background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;padding:.25rem .4rem;border-radius:6px;line-height:1;transition:color .15s,background .15s;}
 .icon-btn.fav{font-size:1.15rem;}
@@ -64,10 +64,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .btn:disabled{opacity:.4;cursor:default;}
 .btn:disabled:hover{background:var(--surface2);}
 .import-note{font-size:.75rem;color:var(--muted);line-height:1.6;}
-
-/* COMMUNITY */
-.community-section{border-top:1px solid var(--border);padding-top:1rem;display:flex;flex-direction:column;gap:.5rem;}
-.community-empty{color:var(--muted);font-size:.85rem;text-align:center;padding:.75rem 0;}
 
 /* MAP SELECT */
 #screen-mapselect{padding:1.5rem 1.25rem;gap:1.25rem;overflow-y:auto;}
@@ -166,17 +162,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .wrong-item span{margin-right:.5rem;}
 .result-actions{display:flex;flex-direction:column;gap:.6rem;}
 
-/* SHARE modal */
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;padding:1rem;}
-.modal-bg.open{display:flex;}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.5rem;width:100%;max-width:420px;display:flex;flex-direction:column;gap:1rem;}
-.modal h2{font-size:1.1rem;font-weight:700;}
-.modal p{font-size:.85rem;color:var(--muted);line-height:1.6;}
-.modal input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:.95rem;padding:.6rem .8rem;outline:none;}
-.modal input:focus{border-color:var(--accent);}
-.modal-row{display:flex;gap:.5rem;}
-.modal-status{font-size:.8rem;color:var(--muted);text-align:center;min-height:1.2em;}
-
 /* ── CATEGORY NAV (continent) ── */
 .continent-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
 .continent-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.1rem; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
@@ -268,22 +253,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 #ed-mode-banner.on{display:block;}
 #ed-mode-banner b{color:var(--accent);}
 #ed-marquee-box{position:absolute;border:1.5px dashed var(--accent);background:rgba(79,124,255,.18);border-radius:3px;display:none;pointer-events:none;}
-/* ── LEADERBOARD ── */
-#screen-leaderboard{flex-direction:column;overflow:hidden;}
-.lb-tabs{display:flex;gap:.5rem;padding:.4rem 1rem 0;}
-.lb-tab{flex:1;text-align:center;padding:.55rem;border-radius:10px 10px 0 0;background:var(--surface);border:1px solid var(--border);border-bottom:none;color:var(--muted);cursor:pointer;font-size:.85rem;font-weight:600;}
-.lb-tab.active{background:var(--surface2);color:var(--text);}
-.lb-list{flex:1;min-height:0;overflow-y:auto;padding:.6rem 1rem 1.2rem;}
-.lb-row{display:flex;align-items:center;gap:.6rem;padding:.55rem .2rem;border-bottom:1px solid var(--border);font-size:.9rem;}
-.lb-rank{width:1.8rem;text-align:center;font-weight:700;color:var(--muted);flex:none;}
-.lb-row.me{background:rgba(79,124,255,.08);border-radius:6px;}
-.lb-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.lb-pct{font-weight:700;}
-.lb-time{color:var(--muted);font-size:.78rem;width:3.5rem;text-align:right;flex:none;}
-.lb-empty{color:var(--muted);font-size:.85rem;text-align:center;padding:1.5rem 0;line-height:1.6;}
 /* ── UI POLISH: glass cards, transitions, hover lift ── */
 /* backdrop-filter is GPU-expensive; apply only on the FEW prominent cards, never on rows that repeat 200+ times */
-.mode-card,.continent-card,.stat-card,.ach-card,.daily-card{
+.mode-card,.continent-card,.stat-card,.ach-card{
   background:var(--glass);
   backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
   transition:transform .18s ease,border-color .18s,background .18s,box-shadow .18s;
@@ -292,8 +264,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
   background:var(--card);            /* solid-ish translucent — no filter, cheap to paint */
   transition:transform .15s ease,border-color .15s,background .15s;
 }
-.map-list,#community-list,#mymaps-list,#fav-list,#home-results{contain:layout style;}   /* scope layout/paint to each list */
-.map-item:hover,.mode-card:hover,.continent-card:hover,.map-row:hover,.daily-card:hover{
+.map-list,#mymaps-list,#fav-list,#home-results{contain:layout style;}   /* scope layout/paint to each list */
+.map-item:hover,.mode-card:hover,.continent-card:hover,.map-row:hover{
   transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.35);
 }
 .btn{transition:background .15s,transform .12s,box-shadow .15s;}
@@ -301,35 +273,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .screen.active{animation:screenIn .22s ease;}
 @keyframes screenIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
 #world-bg.dim{opacity:.28;}
-/* ── DAILY CHALLENGE ── */
-.daily-card{border:1px solid var(--accent);border-radius:var(--radius);padding:1rem 1.1rem;display:flex;flex-direction:column;gap:.5rem;}
-.daily-head{display:flex;justify-content:space-between;align-items:center;font-weight:700;}
-.daily-head .dc-date{color:var(--muted);font-size:.78rem;font-weight:500;}
-.daily-map{font-size:.95rem;}
-.daily-status{font-size:.8rem;color:var(--muted);}
-.daily-status .done{color:var(--gold);font-weight:600;}
-/* ── COMMUNITY META / RATINGS / COMMENTS ── */
-.comm-box{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--border);border-radius:var(--radius);padding:.9rem 1rem;display:flex;flex-direction:column;gap:.6rem;}
-.comm-meta{font-size:.82rem;color:var(--muted);line-height:1.7;}
-.comm-meta b{color:var(--text);}
-.stars{color:var(--gold);letter-spacing:.05em;}
-.stars .off{color:var(--border);}
-.rate-stars{display:flex;gap:.15rem;font-size:1.45rem;cursor:pointer;user-select:none;}
-.rate-stars span{color:var(--border);transition:color .12s,transform .12s;}
-.rate-stars span.on{color:var(--gold);}
-.rate-stars span:hover{transform:scale(1.15);}
-.comm-comment{border-top:1px solid var(--border);padding-top:.55rem;font-size:.85rem;}
-.comm-comment .who{font-weight:600;}
-.comm-comment .when{color:var(--muted);font-size:.72rem;margin-left:.4rem;}
-.comm-comment .txt{margin-top:.2rem;line-height:1.5;word-break:break-word;}
-.comm-add{display:flex;gap:.45rem;}
-.comm-add input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:.88rem;padding:.5rem .7rem;outline:none;}
-.comm-sort{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:.75rem;padding:.3rem .45rem;cursor:pointer;flex-shrink:0;}
-/* ── LEADERBOARD windows ── */
-.lb-wins{display:flex;gap:.4rem;padding:.55rem 1rem 0;}
-.lb-win{flex:1;text-align:center;font-size:.74rem;padding:.32rem .4rem;border-radius:99px;border:1px solid var(--border);color:var(--muted);cursor:pointer;background:var(--surface);}
-.lb-win.active{border-color:var(--accent);color:var(--text);background:rgba(79,124,255,.12);}
-.lb-map{color:var(--muted);font-size:.7rem;display:block;}
 /* ── THEME TOGGLE (always-visible, top-right) ── */
 .theme-toggle{position:fixed;top:14px;right:14px;z-index:1500;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;cursor:pointer;transition:transform .2s,background .2s,border-color .2s;box-shadow:var(--shadow);}
 .theme-toggle:hover{transform:scale(1.06);border-color:var(--accent);}
@@ -378,13 +321,6 @@ body.light .quiz-feedback,body.light .map-item-name{color:var(--text);}
     <input id="home-search" class="map-search" type="text" placeholder="🔍 Search all quizzes…" autocomplete="off"/>
     <div id="home-results" class="map-list" style="display:none;"></div>
     <div id="home-default" style="display:flex;flex-direction:column;gap:1.25rem;">
-      <!-- Daily challenge -->
-      <div class="daily-card" id="daily-card" style="display:none;">
-        <div class="daily-head"><span>🗓 Daily Challenge</span><span class="dc-date" id="daily-date"></span></div>
-        <div class="daily-map" id="daily-map"></div>
-        <div class="daily-status" id="daily-status"></div>
-        <button class="btn btn-primary" id="daily-play">▶ Play today's challenge</button>
-      </div>
       <!-- Quick actions -->
       <div style="display:flex;flex-direction:column;gap:.5rem;">
         <button class="btn home-add-btn" id="btn-open-stats">📊 Statistics &amp; achievements</button>
@@ -407,21 +343,6 @@ body.light .quiz-feedback,body.light .map-item-name{color:var(--text);}
         <div class="continent-grid" id="map-list"></div>
       </div>
 
-      <!-- Community maps -->
-      <div class="community-section">
-        <div style="display:flex;align-items:center;justify-content:space-between;">
-          <div class="section-label" style="margin-bottom:0">🌐 Community Maps</div>
-          <div style="display:flex;gap:.4rem;align-items:center;">
-            <select class="comm-sort" id="comm-sort" title="Sort community maps">
-              <option value="newest">Newest</option>
-              <option value="rated">Highest rated</option>
-              <option value="played">Most played</option>
-            </select>
-            <button class="btn" id="btn-refresh-community" style="flex:none;padding:.35rem .7rem;font-size:.75rem;">↺ Refresh</button>
-          </div>
-        </div>
-        <div class="map-list" id="community-list"><div class="community-empty">Loading…</div></div>
-      </div>
     </div>
   </div>
 </div>
@@ -472,18 +393,6 @@ body.light .quiz-feedback,body.light .map-item-name{color:var(--text);}
       <h2 class="screen-title" id="mapselect-title">Choose mode</h2>
     </div>
     <p id="mapselect-sub" style="color:var(--muted);font-size:.85rem;"></p>
-    <div class="comm-box" id="comm-details" style="display:none;">
-      <div class="comm-meta" id="comm-meta"></div>
-      <div id="comm-rate-row" style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;">
-        <div class="rate-stars" id="comm-rate" title="Rate this map"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
-        <span style="font-size:.75rem;color:var(--muted);" id="comm-rate-hint">Tap to rate</span>
-      </div>
-      <div id="comm-comments"></div>
-      <div class="comm-add">
-        <input id="comm-input" maxlength="300" placeholder="Add a comment… (max 300 chars)" autocomplete="off"/>
-        <button class="btn" id="comm-send" style="flex:none;">Send</button>
-      </div>
-    </div>
     <div class="mode-cards">
       <div class="mode-card" id="mode-click">
         <div class="mode-icon">🖱️</div>
@@ -508,11 +417,9 @@ body.light .quiz-feedback,body.light .map-item-name{color:var(--text);}
         <div class="legend-item"><div class="legend-dot" style="background:var(--darkorange)"></div>2 wrong</div>
         <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Gave up</div>
       </div>
-      <button class="btn" id="btn-share-map" style="flex:none;padding:.4rem .8rem;font-size:.78rem;display:none;">🌐 Share online</button>
     </div>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
       <button class="btn" id="btn-edit-map" style="flex:1;">✏️ Edit in editor</button>
-      <button class="btn" id="btn-leaderboard" style="flex:1;">🏆 Leaderboard</button>
       <button class="btn" id="btn-rename-map" style="flex:1;display:none;">🏷️ Rename</button>
     </div>
   </div>
@@ -575,33 +482,11 @@ body.light .quiz-feedback,body.light .map-item-name{color:var(--text);}
     <div class="result-actions" style="margin-top:.5rem;">
       <button class="btn btn-primary" id="btn-review">🔁 Review wrong answers</button>
       <button class="btn" id="btn-restart">↺ Play again (all regions)</button>
-      <button class="btn" id="btn-result-lb">🏆 Leaderboard</button>
       <button class="btn" id="btn-home">⌂ Home</button>
     </div>
   </div>
 </div>
 
-<!-- SHARE MODAL -->
-   <!-- (continent browsing now lives on the home screen) -->
-<!-- LEADERBOARD -->
-<div id="screen-leaderboard" class="screen">
-  <div class="ed-top back-row">
-    <button class="back-btn" id="lb-back">←</button>
-    <h2 class="screen-title" id="lb-title">Leaderboard</h2>
-  </div>
-  <div class="lb-tabs">
-    <div class="lb-tab active" id="lb-tab-local">Local</div>
-    <div class="lb-tab" id="lb-tab-country">Country</div>
-    <div class="lb-tab" id="lb-tab-global">Global</div>
-  </div>
-  <div class="lb-wins">
-    <span class="lb-win active" data-win="all">All time</span>
-    <span class="lb-win" data-win="week">Weekly</span>
-    <span class="lb-win" data-win="day">Daily</span>
-  </div>
-  <div class="lb-list" id="lb-list"></div>
-  <div style="padding:.6rem 1rem 1rem;"><button class="btn btn-primary" id="lb-submit" style="width:100%;display:none;">📤 Submit my last score to global</button></div>
-</div>
 
 <!-- STATS & ACHIEVEMENTS -->
 <div id="screen-stats" class="screen">
@@ -689,22 +574,10 @@ body.light .quiz-feedback,body.light .map-item-name{color:var(--text);}
   </div>
 </div>
 
-<div class="modal-bg" id="share-modal">
-  <div class="modal">
-    <h2>🌐 Share map online</h2>
-    <p>Give your map a name and upload it so anyone with this app can play it. It will appear in the Community Maps section.</p>
-    <input type="text" id="share-name" placeholder="Map name (e.g. Regions of Georgia)"/>
-    <input type="text" id="share-author" placeholder="Your name / nickname (optional)"/>
-    <input type="text" id="share-desc" maxlength="200" placeholder="Short description (optional)"/>
-    <div class="modal-status" id="share-status"></div>
-    <div class="modal-row">
-      <button class="btn" id="share-cancel">Cancel</button>
-      <button class="btn btn-primary" id="share-confirm">Upload</button>
-    </div>
-  </div>
-</div>
 
 <script>
+/* GeoQuiz → KHREITI foundation. Social/community/leaderboard/daily systems removed. Maps are lazy: startup registers
+   metadata only; MapCache (DATA LOADING) fetches, parses and caches SVG+JSON on first open. */
 // ════════════════════════════════════════════
 //  CONFIG
 // ════════════════════════════════════════════
@@ -729,19 +602,9 @@ const BUILT_IN_MAPS = [
   { id: 'mongolia-provinces',  name:'Mongolia: Provinces',        svgFile:'maps/provincesmog.svg',    jsonFile:'data/provincesmog.json' },
 ];
 
-// Free JSONBin.io — public bin for community maps
-// Create your own free bin at jsonbin.io and paste the bin ID + API key below.
-// Steps: 1) sign up free at jsonbin.io  2) create a bin with content []
-//        3) paste the bin ID and your API key here.
-// Until then community sharing shows instructions.
-const JSONBIN_BIN_ID  = '6a26f94dda38895dfe9b25ce';   // e.g. '664abc123def456789012345'
-const JSONBIN_API_KEY = '$2a$10$QwWxvIXy75Ko9g7JzXtMDOKx6s63aGzPaQPaEquLFPCZBFzmOLioW';   // e.g. '$2a$10$...'
-const JSONBIN_URL     = JSONBIN_BIN_ID ? `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}` : '';
-const JSONBIN_LB_ID   = '';   // optional SEPARATE bin id for the GLOBAL leaderboard (create another empty [] bin)
-const JSONBIN_LB_URL  = JSONBIN_LB_ID ? `https://api.jsonbin.io/v3/b/${JSONBIN_LB_ID}` : '';
 
 // ════════════════════════════════════════════
-//  INDEXEDDB
+//  STORAGE (IndexedDB)
 // ════════════════════════════════════════════
 const DB_NAME='geoquiz', DB_VER=2, STORE='saved_maps', DRAFTS='editor_drafts';
 let db=null;
@@ -795,7 +658,7 @@ const Bus={_:{},on(e,f){(this._[e]||(this._[e]=[])).push(f);},emit(e,d){(this._[
 Bus.on('quiz:complete',d=>setBest(d.mapId,d.pct));
 
 // ════════════════════════════════════════════
-//  STATISTICS + ACHIEVEMENTS
+//  PROGRESS SYSTEM (statistics + achievements)
 // ════════════════════════════════════════════
 const LS_STATS='gq:stats', LS_ACH='gq:achievements';
 function loadStats(){try{return JSON.parse(localStorage.getItem(LS_STATS))||{};}catch(e){return {};}}
@@ -845,145 +708,7 @@ function showAchievementToast(list){
 }
 Bus.on('quiz:complete',d=>{ const s=recordPlay(d); const newly=evaluateAchievements(s,d); if(newly.length)showAchievementToast(newly); });
 
-// ════════════════════════════════════════════
-//  LEADERBOARDS  (local always; global via optional jsonbin bin)
-// ════════════════════════════════════════════
-const LS_LB='gq:lb-local';
-let lastRun=null, lbMapId=null, lbTab='local', lbWin='all';
-function loadLB(){try{return JSON.parse(localStorage.getItem(LS_LB))||{};}catch(e){return {};}}
-function rankEntries(list){return list.slice().sort((a,b)=>(b.pct-a.pct)||((a.ms||9e15)-(b.ms||9e15)));}
-function filterByWindow(list,win,now){
-  now=now||Date.now();
-  if(win==='day'){const d=new Date(now);const start=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();return list.filter(e=>(e.date||0)>=start);}
-  if(win==='week')return list.filter(e=>(e.date||0)>=now-7*86400000);
-  return list;
-}
-function recordLocalLB(d){
-  const lb=loadLB(); const arr=lb[d.mapId]||[];
-  arr.push({name:getPlayerNameQuiet()||'You', pct:d.pct, ms:d.durationMs||0, mode:d.mode, date:Date.now(), mapId:d.mapId});
-  lb[d.mapId]=rankEntries(arr).slice(0,25);
-  try{localStorage.setItem(LS_LB,JSON.stringify(lb));}catch(e){}
-}
-Bus.on('quiz:complete',d=>{recordLocalLB(d);lastRun=d;});
-function getPlayerName(){
-  let n=''; try{n=localStorage.getItem('gq:player')||'';}catch(e){}
-  if(!n){ n=(prompt('Name for the leaderboard:')||'').trim(); if(n){try{localStorage.setItem('gq:player',n);}catch(e){}} }
-  return n;
-}
-function getCountry(){
-  let c=''; try{c=localStorage.getItem('gq:country')||'';}catch(e){}
-  if(!c){ c=(prompt('Your country (for the country leaderboard):')||'').trim(); if(c){try{localStorage.setItem('gq:country',c);}catch(e){}} }
-  return c;
-}
-function getCountryQuiet(){try{return localStorage.getItem('gq:country')||'';}catch(e){return '';}}
-async function fetchGlobalLB(){
-  if(!JSONBIN_LB_URL)return null;
-  const r=await fetch(JSONBIN_LB_URL+'/latest',{headers:{'X-Master-Key':JSONBIN_API_KEY}});
-  const data=await r.json(); return (data.record&&data.record.data)||data.record||[];
-}
-async function submitGlobalLB(){
-  if(!JSONBIN_LB_URL){alert('Global leaderboard not configured.\nCreate a second empty [] bin on jsonbin.io and set JSONBIN_LB_ID near the top of this file.');return;}
-  if(!lastRun){alert('Finish a quiz first, then submit.');return;}
-  const name=getPlayerName(); if(!name)return;
-  const country=getCountry();
-  const btn=document.getElementById('lb-submit'); btn.disabled=true; btn.textContent='Submitting…';
-  try{
-    const r=await fetch(JSONBIN_LB_URL+'/latest',{headers:{'X-Master-Key':JSONBIN_API_KEY}});
-    const data=await r.json(); const list=(data.record&&data.record.data)||[];
-    list.push({mapId:lastRun.mapId,name,country,pct:lastRun.pct,ms:lastRun.durationMs||0,mode:lastRun.mode,date:Date.now()});
-    const w=await fetch(JSONBIN_LB_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_API_KEY},body:JSON.stringify({data:list})});
-    if(!w.ok)throw 0;
-    btn.textContent='✓ Submitted'; lbTab='global'; renderLeaderboard();
-  }catch(e){btn.textContent='Submit failed'; }
-  setTimeout(()=>{btn.disabled=false;btn.textContent='📤 Submit my last score to global';},1800);
-}
-function lbRowHtml(e,i,mine,showMap){
-  const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
-  const mapLbl=showMap?`<span class="lb-map">${(maps.find(m=>m.id===e.mapId)||{}).name||e.mapId||''}</span>`:'';
-  return `<div class="lb-row${mine?' me':''}"><div class="lb-rank">${medal}</div><div class="lb-name">${e.name||'You'}${mapLbl}</div><div class="lb-pct">${e.pct}%</div><div class="lb-time">${e.ms?fmtMs(e.ms):'—'}</div></div>`;
-}
-async function renderLeaderboard(){
-  ['local','country','global'].forEach(t=>document.getElementById('lb-tab-'+t).classList.toggle('active',lbTab===t));
-  document.querySelectorAll('.lb-win').forEach(w=>w.classList.toggle('active',w.dataset.win===lbWin));
-  const list=document.getElementById('lb-list');
-  document.getElementById('lb-submit').style.display=(lbTab!=='local'&&lastRun)?'':'none';
-  if(lbTab==='local'){
-    const arr=rankEntries(filterByWindow((loadLB()[lbMapId])||[],lbWin));
-    list.innerHTML=arr.length?arr.map((e,i)=>lbRowHtml(e,i,false,false)).join(''):'<div class="lb-empty">No local scores in this period.<br>Play this map to set one!</div>';
-    return;
-  }
-  if(!JSONBIN_LB_URL){list.innerHTML='<div class="lb-empty">Global leaderboard isn’t set up.<br>Create a second empty <code>[]</code> bin at jsonbin.io and put its id in <code>JSONBIN_LB_ID</code> near the top of the file.</div>';return;}
-  list.innerHTML='<div class="lb-empty">Loading…</div>';
-  try{
-    let arr=await fetchGlobalLB()||[];
-    if(lbTab==='country'){
-      const c=getCountryQuiet()||getCountry();
-      arr=arr.filter(e=>(e.country||'').toLowerCase()===(c||'').toLowerCase());
-      if(!c){list.innerHTML='<div class="lb-empty">Set your country to see this board.</div>';return;}
-    }
-    arr=rankEntries(filterByWindow(arr,lbWin)).slice(0,50);
-    const me=getPlayerNameQuiet();
-    list.innerHTML=arr.length?arr.map((e,i)=>lbRowHtml(e,i,me&&e.name===me,true)).join(''):'<div class="lb-empty">No scores in this period yet.</div>';
-  }catch(e){list.innerHTML='<div class="lb-empty">Couldn’t load the leaderboard.</div>';}
-}
-function getPlayerNameQuiet(){try{return localStorage.getItem('gq:player')||'';}catch(e){return '';}}
-function openLeaderboard(mapId,name){
-  lbMapId=mapId; lbTab='local';
-  document.getElementById('lb-title').textContent=(name||'Leaderboard');
-  renderLeaderboard();
-  showScreen('leaderboard');
-}
-document.getElementById('lb-back').addEventListener('click',()=>goBack());
-document.getElementById('lb-tab-local').addEventListener('click',()=>{lbTab='local';renderLeaderboard();});
-document.getElementById('lb-tab-country').addEventListener('click',()=>{lbTab='country';renderLeaderboard();});
-document.getElementById('lb-tab-global').addEventListener('click',()=>{lbTab='global';renderLeaderboard();});
-document.querySelectorAll('.lb-win').forEach(w=>w.addEventListener('click',()=>{lbWin=w.dataset.win;renderLeaderboard();}));
-document.getElementById('lb-submit').addEventListener('click',submitGlobalLB);
-document.getElementById('btn-leaderboard').addEventListener('click',()=>{if(activeMap)openLeaderboard(activeMap.id,activeMap.name);});
-document.getElementById('btn-result-lb').addEventListener('click',()=>{if(activeMap)openLeaderboard(activeMap.id,activeMap.name);});
 
-// ════════════════════════════════════════════
-//  DAILY CHALLENGE  (same for everyone: date-seeded map pick + region order)
-// ════════════════════════════════════════════
-function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
-function mulberry32(seed){return function(){seed|=0;seed=(seed+0x6D2B79F5)|0;let t=Math.imul(seed^(seed>>>15),1|seed);t=(t+Math.imul(t^(t>>>7),61|t))^t;return ((t^(t>>>14))>>>0)/4294967296;};}
-function seededShuffle(arr,seed){const a=arr.slice(),rnd=mulberry32(seed);for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
-function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-
-const LS_DAILY='gq:daily';
-let dailyActive=false;
-function loadDaily(){try{const d=JSON.parse(localStorage.getItem(LS_DAILY));return (d&&d.date===todayStr())?d:null;}catch(e){return null;}}
-function saveDaily(d){try{localStorage.setItem(LS_DAILY,JSON.stringify(d));}catch(e){}}
-function dailyPool(){const b=maps.filter(m=>m.builtin);return b.length?b:maps.slice().sort((a,x)=>a.id<x.id?-1:1);}
-function pickDailyMap(){const pool=dailyPool();if(!pool.length)return null;return pool[hashStr(todayStr())%pool.length];}
-function dailyOrder(map){return seededShuffle(Object.keys(map.regions),hashStr(todayStr()+'|'+map.id));}
-function updateDailyBest(d){
-  const t=(d.durationMs||0)/1000;
-  const cur=loadDaily();
-  const better=!cur || d.pct>cur.score || (d.pct===cur.score && t<cur.time);
-  if(better)saveDaily({date:todayStr(),mapId:d.mapId,score:d.pct,time:Math.round(t*10)/10});
-  renderDailyCard();
-}
-Bus.on('quiz:complete',d=>{ if(dailyActive&&d.mode==='click')updateDailyBest(d); dailyActive=false; });
-function fmtSec(t){const m=Math.floor(t/60),s=Math.round(t%60);return m?`${m}:${String(s).padStart(2,'0')}`:`${t}s`;}
-function renderDailyCard(){
-  const card=document.getElementById('daily-card');if(!card)return;
-  const map=pickDailyMap();
-  if(!map){card.style.display='none';return;}
-  card.style.display='';
-  document.getElementById('daily-date').textContent=todayStr();
-  document.getElementById('daily-map').textContent='Today\u2019s map: '+map.name+' ('+Object.keys(map.regions).length+' regions, click mode)';
-  const best=loadDaily();
-  document.getElementById('daily-status').innerHTML=best
-    ? `<span class="done">✔ Completed today</span> — best ${best.score}% in ${fmtSec(best.time)}. Play again to improve!`
-    : 'Not completed yet — same map and order for every player today.';
-  document.getElementById('daily-play').textContent=best?'▶ Improve today\u2019s score':'▶ Play today\u2019s challenge';
-}
-document.getElementById('daily-play').addEventListener('click',()=>{
-  const map=pickDailyMap();if(!map)return;
-  activeMap=map;quizMode='click';
-  startClickQuiz(dailyOrder(map),{ordered:true,daily:true});
-});
 
 function fmtMs(ms){if(ms==null)return '—';const s=Math.round(ms/1000);return s<60?s+'s':Math.floor(s/60)+'m '+(s%60)+'s';}
 function bestStreakOf(order,scores){let s=0,b=0;order.forEach(id=>{if(scores[id]==='0'){s++;if(s>b)b=s;}else s=0;});return b;}
@@ -998,7 +723,7 @@ function renderStats(){
   document.getElementById('ach-grid').innerHTML=ACHIEVEMENTS.map(a=>`<div class="ach-card${have.has(a.id)?' unlocked':''}"><div class="ach-ic">${have.has(a.id)?a.icon:'🔒'}</div><div><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div></div></div>`).join('');
   const rows=Object.keys(maps).sort((a,b)=>maps[b].plays-maps[a].plays).map(id=>{
     const m=maps[id], avg=m.plays?Math.round(m.sumPct/m.plays):0;
-    return `<div class="stat-row"><div>${m.name}<div class="sm">${m.plays} play${m.plays===1?'':'s'} · best ${m.bestPct}% · avg ${avg}%</div></div><div class="sm" style="text-align:right;white-space:nowrap;">⚡ ${fmtMs(m.fastestMs)}<br>🎯 ${m.bestStreak}</div></div>`;
+    return `<div class="stat-row"><div>${esc(m.name)}<div class="sm">${m.plays} play${m.plays===1?'':'s'} · best ${m.bestPct}% · avg ${avg}%</div></div><div class="sm" style="text-align:right;white-space:nowrap;">⚡ ${fmtMs(m.fastestMs)}<br>🎯 ${m.bestStreak}</div></div>`;
   }).join('');
   document.getElementById('stats-maps').innerHTML=rows||'<div class="sm" style="color:var(--muted);font-size:.85rem;padding:.5rem 0;">No plays yet — finish a quiz to see stats here.</div>';
 }
@@ -1011,7 +736,7 @@ document.getElementById('stats-reset').addEventListener('click',()=>{
 });
 
 // ════════════════════════════════════════════
-//  SCREEN
+//  UI RENDERING: SCREENS
 // ════════════════════════════════════════════
 let screenHistory=[];
 function showScreen(id, isBack){
@@ -1038,19 +763,73 @@ function setBgContinent(c){
 }
 
 // ════════════════════════════════════════════
-//  LOAD BUILT-IN
+//  DATA LOADING
 // ════════════════════════════════════════════
-async function loadBuiltIn(){
-  for(const m of BUILT_IN_MAPS){
-    try{
-      const [sr,jr]=await Promise.all([fetch(m.svgFile),fetch(m.jsonFile)]);
-      if(!sr.ok||!jr.ok)continue;
-      const svgText=await sr.text(), jd=await jr.json();
-      maps.push({id:m.id,name:m.name||jd.name,svgText,regions:jd.regions,groups:jd.groups||null,aliases:jd.aliases||null,builtin:true});
-    }catch(e){}
-  }
+// Startup registers metadata only ({id,name,continent,country,regionCount}); SVG + JSON load on first open.
+const BUILTIN_META={'belgium-provinces':['Europe','BEL'],'afghanistan-provinces':['Asia','AFG'],'albania-counties':['Europe','ALB'],'switzerland-counties':['Europe','CHE'],'andorra-parishes':['Europe','AND'],'angola-provinces':['Africa','AGO'],'antiguabarbuda-parishes':['North America','ATG'],'argentina-provinces':['South America','ARG'],'liechtenstein-municipalities':['Europe','LIE'],'sanmarino-castelli':['Europe','SMR'],'luxembourg-cantons':['Europe','LUX'],'georgia-regions':['Asia','GEO'],'georgia-municipalities':['Asia','GEO'],'guyana-regions':['South America','GUY'],'mexico-states':['North America','MEX'],'austria-states':['Europe','AUT'],'barbados-parishes':['North America','BRB'],'mongolia-provinces':['Asia','MNG']};
+const LS_COUNTS='gq:counts';   // region counts learned on first open, so lists show them without loading maps
+function registerBuiltIns(){
+  const counts=lsGet(LS_COUNTS);
+  BUILT_IN_MAPS.forEach(b=>{const x=BUILTIN_META[b.id]||[];
+    maps.push({id:b.id,name:b.name,svgFile:b.svgFile,jsonFile:b.jsonFile,continent:x[0],country:x[1],regionCount:counts[b.id]||null,builtin:true,regions:null});});
   renderMapList();
 }
+function regionCount(m){return m.regions?Object.keys(m.regions).length:(m.regionCount||null);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function timeAgo(iso){
+  const t=typeof iso==='number'?iso:Date.parse(iso); if(!t)return '';
+  const s=(Date.now()-t)/1000;
+  if(s<60)return 'just now'; if(s<3600)return Math.floor(s/60)+' min ago';
+  if(s<86400)return Math.floor(s/3600)+' h ago';
+  const d=Math.floor(s/86400); return d===1?'1 day ago':d+' days ago';
+}
+// Parse SVG text once with the inert <template> parser (same leniency as innerHTML, nothing executes),
+// then strip styles, scripts, on* handlers and javascript: links. Result is cached and cloned per play.
+function parseSvgSafe(text){
+  const t=document.createElement('template'); t.innerHTML=String(text||'');
+  const svg=t.content.querySelector('svg'); if(!svg)return null;
+  svg.remove();
+  svg.querySelectorAll('script,foreignObject,iframe,object,embed').forEach(e=>e.remove());
+  stripStyles(svg);
+  [svg,...svg.querySelectorAll('*')].forEach(el=>[...el.attributes].forEach(a=>{
+    if(/^on/i.test(a.name)||(/^(xlink:)?href$/i.test(a.name)&&/^\s*javascript:/i.test(a.value)))el.removeAttribute(a.name);}));
+  return svg;
+}
+// Cache layer: one in-flight promise per map (no duplicate fetches), hydrated data kept on the map object,
+// parsed SVG template kept in m._tpl, normalized answer lookups kept in m._acc / m._alpha.
+const MapCache={
+  pending:new Map(),
+  load(m){
+    if(m.regions)return Promise.resolve(m);
+    if(!m.builtin)return Promise.reject(new Error('map data missing'));
+    let p=this.pending.get(m.id);
+    if(!p){
+      const get=async u=>{let r;try{r=await fetch(u);}catch(e){throw new Error('network error loading '+u);}
+        if(!r.ok)throw new Error('HTTP '+r.status+' for '+u);return r;};
+      p=(async()=>{
+        const [sr,jr]=await Promise.all([get(m.svgFile),get(m.jsonFile)]);
+        const svgText=await sr.text(); let jd;
+        try{jd=await jr.json();}catch(e){throw new Error(m.jsonFile+' is not valid JSON ('+e.message+')');}
+        if(!jd||!jd.regions||typeof jd.regions!=='object'||Array.isArray(jd.regions))throw new Error(m.jsonFile+' has no "regions" object');
+        Object.assign(m,{svgText,regions:jd.regions,groups:jd.groups||null,aliases:jd.aliases||null});
+        m.regionCount=Object.keys(m.regions).length;
+        const c=lsGet(LS_COUNTS); c[m.id]=m.regionCount; lsSet(LS_COUNTS,c);
+      })().finally(()=>this.pending.delete(m.id));
+      this.pending.set(m.id,p);
+    }
+    return p.then(()=>m);
+  },
+  template(m){
+    if(!m._tpl){
+      const t=parseSvgSafe(m.svgText); if(!t)throw new Error('No <svg> found for '+m.name);
+      const ids=new Set([...t.querySelectorAll('[id]')].map(e=>e.id));
+      const miss=Object.keys(m.regions).flatMap(r=>(m.groups&&m.groups[r])||[r]).filter(i=>!ids.has(i));
+      if(miss.length)console.warn('[GeoQuiz] '+m.id+': '+miss.length+' JSON id(s) not found in the SVG:',miss.slice(0,20));
+      m._tpl=t;
+    }
+    return m._tpl;
+  }
+};
 
 // ════════════════════════════════════════════
 //  MAP LIST
@@ -1075,18 +854,18 @@ function renderMapList(){
 }
 
 function makeMapItem(m){
-  const count=Object.keys(m.regions).length;
+  const count=regionCount(m);
   const isSaved=savedIds.has(m.id);
   const div=document.createElement('div');
   div.className='map-item';
   div.innerHTML=`
     <div class="map-item-inner">
-      <div class="map-item-title">${m.name}</div>
+      <div class="map-item-title">${esc(m.name)}</div>
       <div class="map-item-meta">
-        <span>${count} regions</span>
+        ${count!=null?`<span>${count} regions</span>`:''}
         ${isSaved?'<span class="badge badge-saved">saved</span>':''}
-        ${m.community?'<span class="badge badge-community">community</span>':''}
-        ${m.author?`<span style="color:var(--muted);font-size:.7rem;">by ${m.author}</span>`:''}
+        
+        
       </div>
     </div>
     <div class="map-item-actions">
@@ -1128,7 +907,7 @@ function renderPickMap(){
   items.forEach(m=>list.appendChild(makePickRow(m)));
 }
 function makePickRow(m){
-  const count=Object.keys(m.regions).length;
+  const count=regionCount(m);
   const isSaved=savedIds.has(m.id);
   const best=getBest(m.id);
   const row=document.createElement('div');
@@ -1136,11 +915,11 @@ function makePickRow(m){
   const opts=CONTINENTS.map(c=>`<option value="${c}"${getContinent(m)===c?' selected':''}>${c}</option>`).join('');
   row.innerHTML=`
     <div class="map-row-main map-item-inner">
-      <div class="map-item-title">${m.name}</div>
+      <div class="map-item-title">${esc(m.name)}</div>
       <div class="map-item-meta">
-        <span>${count} regions</span>
+        ${count!=null?`<span>${count} regions</span>`:''}
         ${isSaved?'<span class="badge badge-saved">saved</span>':''}
-        ${m.community?'<span class="badge badge-community">community</span>':''}
+        
         ${best?`<span class="row-best">best ${best}%</span>`:''}
       </div>
     </div>
@@ -1166,7 +945,7 @@ function makePickRow(m){
   return row;
 }
 document.getElementById('pickmap-back').addEventListener('click',()=>goBack());
-document.getElementById('map-search').addEventListener('input',renderPickMap);
+{let t;document.getElementById('map-search').addEventListener('input',()=>{clearTimeout(t);t=setTimeout(renderPickMap,120);});}
 document.getElementById('btn-all-maps').addEventListener('click',()=>openContinent(null));
 
 // ════════════════════════════════════════════
@@ -1200,231 +979,31 @@ function runHomeSearch(){
   def.style.display='none'; results.style.display='';
   const items=maps.filter(m=>normalize(m.name).includes(q));
   results.innerHTML='';
-  if(!items.length){results.innerHTML=`<p style="color:var(--muted);font-size:.85rem;text-align:center;padding:1rem 0">No quizzes match “${raw}”.</p>`;return;}
+  if(!items.length){results.innerHTML=`<p style="color:var(--muted);font-size:.85rem;text-align:center;padding:1rem 0">No quizzes match “${esc(raw)}”.</p>`;return;}
   items.forEach(m=>results.appendChild(makeMapItem(m)));
 }
-document.getElementById('home-search').addEventListener('input',runHomeSearch);
+{let t;document.getElementById('home-search').addEventListener('input',()=>{clearTimeout(t);t=setTimeout(runHomeSearch,120);});}
 
-// ════════════════════════════════════════════
-//  COMMUNITY MAPS
-// ════════════════════════════════════════════
-let commEntries=[];
-async function loadCommunityMaps(){
-  const list=document.getElementById('community-list');
-  if(!JSONBIN_URL){
-    list.innerHTML=`<div class="community-empty" style="text-align:left;line-height:1.8;">
-      To enable community sharing:<br>
-      1. Sign up free at <strong>jsonbin.io</strong><br>
-      2. Create a bin with content <code>[]</code><br>
-      3. Paste your <strong>Bin ID</strong> and <strong>API key</strong> into the two constants at the top of this file's &lt;script&gt; tag.
-    </div>`;
-    return;
-  }
-  list.innerHTML='<div class="community-empty">Loading…</div>';
-  try{
-    const r=await fetch(JSONBIN_URL+'/latest',{headers:{'X-Master-Key':JSONBIN_API_KEY}});
-    const data = await r.json();
-    commEntries = data.record.data || [];
-    renderCommunityList();
-  }catch(err){
-    list.innerHTML='<div class="community-empty">Could not load community maps.</div>';
-  }
-}
-function commAvg(ratings){if(!ratings||!ratings.length)return 0;return Math.round(ratings.reduce((s,r)=>s+(r.stars||0),0)/ratings.length*10)/10;}
-function starsHtml(avg){let h='';for(let i=1;i<=5;i++)h+=`<span${i<=Math.round(avg)?'':' class="off"'}>★</span>`;return `<span class="stars">${h}</span>`;}
-function sortCommEntries(entries,mode){
-  const a=entries.slice();
-  if(mode==='rated')a.sort((x,y)=>commAvg(y.ratings)-commAvg(x.ratings)||((y.ratings||[]).length-(x.ratings||[]).length));
-  else if(mode==='played')a.sort((x,y)=>(y.plays||0)-(x.plays||0));
-  else a.sort((x,y)=>(y.id||0)-(x.id||0)); // newest
-  return a;
-}
-function renderCommunityList(){
-  const list=document.getElementById('community-list');
-  if(!commEntries.length){list.innerHTML='<div class="community-empty">No community maps yet. Be the first to share!</div>';return;}
-  const mode=document.getElementById('comm-sort')?.value||'newest';
-  list.innerHTML='';
-  sortCommEntries(commEntries,mode).forEach(e=>{
-    let m=maps.find(x=>x.id==='comm-'+e.id);
-    if(!m){
-      m={id:'comm-'+e.id,name:e.name,svgText:e.svgText,regions:e.regions,groups:e.groups||null,aliases:e.aliases||null,community:true,author:e.author||'',meta:e};
-      maps.push(m);
-    }else m.meta=e;
-    const item=makeMapItem(m);
-    const metaRow=item.querySelector('.map-item-meta');
-    if(metaRow){
-      const extra=document.createElement('span');
-      extra.style.cssText='display:flex;gap:.45rem;align-items:center;';
-      const avg=commAvg(e.ratings);
-      extra.innerHTML=(avg?`${starsHtml(avg)} <span>(${avg})</span>`:'<span style="color:var(--muted)">unrated</span>')+` · ▶ ${e.plays||0}`;
-      metaRow.appendChild(extra);
-    }
-    list.appendChild(item);
-  });
-  renderMapList();
-}
-document.getElementById('comm-sort').addEventListener('change',renderCommunityList);
-
-// ════════════════════════════════════════════
-//  COMMUNITY DETAILS: ratings, comments, plays
-// ════════════════════════════════════════════
-async function updateCommunityEntry(rawId, mutate){
-  if(!JSONBIN_URL)throw new Error('no backend');
-  const r=await fetch(JSONBIN_URL+'/latest',{headers:{'X-Master-Key':JSONBIN_API_KEY}});
-  const data=await r.json(); const list=data.record.data||[];
-  const e=list.find(x=>x.id===rawId); if(!e)throw new Error('entry gone');
-  mutate(e);
-  const w=await fetch(JSONBIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_API_KEY},body:JSON.stringify({data:list})});
-  if(!w.ok)throw new Error('write failed');
-  return e;
-}
-function applyRating(ratings,user,stars){
-  const out=(ratings||[]).filter(r=>r.user!==user);   // one rating per user — re-rating replaces
-  out.push({user,stars});
-  return out;
-}
-function limitComment(text){return (text||'').trim().slice(0,300);}
-function timeAgo(iso){
-  const t=typeof iso==='number'?iso:Date.parse(iso); if(!t)return '';
-  const s=(Date.now()-t)/1000;
-  if(s<60)return 'just now'; if(s<3600)return Math.floor(s/60)+' min ago';
-  if(s<86400)return Math.floor(s/3600)+' h ago';
-  const d=Math.floor(s/86400); return d===1?'1 day ago':d+' days ago';
-}
-function renderCommDetails(){
-  const box=document.getElementById('comm-details');
-  const e=activeMap&&activeMap.meta;
-  if(!activeMap||!activeMap.community||!e){box.style.display='none';return;}
-  box.style.display='';
-  const avg=commAvg(e.ratings), n=(e.ratings||[]).length;
-  document.getElementById('comm-meta').innerHTML=
-    `<b>${e.author||'Anonymous'}</b>${e.description?' — '+e.description:''}<br>`+
-    `${avg?`${starsHtml(avg)} (${avg}) · ${n} rating${n===1?'':'s'}`:'No ratings yet'} · ▶ ${e.plays||0} plays`+
-    `${e.dateCreated?' · created '+timeAgo(e.dateCreated):''}`;
-  const me=getPlayerNameQuiet();
-  const mine=me&&(e.ratings||[]).find(r=>r.user===me);
-  document.querySelectorAll('#comm-rate span').forEach((s,i)=>s.classList.toggle('on',mine&&i<mine.stars));
-  document.getElementById('comm-rate-hint').textContent=mine?`You rated ${mine.stars}★ (tap to change)`:'Tap to rate';
-  const cl=document.getElementById('comm-comments');
-  const cs=(e.comments||[]).slice().sort((a,b)=>Date.parse(b.date||0)-Date.parse(a.date||0));
-  cl.innerHTML=cs.length?cs.map(c=>{
-    const r=(e.ratings||[]).find(x=>x.user===c.user);
-    return `<div class="comm-comment"><span class="who">${c.user||'Anonymous'}</span><span class="when">${timeAgo(c.date)}</span>${r?`<div>${starsHtml(r.stars)}</div>`:''}<div class="txt">${c.text}</div></div>`;
-  }).join(''):'<div style="color:var(--muted);font-size:.8rem;">No comments yet — be the first!</div>';
-}
-document.querySelectorAll('#comm-rate span').forEach((s,idx)=>s.addEventListener('click',async()=>{
-  const e=activeMap&&activeMap.meta; if(!e)return;
-  const user=getPlayerName(); if(!user)return;
-  const stars=idx+1;
-  e.ratings=applyRating(e.ratings,user,stars); renderCommDetails();   // optimistic
-  try{await updateCommunityEntry(e.id,x=>{x.ratings=applyRating(x.ratings,user,stars);});}
-  catch(_){document.getElementById('comm-rate-hint').textContent='Rating failed to sync.';}
-}));
-document.getElementById('comm-send').addEventListener('click',async()=>{
-  const e=activeMap&&activeMap.meta; if(!e)return;
-  const inp=document.getElementById('comm-input');
-  const text=limitComment(inp.value); if(!text)return;
-  const user=getPlayerName(); if(!user)return;
-  const c={user,date:new Date().toISOString(),text};
-  e.comments=e.comments||[]; e.comments.push(c); inp.value=''; renderCommDetails();  // optimistic
-  try{await updateCommunityEntry(e.id,x=>{x.comments=x.comments||[];x.comments.push(c);});}catch(_){}
-});
-// count a play on every completed community-map quiz (best effort)
-Bus.on('quiz:complete',d=>{
-  if(!d.mapId||!String(d.mapId).startsWith('comm-'))return;
-  const m=maps.find(x=>x.id===d.mapId); const e=m&&m.meta; if(!e)return;
-  e.plays=(e.plays||0)+1;
-  updateCommunityEntry(e.id,x=>{x.plays=(x.plays||0)+1;}).catch(()=>{});
-});
-
-document.getElementById('btn-refresh-community').addEventListener('click',loadCommunityMaps);
-
-// ════════════════════════════════════════════
-//  SHARE MODAL
-// ════════════════════════════════════════════
-document.getElementById('btn-share-map').addEventListener('click',()=>{
-  if(!JSONBIN_URL){
-    alert('Community sharing is not configured yet.\nSee the instructions in the Community Maps section on the home screen.');
-    return;
-  }
-  document.getElementById('share-name').value=activeMap?.name||'';
-  document.getElementById('share-author').value='';
-  document.getElementById('share-status').textContent='';
-  document.getElementById('share-modal').classList.add('open');
-});
-document.getElementById('share-cancel').addEventListener('click',()=>document.getElementById('share-modal').classList.remove('open'));
-document.getElementById('share-confirm').addEventListener('click', async () => {
-  const name = document.getElementById('share-name').value.trim() || activeMap.name;
-  const author = document.getElementById('share-author').value.trim();
-  const status = document.getElementById('share-status');
-  const btn = document.getElementById('share-confirm');
-
-  status.textContent = 'Uploading…';
-  btn.disabled = true;
-
-  try {
-    const r = await fetch(JSONBIN_URL + '/latest', {
-      headers: {
-        'X-Master-Key': JSONBIN_API_KEY
-      }
-    });
-
-    const data = await r.json();
-    const list = data.record.data || [];
-
-    list.push({
-      id: Date.now(),
-      name,
-      author,
-      description: (document.getElementById('share-desc').value||'').trim().slice(0,200),
-      dateCreated: new Date().toISOString(),
-      downloads: 0,
-      plays: 0,
-      ratings: [],
-      comments: [],
-      regions: activeMap.regions,
-      groups: activeMap.groups||null,
-      aliases: activeMap.aliases||null,
-      svgText: activeMap.svgText
-    });
-
-    const w = await fetch(JSONBIN_URL, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Master-Key': JSONBIN_API_KEY
-      },
-      body: JSON.stringify({
-        data: list
-      })
-    });
-
-    if (!w.ok) throw new Error('Write failed');
-
-    status.textContent = '✓ Uploaded!';
-  }
-  catch (e) {
-    status.textContent = 'Upload failed.';
-  }
-
-  btn.disabled = false;
-});
 
 // ════════════════════════════════════════════
 //  MAP SELECT
 // ════════════════════════════════════════════
-function openMapSelect(mapId){
-  activeMap=maps.find(m=>m.id===mapId);
-  document.getElementById('mapselect-title').textContent=activeMap.name;
-  document.getElementById('mapselect-sub').textContent=Object.keys(activeMap.regions).length+' regions';
-  // show share button only for local/saved maps (not community, not built-in)
-  const owned=(savedIds.has(activeMap.id)||(!activeMap.builtin&&!activeMap.community));
-  document.getElementById('btn-share-map').style.display=owned?'':'none';
-  document.getElementById('btn-rename-map').style.display=owned?'':'none';
-  renderCommDetails();
+async function openMapSelect(mapId){
+  const m=maps.find(x=>x.id===mapId); if(!m)return;
+  activeMap=m;
+  document.getElementById('mapselect-title').textContent=m.name;
+  const sub=document.getElementById('mapselect-sub'); sub.textContent='Loading…';
+  document.getElementById('btn-rename-map').style.display=(savedIds.has(m.id)||!m.builtin)?'':'none';
   showScreen('mapselect');
+  try{await MapCache.load(m); if(activeMap===m)sub.textContent=Object.keys(m.regions).length+' regions';}
+  catch(e){console.error(e); if(activeMap===m)sub.textContent='Could not load this map: '+e.message;}
 }
-document.getElementById('btn-edit-map').addEventListener('click',()=>{ if(activeMap)editExistingMap(activeMap); });
+async function withMap(fn){            // run fn once the active map's data is loaded (cached after first load)
+  if(!activeMap)return;
+  try{await MapCache.load(activeMap);}catch(e){alert('Could not load this map: '+e.message);return;}
+  fn();
+}
+document.getElementById('btn-edit-map').addEventListener('click',()=>{ if(activeMap)withMap(()=>editExistingMap(activeMap)); });
 document.getElementById('btn-rename-map').addEventListener('click',async()=>{
   if(!activeMap)return;
   const nn=prompt('Rename this map:', activeMap.name);
@@ -1436,12 +1015,12 @@ document.getElementById('btn-rename-map').addEventListener('click',async()=>{
   renderMapList();
 });
 document.getElementById('back-to-home').addEventListener('click',()=>goBack());
-document.getElementById('mode-click').addEventListener('click',()=>{quizMode='click';startClickQuiz(Object.keys(activeMap.regions));});
-document.getElementById('mode-type').addEventListener('click', ()=>{quizMode='type'; startFillQuiz(Object.keys(activeMap.regions));});
-document.getElementById('mode-learn').addEventListener('click',()=>{quizMode='learn'; startLearnMode(Object.keys(activeMap.regions));});
+document.getElementById('mode-click').addEventListener('click',()=>withMap(()=>{quizMode='click';startClickQuiz(Object.keys(activeMap.regions));}));
+document.getElementById('mode-type').addEventListener('click', ()=>withMap(()=>{quizMode='type'; startFillQuiz(Object.keys(activeMap.regions));}));
+document.getElementById('mode-learn').addEventListener('click',()=>withMap(()=>{quizMode='learn'; startLearnMode(Object.keys(activeMap.regions));}));
 
 // ════════════════════════════════════════════
-//  HELPERS
+//  UTILITY FUNCTIONS + ANSWER MATCHING
 // ════════════════════════════════════════════
 function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
 function normalize(s){return s.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ');}
@@ -1460,7 +1039,11 @@ function levenshtein(a,b){
 function fuzzyTol(len){return len<=4?0:len<=8?1:2;}
 // returns {id, exact} or null. exact normalized match is always preferred; ambiguous near-misses rejected.
 // acceptable normalized answers for a region: display name + any aliases
-function acceptStrings(rid){
+function acceptStrings(rid){   // memoized per map: normalize once, not on every keystroke
+  const c=activeMap._acc||(activeMap._acc=new Map()); let v=c.get(rid);
+  if(!v){v=buildAccept(rid);c.set(rid,v);} return v;
+}
+function buildAccept(rid){
   const out=[normalize(activeMap.regions[rid]||rid)];
   const al=activeMap&&activeMap.aliases&&activeMap.aliases[rid];
   if(al)al.forEach(a=>{const n=normalize(a);if(n&&!out.includes(n))out.push(n);});
@@ -1492,8 +1075,9 @@ function fuzzyFind(input, ids){
   return {id:cands[0].id, exact:false};
 }
 
+let elMap=new Map();   // shape id -> element for the mounted quiz SVG (built once per mount)
 function getSvg(){return document.querySelector('#quiz-map-wrap svg');}
-function getEl(id){return getSvg()?.getElementById(id);}
+function getEl(id){return elMap.get(id)||null;}
 // completion-% progress bar with color thresholds (only 100% counts as completed)
 function colorBar(el,pct){
   if(!el)return;
@@ -1513,7 +1097,6 @@ function stripStyles(svg){
   const STRIP=['fill','fill-opacity','stroke','stroke-width','stroke-opacity','stroke-linecap','stroke-linejoin','style'];
   svg.querySelectorAll('*').forEach(el=>STRIP.forEach(a=>el.removeAttribute(a)));
 }
-function sanitizeSvg(){stripStyles(getSvg());}
 
 function regionShapes(rid){return (activeMap&&activeMap.groups&&activeMap.groups[rid])||[rid];}
 function applyScore(regionId,score){
@@ -1536,23 +1119,20 @@ function startFlash(regionId){
 
 function loadMapIntoQuiz(){
   const wrap=document.getElementById('quiz-map-wrap');
-  const giveup=document.getElementById('btn-giveup');
-  const zr=document.getElementById('quiz-zoom-reset');
-  wrap.innerHTML=activeMap.svgText;
-  wrap.appendChild(giveup);
-  if(zr)wrap.appendChild(zr);
-  sanitizeSvg();
+  wrap.querySelector('svg')?.remove();
+  const svg=MapCache.template(activeMap).cloneNode(true);   // no re-parse, no re-strip
+  wrap.insertBefore(svg,wrap.firstChild);
+  elMap=new Map(); svg.querySelectorAll('[id]').forEach(el=>{if(!elMap.has(el.id))elMap.set(el.id,el);});
   shapeRegion={};
   Object.keys(activeMap.regions).forEach(rid=>regionShapes(rid).forEach(s=>{shapeRegion[s]=rid;}));
   if(window.quizZoom)quizZoom.reset();
 }
 
 // ════════════════════════════════════════════
-//  CLICK MODE
+//  QUIZ ENGINE: CLICK MODE
 // ════════════════════════════════════════════
 function startClickQuiz(regionIds, opts){
   quizQueue=(opts&&opts.ordered)?regionIds.slice():shuffle(regionIds);
-  dailyActive=!!(opts&&opts.daily);
   quizIndex=0;wrongIds=[];scoreMap={};mistakeCount=0;waitingForNext=false;
   correctClicks=0;wrongClicks=0;
   quizStartTime=Date.now();
@@ -1636,10 +1216,9 @@ document.getElementById('btn-giveup').addEventListener('click',()=>{
 document.getElementById('back-to-select').addEventListener('click',()=>{stopFlash();clearTimeout(feedbackTimeout);goBack();});
 
 // ════════════════════════════════════════════
-//  FILL / TYPE MODE
+//  QUIZ ENGINE: FILL / TYPE MODE
 // ════════════════════════════════════════════
 function startFillQuiz(regionIds){
-  dailyActive=false;
   fillRemaining=[...regionIds];fillScores={};wrongIds=[];guessedNames=[];
   quizStartTime=Date.now();
   loadMapIntoQuiz();
@@ -1665,27 +1244,28 @@ function startFillQuiz(regionIds){
 
 // Alphabetical guessed panel: one cell per region, blank until guessed (fills in on guess)
 function fillAlphaIds(){
-  return Object.keys(activeMap.regions).sort((a,b)=>
-    (activeMap.regions[a]||a).localeCompare(activeMap.regions[b]||b));
+  if(!activeMap._alpha){const col=new Intl.Collator();activeMap._alpha=Object.keys(activeMap.regions).sort((a,b)=>col.compare(activeMap.regions[a]||a,activeMap.regions[b]||b));}
+  return activeMap._alpha;
 }
+const guessCells=new Map();   // region id -> panel cell (replaces a selector scan per guess)
 function renderGuessedPanel(){
   const gl=document.getElementById('guessed-list');
   gl.className='guessed-list-grid';
   gl.innerHTML='';
   fillAlphaIds().forEach(id=>{
     const c=document.createElement('div');
-    c.className='guessed-cell';c.dataset.gid=id;c.innerHTML='&nbsp;';
+    c.className='guessed-cell';c.dataset.gid=id;c.innerHTML='&nbsp;';guessCells.set(id,c);
     gl.appendChild(c);
   });
 }
 function fillGuessCell(id,name,exact){
-  const c=document.querySelector(`#guessed-list .guessed-cell[data-gid="${CSS.escape(id)}"]`);
+  const c=guessCells.get(id);
   if(!c)return;
   c.textContent=name;
   c.classList.add(exact?'filled-exact':'filled-fuzzy');
 }
 
-// ── LEARN MODE ──
+// ── LEARNING ENGINE: LEARN MODE ──
 function startLearnMode(regionIds){
   loadMapIntoQuiz();
   document.getElementById('screen-quiz').classList.add('learn-mode');
@@ -1765,7 +1345,7 @@ function showFillResults(){
   const ws=document.getElementById('wrong-list');
   if(wrongIds.length){
     ws.innerHTML='<h3>Not found</h3>';
-    wrongIds.forEach(id=>{const d=document.createElement('div');d.className='wrong-item';d.innerHTML=`<span>🔴</span>${activeMap.regions[id]||id}`;ws.appendChild(d);});
+    wrongIds.forEach(id=>{const d=document.createElement('div');d.className='wrong-item';d.innerHTML=`<span>🔴</span>${esc(activeMap.regions[id]||id)}`;ws.appendChild(d);});
   }else{ws.innerHTML='<p style="color:var(--gold);text-align:center;font-weight:600;font-size:1.1rem">🏆 Perfect score!</p>';}
   document.getElementById('btn-review').style.display=wrongIds.length?'':'none';
   showScreen('results');
@@ -1798,7 +1378,7 @@ function showClickResults(){
       const s=scoreMap[id];
       const dot=s==='giveup'?'🔴':s==='2'?'🟠':'🟡';
       const d=document.createElement('div');d.className='wrong-item';
-      d.innerHTML=`<span>${dot}</span>${activeMap.regions[id]||id}`;ws.appendChild(d);
+      d.innerHTML=`<span>${dot}</span>${esc(activeMap.regions[id]||id)}`;ws.appendChild(d);
     });
   }else{ws.innerHTML='<p style="color:var(--gold);text-align:center;font-weight:600;font-size:1.1rem">🏆 Flawless — every region first try!</p>';}
   wrongIds=imperfect;
@@ -1853,7 +1433,7 @@ document.getElementById('btn-add-import').addEventListener('click',async()=>{
 });
 
 // ════════════════════════════════════════════
-//  ZOOM / PAN  (wheel + drag + pinch, per map wrap)
+//  MAP ENGINE: ZOOM / PAN  (wheel + drag + pinch, per map wrap)
 //  Pans only when zoomed in, so default-zoom clicks behave exactly as before.
 // ════════════════════════════════════════════
 function attachZoom(wrap, isInactive){
@@ -1865,6 +1445,7 @@ function attachZoom(wrap, isInactive){
   const svgEl=()=>wrap.querySelector('svg');
   function bind(){
     const s=svgEl(); if(!s){vb=vb0=null;return;}
+    vb0=null;   // fixes stale viewBox from a previous map
     let v=s.getAttribute('viewBox');
     if(v){
       const p=v.trim().split(/[\s,]+/).map(parseFloat);
@@ -1972,7 +1553,7 @@ document.getElementById('editor-zoom-reset')?.addEventListener('click',()=>edito
 })();
 
 // ════════════════════════════════════════════
-//  SVG EDITOR  (click regions → name them → export / save / play)
+//  EDITOR  (click regions → name them → export / save / play)
 // ════════════════════════════════════════════
 let edAllShapes=[], edRegions={}, edShapeRegion={}, edSel=[], edEditing=null, edMulti=false, edClean='', edSourceId=null, edMarquee=false, edDraftId=null;
 const EDIT_SHAPES='path,polygon,polyline,circle,ellipse,rect';
@@ -2025,7 +1606,7 @@ async function renderDraftsList(){
     div.innerHTML=
       `<div class="map-item-inner">
         <div style="min-width:0;flex:1;">
-          <div class="map-item-name">${(d.name||'Untitled draft')}</div>
+          <div class="map-item-name">${esc(d.name||'Untitled draft')}</div>
           <div class="map-item-meta">${named} named${total?` / ${total} shapes (${pct}%)`:''} · saved ${timeAgo(d.updatedAt)}</div>
         </div>
       </div>
@@ -2084,7 +1665,7 @@ function startEditorWith(svgText, baseName, regions, groups, aliases, sourceId){
   const wrap=document.getElementById('editor-map-wrap');
   const oldSvg=wrap.querySelector('svg');
   if(oldSvg)oldSvg.remove();                                  // surgical: keep #editor-zoom-reset AND #ed-marquee in the wrap
-  wrap.insertAdjacentHTML('afterbegin', svgText);             // SVG becomes the first child; reset button + marquee layer stay above it
+  {const safe=parseSvgSafe(svgText); if(safe)wrap.insertBefore(safe,wrap.firstChild);}             // SVG becomes the first child; reset button + marquee layer stay above it
   const svg=wrap.querySelector('svg');
   if(!svg){document.getElementById('editor-upload-status').textContent='That file is not a valid SVG.';return;}
   stripStyles(svg);
@@ -2347,13 +1928,11 @@ document.getElementById('editor-start-quiz').addEventListener('click',()=>{
   activeMap={id:'editor-'+Date.now(), name:m.name, svgText:edClean, regions:m.regions, groups:m.groups||null, aliases:m.aliases||null};
   document.getElementById('mapselect-title').textContent=activeMap.name;
   document.getElementById('mapselect-sub').textContent=Object.keys(activeMap.regions).length+' regions';
-  document.getElementById('btn-share-map').style.display='none';
-  renderCommDetails();
   showScreen('mapselect');
 });
 
 // ════════════════════════════════════════════
-//  INIT
+//  INITIALIZATION
 // ════════════════════════════════════════════
 function applyTheme(t){
   document.body.classList.toggle('light', t==='light');
@@ -2363,6 +1942,7 @@ function applyTheme(t){
 }
 
 async function init(){
+  ['gq:daily','gq:lb-local','gq:player','gq:country'].forEach(k=>{try{localStorage.removeItem(k);}catch(_){}});   // removed features
   // theme — apply BEFORE the screen system runs so first paint is correct
   let savedTheme='dark'; try{savedTheme=localStorage.getItem('gq:theme')||'dark';}catch(_){}
   applyTheme(savedTheme);
@@ -2375,9 +1955,7 @@ async function init(){
     const saved=await dbAll();
     saved.forEach(m=>{savedIds.add(m.id);maps.push(m);});
   }catch(e){console.warn('IndexedDB unavailable:',e);}
-  await loadBuiltIn();
-  renderDailyCard();
-  loadCommunityMaps();
+  registerBuiltIns();
 }
 init();
 </script>
