@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
-<title>GeoQuiz</title>
+<title>KHREITI</title>
 <style>
 :root {
   --bg:#0f1117; --surface:#1a1d27; --surface2:#40475e; --border:#8f98b8;
@@ -15,7 +15,7 @@
   --scrim:linear-gradient(180deg,rgba(15,17,23,.40),rgba(15,17,23,.58));
   --shadow:0 8px 22px rgba(0,0,0,.35);
   /* Map-specific colors — high contrast vs. the page background, regardless of theme */
-  --map-fill:#4a5168; --map-border:#d0d6e6; --map-hover:#5a627e;
+  --map-bg:#efe6cf; --map-fill:#e3d2a8; --map-border:#6e5232; --map-hover:#d2b982; --map-excluded:#8d856f;
 }
 body.light{
   --bg:#dceaf6; --surface:#eef4fb; --surface2:#ffffff; --border:#bdcce0;
@@ -24,7 +24,7 @@ body.light{
   --card:rgba(255,255,255,.78); --glass:rgba(255,255,255,.55);
   --scrim:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.35));
   --shadow:0 8px 22px rgba(60,80,120,.18);
-  --map-fill:#f0f4fa; --map-border:#3a4a60; --map-hover:#dde6f1;
+  --map-bg:#fbf7ec; --map-fill:#eadcb8; --map-border:#7a5c3a; --map-hover:#dcc690; --map-excluded:#b7ad94;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100dvh;display:flex;flex-direction:column;}
@@ -280,6 +280,16 @@ body.light .quiz-feedback,body.light .map-item-name{color:var(--text);}
 #screen-quiz.active{height:100dvh;}   /* bound the quiz to the viewport: no page scrolling */
 .quiz-map-wrap svg .bg-shape{pointer-events:none;cursor:default;}   /* ocean / background / decorative shapes are inert */
 #world-bg .wbg-land ellipse{transition:fill .5s,opacity .5s;}
+.quiz-map-wrap{background:var(--map-bg);border-radius:10px;}   /* parchment panel behind the atlas-style map */
+/* review sessions: regions that are not being tested stay visible for context but are dimmed and inert */
+.quiz-map-wrap svg .region-excluded{fill:var(--map-excluded)!important;opacity:.55;pointer-events:none;cursor:default;}
+.guessed-cell.is-learned::after{content:" ✓";color:#2ec97a;}
+/* polish: tighter quiz chrome, framed map, mobile sizing */
+.quiz-body{padding:.4rem .5rem 0;gap:.4rem;}
+.quiz-prompt{padding:.5rem 1rem .3rem;}
+.quiz-feedback{height:32px;}
+.type-input-bar{padding:.4rem .75rem;}
+@media (max-width:600px){.guessed-panel{width:100px;}.quiz-prompt-name{font-size:1.25rem;}.quiz-header{padding:.5rem .75rem;gap:.5rem;}.btn{padding:.55rem .8rem;}}
 </style>
 </head>
 <body>
@@ -316,7 +326,7 @@ body.light .quiz-feedback,body.light .map-item-name{color:var(--text);}
 <!-- HOME -->
 <div id="screen-home" class="screen active">
   <div class="home-header" style="padding-top:1.5rem">
-    <h1>🌍 GeoQuiz</h1>
+    <h1>🌍 KHREITI</h1>
     <p>Click a map to start, or import your own</p>
   </div>
 
@@ -647,7 +657,14 @@ let feedbackTimeout=null, scoreMap={}, wrongIds=[];
 // fill mode
 let fillRemaining=[], fillScores={}, guessedNames=[];
 let shapeRegion={}; // svg shape id -> region id (for multi-part regions)
-let quizStartTime=0; // for duration / speed stats
+let quizStartTime=0;
+let reviewIds=null, fillTotal=0;   // reviewIds: Set of region ids under test in a review run (null = full-map run)
+function setReview(ids){reviewIds=ids.length<Object.keys(activeMap.regions).length?new Set(ids):null;}
+function markExcluded(){   // review runs: dim + disable every region that is not being tested
+  if(!reviewIds)return;
+  Object.keys(activeMap.regions).forEach(rid=>{if(!reviewIds.has(rid))regionShapes(rid).forEach(sid=>getEl(sid)?.classList.add('region-excluded'));});
+}
+function resultBestText(){return (reviewIds?'Review run · full-map best: ':'Best: ')+getBest(activeMap.id)+'%';} // for duration / speed stats
 
 // ── category + persistence (localStorage) + event bus ──
 const CONTINENTS=['Africa','Europe','Asia','North America','South America','Oceania','Antarctica','World'];
@@ -663,7 +680,7 @@ function getBest(id){return bestMap[id]||0;}
 function setBest(id,pct){if(pct>(bestMap[id]||0)){bestMap[id]=pct;lsSet(LS_BEST,bestMap);}}
 // minimal event bus — quiz engine emits, future modules (stats/achievements) subscribe
 const Bus={_:{},on(e,f){(this._[e]||(this._[e]=[])).push(f);},emit(e,d){(this._[e]||[]).forEach(f=>{try{f(d);}catch(err){console.warn(err);}});}};
-Bus.on('quiz:complete',d=>setBest(d.mapId,d.pct));
+Bus.on('quiz:complete',d=>{if(!d.review)setBest(d.mapId,d.pct);});   // only full-map runs set bests
 
 // ════════════════════════════════════════════
 //  PROGRESS SYSTEM (statistics + achievements)
@@ -686,6 +703,11 @@ const ACHIEVEMENTS=[
 
 function recordPlay(d){
   const s=loadStats(); s.maps=s.maps||{}; s.global=s.global||{};
+  if(d.review){   // review runs: tracked separately, never touch full-map records or achievements
+    const r=s.reviews=s.reviews||{runs:0,correct:0,total:0,maps:{}}; r.runs++; r.correct+=d.correct||0; r.total+=d.total||0;
+    const rm=r.maps[d.mapId]=r.maps[d.mapId]||{runs:0,correct:0,total:0}; rm.runs++; rm.correct+=d.correct||0; rm.total+=d.total||0;
+    saveStats(s); return s;
+  }
   const m=s.maps[d.mapId]||{name:d.name,plays:0,perfects:0,bestPct:0,sumPct:0,fastestMs:null,bestStreak:0,correct:0};
   m.name=d.name||m.name; m.plays++; m.sumPct+=d.pct; if(d.pct>m.bestPct)m.bestPct=d.pct;
   if(d.perfect){m.perfects++; if(d.durationMs>0&&(m.fastestMs==null||d.durationMs<m.fastestMs))m.fastestMs=d.durationMs;}
@@ -721,11 +743,12 @@ Bus.on('quiz:complete',d=>{ const s=recordPlay(d); const newly=evaluateAchieveme
 function fmtMs(ms){if(ms==null)return '—';const s=Math.round(ms/1000);return s<60?s+'s':Math.floor(s/60)+'m '+(s%60)+'s';}
 function bestStreakOf(order,scores){let s=0,b=0;order.forEach(id=>{if(scores[id]==='0'){s++;if(s>b)b=s;}else s=0;});return b;}
 function renderStats(){
-  const s=loadStats(), maps=s.maps||{}, g=s.global||{};
+  const s=loadStats(), maps=s.maps||{}, g=s.global||{}, rv=s.reviews||{};
   const acc=g.totalAnswered?Math.round(g.totalCorrect/g.totalAnswered*100):0;
   document.getElementById('stats-overview').innerHTML=[
     ['Maps played',Object.keys(maps).length],['100% completions',g.perfectPlays||0],
     ['Regions correct',g.totalCorrect||0],['Accuracy',acc+'%'],
+    ['Review runs',rv.runs||0],['Review accuracy',(rv.total?Math.round(rv.correct/rv.total*100):0)+'%'],
   ].map(c=>`<div class="stat-card"><div class="v">${c[1]}</div><div class="l">${c[0]}</div></div>`).join('');
   const have=new Set(loadAch());
   document.getElementById('ach-grid').innerHTML=ACHIEVEMENTS.map(a=>`<div class="ach-card${have.has(a.id)?' unlocked':''}"><div class="ach-ic">${have.has(a.id)?a.icon:'🔒'}</div><div><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div></div></div>`).join('');
@@ -830,6 +853,10 @@ const Mastery={
     else{e.correct++;e.wrong+=(+score)||0;if(score==='0'){if(!e.firstLearned)e.firstLearned=now;e.learned=true;}}
     clearTimeout(this._t);this._t=setTimeout(()=>lsSet(LS_LEARNED,all),400);   // batched write
   },
+  status(mapId,rid){return this.get(mapId,rid).learned?'learned':'unknown';},   // Entity Status: Unknown | Learned
+  setLearned(mapId,rid,on){const all=this.all,k=this.key(mapId,rid),now=Date.now();
+    const e=all[k]||(all[k]={learned:false,firstLearned:null,lastReviewed:null,reviews:0,correct:0,wrong:0});
+    e.learned=!!on;if(on&&!e.firstLearned)e.firstLearned=now;clearTimeout(this._t);this._t=setTimeout(()=>lsSet(LS_LEARNED,all),400);},
   summary(mapId,total){const p=mapId+':';let n=0;for(const k in this.all)if(k.startsWith(p)&&this.all[k].learned)n++;return {learned:n,total:total||null};}
 };
 // Layers + country variants (generic: variants come from maps/index.json, nothing is hard-coded per country).
@@ -866,6 +893,9 @@ const WorldMap={
     const sum=document.getElementById('world-summary'); if(sum)sum.textContent=T?L+'/'+T+' learned':'';
   }
 };
+// Single data model for the future home screen: world → layer → country → FLS/SLS → fog. UI reads this, never the registry directly.
+const Home={model(){const isos=[...new Set(maps.map(m=>m.country).filter(Boolean))];
+  return {layer:view.layer,fog:view.fog,continents:WorldMap.progress(),countries:Object.fromEntries(isos.map(i=>[i,Countries.page(i).layers]))};}};
 function initWorldControls(){
   const sel=document.getElementById('layer-select'),fog=document.getElementById('fog-toggle');
   sel.innerHTML=LAYERS.map(l=>'<option value="'+l.id+'"'+(l.id===view.layer?' selected':'')+'>'+l.label+'</option>').join('');
@@ -873,7 +903,7 @@ function initWorldControls(){
   fog.checked=!!view.fog;
   fog.addEventListener('change',()=>{view.fog=fog.checked;saveView();WorldMap.paint();});
 }
-window.KHREITI={Dataset,Mastery,Countries,WorldMap,LAYERS,view};
+window.KHREITI={Dataset,Mastery,Countries,WorldMap,Home,LAYERS,view};
 function regionCount(m){return m.regions?Object.keys(m.regions).length:(m.regionCount||null);}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function timeAgo(iso){
@@ -1097,7 +1127,7 @@ async function openMapSelect(mapId){
   const sub=document.getElementById('mapselect-sub'); sub.textContent='Loading…';
   document.getElementById('btn-rename-map').style.display=(savedIds.has(m.id)||!m.builtin)?'':'none';
   showScreen('mapselect');
-  try{await MapCache.load(m); if(activeMap===m)sub.textContent=Object.keys(m.regions).length+' regions';}
+  try{await MapCache.load(m); if(activeMap===m){const n=Object.keys(m.regions).length,l=Mastery.summary(m.id,n).learned;sub.textContent=n+' regions'+(l?' · '+l+' learned':'');}}
   catch(e){console.error(e); if(activeMap===m)sub.textContent='Could not load this map: '+e.message;}
 }
 async function withMap(fn){            // run fn once the active map's data is loaded (cached after first load)
@@ -1235,15 +1265,16 @@ function loadMapIntoQuiz(){
 //  QUIZ ENGINE: CLICK MODE
 // ════════════════════════════════════════════
 function startClickQuiz(regionIds, opts){
+  setReview(regionIds);
   quizQueue=(opts&&opts.ordered)?regionIds.slice():shuffle(regionIds);
   quizIndex=0;wrongIds=[];scoreMap={};mistakeCount=0;waitingForNext=false;
   correctClicks=0;wrongClicks=0;
   quizStartTime=Date.now();
   stopFlash();clearTimeout(feedbackTimeout);
-  loadMapIntoQuiz();
+  loadMapIntoQuiz();markExcluded();
   // clicks handled by one delegated listener on #quiz-map-wrap (set up once) — no per-shape listeners
   document.getElementById('screen-quiz').classList.remove('learn-mode');
-  document.querySelector('#click-prompt .quiz-prompt-label').textContent='find and click';
+  document.querySelector('#click-prompt .quiz-prompt-label').textContent=reviewIds?'review · find and click':'find and click';
   document.getElementById('click-prompt').style.display='';
   document.getElementById('type-bar').style.display='none';
   document.getElementById('guessed-panel').style.display='none';
@@ -1325,14 +1356,16 @@ document.getElementById('back-to-select').addEventListener('click',()=>{stopFlas
 //  QUIZ ENGINE: FILL / TYPE MODE
 // ════════════════════════════════════════════
 function startFillQuiz(regionIds){
+  setReview(regionIds);
   fillRemaining=[...regionIds];fillScores={};wrongIds=[];guessedNames=[];
   quizStartTime=Date.now();
-  loadMapIntoQuiz();
-  const total=regionIds.length;
+  loadMapIntoQuiz();markExcluded();
+  const total=regionIds.length;fillTotal=total;
   document.getElementById('screen-quiz').classList.remove('learn-mode');
   document.getElementById('click-prompt').style.display='none';
   document.getElementById('type-bar').style.display='';
   document.getElementById('guessed-panel').style.display='';
+  document.querySelector('#guessed-panel .guessed-panel-title').textContent=reviewIds?'Review':'Guessed';
   renderGuessedPanel();
   document.getElementById('btn-giveup').style.display='none';
   setProgress(0);
@@ -1343,7 +1376,7 @@ function startFillQuiz(regionIds){
   document.getElementById('quiz-feedback').textContent='';
   document.getElementById('quiz-feedback').className='quiz-feedback';
   const inp=document.getElementById('type-input');
-  inp.value='';inp.disabled=false;
+  inp.value='';inp.disabled=false;inp.placeholder=reviewIds?'Review: type a missed region…':'Type a region name…';
   showScreen('quiz');
   setTimeout(()=>inp.focus(),100);
 }
@@ -1351,7 +1384,7 @@ function startFillQuiz(regionIds){
 // Alphabetical guessed panel: one cell per region, blank until guessed (fills in on guess)
 function fillAlphaIds(){
   if(!activeMap._alpha){const col=new Intl.Collator();activeMap._alpha=Object.keys(activeMap.regions).sort((a,b)=>col.compare(activeMap.regions[a]||a,activeMap.regions[b]||b));}
-  return activeMap._alpha;
+  return reviewIds?activeMap._alpha.filter(id=>reviewIds.has(id)):activeMap._alpha;
 }
 const guessCells=new Map();   // region id -> panel cell (replaces a selector scan per guess)
 function renderGuessedPanel(){
@@ -1373,6 +1406,7 @@ function fillGuessCell(id,name,exact){
 
 // ── LEARNING ENGINE: LEARN MODE ──
 function startLearnMode(regionIds){
+  reviewIds=null;
   loadMapIntoQuiz();
   document.getElementById('screen-quiz').classList.add('learn-mode');
   document.getElementById('type-bar').style.display='none';
@@ -1393,7 +1427,7 @@ function renderLearnList(){
   gl.innerHTML='';
   fillAlphaIds().forEach(id=>{
     const c=document.createElement('div');
-    c.className='guessed-cell filled-exact learn-cell';c.dataset.gid=id;
+    c.className='guessed-cell filled-exact learn-cell'+(Mastery.get(activeMap.id,id).learned?' is-learned':'');c.dataset.gid=id;
     c.textContent=activeMap.regions[id]||id;
     c.addEventListener('click',()=>learnSelect(id));
     gl.appendChild(c);
@@ -1419,7 +1453,7 @@ document.getElementById('type-input').addEventListener('input',function(){
   fillRemaining=fillRemaining.filter(x=>x!==id);
   fillGuessCell(id,name,res.exact);
 
-  const total=Object.keys(activeMap.regions).length;
+  const total=fillTotal;
   const done=total-fillRemaining.length;
   document.getElementById('type-count').textContent=done+'/'+total;
   document.getElementById('quiz-counter').textContent=done+'/'+total;
@@ -1433,15 +1467,15 @@ document.getElementById('type-input').addEventListener('input',function(){
 });
 
 function showFillResults(){
-  const total=Object.keys(activeMap.regions).length;
+  const total=fillTotal;
   const vals=Object.values(fillScores);
   const exact=vals.filter(s=>s==='0').length, fuzzy=vals.filter(s=>s==='1').length;
   const done=exact+fuzzy;
   const pct=Math.round(done/total*100);
   wrongIds=fillRemaining.slice();
-  Bus.emit('quiz:complete',{mapId:activeMap.id,name:activeMap.name,pct,perfect:pct===100,mode:'fill',durationMs:Date.now()-quizStartTime,total,correct:done,exact,bestStreak:0});
+  Bus.emit('quiz:complete',{mapId:activeMap.id,name:activeMap.name,pct,perfect:pct===100&&!reviewIds,review:!!reviewIds,mode:'fill',durationMs:Date.now()-quizStartTime,total,correct:done,exact,bestStreak:0});
   document.getElementById('result-score').textContent=pct+'%';
-  document.getElementById('result-best').textContent='Best: '+getBest(activeMap.id)+'%';
+  document.getElementById('result-best').textContent=resultBestText();
   colorBar(document.getElementById('result-bar-fill'),pct);
   document.getElementById('result-label').textContent=activeMap.name;
   document.getElementById('res-gold').textContent=exact;
@@ -1468,9 +1502,9 @@ function showClickResults(){
   const correct=gold+orange+dark;
   const imperfect=quizQueue.filter(id=>scoreMap[id]&&scoreMap[id]!=='0');
   const bestStreak=bestStreakOf(quizQueue,scoreMap);
-  Bus.emit('quiz:complete',{mapId:activeMap.id,name:activeMap.name,pct,perfect:pct===100,mode:'click',durationMs:Date.now()-quizStartTime,total,correct,exact:gold,bestStreak});
+  Bus.emit('quiz:complete',{mapId:activeMap.id,name:activeMap.name,pct,perfect:pct===100&&!reviewIds,review:!!reviewIds,mode:'click',durationMs:Date.now()-quizStartTime,total,correct,exact:gold,bestStreak});
   document.getElementById('result-score').textContent=pct+'%';
-  document.getElementById('result-best').textContent='Best: '+getBest(activeMap.id)+'%';
+  document.getElementById('result-best').textContent=resultBestText();
   colorBar(document.getElementById('result-bar-fill'),pct);
   document.getElementById('result-label').textContent=activeMap.name;
   document.getElementById('res-gold').textContent=gold;
@@ -1549,6 +1583,7 @@ function attachZoom(wrap, isInactive){
   // CSS transforms would rasterize the SVG into a bitmap and re-scale it).
   let vb=null, vb0=null, dragging=false, sx=0, sy=0, pinch=0, pinchVB=null, raf=null, pending=null;
   const svgEl=()=>wrap.querySelector('svg');
+  const onSvg=e=>{const v=svgEl();return !!v&&v.contains(e.target);};   // gestures must start on the SVG
   function bind(){
     const s=svgEl(); if(!s){vb=vb0=null;return;}
     vb0=null;   // fixes stale viewBox from a previous map
@@ -1601,13 +1636,13 @@ function attachZoom(wrap, isInactive){
   }
   wrap.addEventListener('wheel',e=>{
     if(isInactive())return;
-    if(!svgEl())return; e.preventDefault();
+    if(!onSvg(e))return; e.preventDefault();
     if(!vb)bind();
     zoomAt(e.clientX,e.clientY,e.deltaY<0?1.15:1/1.15);
   },{passive:false});
   wrap.addEventListener('pointerdown',e=>{
     if(isInactive())return;
-    if(e.pointerType==='touch')return;
+    if(e.pointerType==='touch'||!onSvg(e))return;
     if(!vb)bind();
     dragging=true; wrap._dragMoved=false; sx=e.clientX; sy=e.clientY;
   });
@@ -1622,6 +1657,7 @@ function attachZoom(wrap, isInactive){
   function tcenter(e){const a=e.touches[0],b=e.touches[1];return {x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2};}
   wrap.addEventListener('touchstart',e=>{
     if(isInactive())return;
+    if(!onSvg(e)){dragging=false;pinch=0;return;}
     if(!vb)bind();
     if(e.touches.length===1){dragging=true; wrap._dragMoved=false; sx=e.touches[0].clientX; sy=e.touches[0].clientY;}
     else if(e.touches.length===2){pinch=tdist(e); pinchVB={...vb}; dragging=false;}
@@ -1652,7 +1688,7 @@ document.getElementById('editor-zoom-reset')?.addEventListener('click',()=>edito
   const wrap=document.getElementById('quiz-map-wrap'); if(!wrap)return;
   wrap.addEventListener('click',e=>{
     const shape=e.target.closest('path,polygon,polyline,circle,ellipse,rect');
-    if(!shape||!shape.id||!shapeRegion[shape.id])return;   // only dataset entities are clickable
+    if(!shape||!shape.id||!shapeRegion[shape.id]||(reviewIds&&!reviewIds.has(shapeRegion[shape.id])))return;   // only dataset entities are clickable
     if(quizMode==='click')handleClick(shape.id);
     else if(quizMode==='learn')learnSelect(shapeRegion[shape.id]||shape.id);
   });
