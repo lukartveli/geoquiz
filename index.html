@@ -104,7 +104,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 /* Quiz body: map + guessed list side by side in fill mode */
 .quiz-body{flex:1;overflow:hidden;display:flex;gap:0;}
 .quiz-map-wrap{flex:1;overflow:hidden;position:relative;padding:.5rem;display:flex;align-items:center;justify-content:center;contain:layout paint;}
-.quiz-map-wrap svg{width:100%;height:100%;max-height:100%;display:block;}
+.quiz-map-wrap svg{width:80%;height:80%;max-height:100%;display:block;}
 
 /* Guessed names panel (fill mode) */
 .guessed-panel{width:140px;flex-shrink:0;border-left:1px solid var(--border);overflow-y:auto;padding:.5rem .4rem;display:flex;flex-direction:column;gap:.25rem;}
@@ -277,6 +277,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .theme-toggle{position:fixed;top:14px;right:14px;z-index:1500;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;cursor:pointer;transition:transform .2s,background .2s,border-color .2s;box-shadow:var(--shadow);}
 .theme-toggle:hover{transform:scale(1.06);border-color:var(--accent);}
 body.light .quiz-feedback,body.light .map-item-name{color:var(--text);}
+#screen-quiz.active{height:100dvh;}   /* bound the quiz to the viewport: no page scrolling */
+.quiz-map-wrap svg .bg-shape{pointer-events:none;cursor:default;}   /* ocean / background / decorative shapes are inert */
+#world-bg .wbg-land ellipse{transition:fill .5s,opacity .5s;}
 </style>
 </head>
 <body>
@@ -288,25 +291,25 @@ body.light .quiz-feedback,body.light .map-item-name{color:var(--text);}
     <!-- rough continent blobs; heavy CSS blur turns these into a soft world map -->
     <g class="wbg-land">
       <!-- North America -->
-      <ellipse cx="175" cy="140" rx="95" ry="70"/>
-      <ellipse cx="150" cy="95" rx="70" ry="40"/>
-      <ellipse cx="235" cy="180" rx="40" ry="55"/>
+      <ellipse data-continent="North America" cx="175" cy="140" rx="95" ry="70"/>
+      <ellipse data-continent="North America" cx="150" cy="95" rx="70" ry="40"/>
+      <ellipse data-continent="North America" cx="235" cy="180" rx="40" ry="55"/>
       <!-- South America -->
-      <ellipse cx="300" cy="320" rx="48" ry="80"/>
-      <ellipse cx="285" cy="270" rx="40" ry="40"/>
+      <ellipse data-continent="South America" cx="300" cy="320" rx="48" ry="80"/>
+      <ellipse data-continent="South America" cx="285" cy="270" rx="40" ry="40"/>
       <!-- Europe -->
-      <ellipse cx="520" cy="130" rx="45" ry="38"/>
+      <ellipse data-continent="Europe" cx="520" cy="130" rx="45" ry="38"/>
       <!-- Africa -->
-      <ellipse cx="545" cy="280" rx="62" ry="85"/>
-      <ellipse cx="525" cy="215" rx="55" ry="40"/>
+      <ellipse data-continent="Africa" cx="545" cy="280" rx="62" ry="85"/>
+      <ellipse data-continent="Africa" cx="525" cy="215" rx="55" ry="40"/>
       <!-- Asia -->
-      <ellipse cx="700" cy="150" rx="135" ry="80"/>
-      <ellipse cx="620" cy="120" rx="60" ry="45"/>
-      <ellipse cx="780" cy="215" rx="55" ry="45"/>
+      <ellipse data-continent="Asia" cx="700" cy="150" rx="135" ry="80"/>
+      <ellipse data-continent="Asia" cx="620" cy="120" rx="60" ry="45"/>
+      <ellipse data-continent="Asia" cx="780" cy="215" rx="55" ry="45"/>
       <!-- Oceania -->
-      <ellipse cx="845" cy="350" rx="55" ry="38"/>
+      <ellipse data-continent="Oceania" cx="845" cy="350" rx="55" ry="38"/>
       <!-- Antarctica -->
-      <ellipse cx="500" cy="478" rx="380" ry="45"/>
+      <ellipse data-continent="Antarctica" cx="500" cy="478" rx="380" ry="45"/>
     </g>
   </svg>
 </div>
@@ -318,6 +321,11 @@ body.light .quiz-feedback,body.light .map-item-name{color:var(--text);}
   </div>
 
   <div style="padding:0 1.25rem;display:flex;flex-direction:column;gap:1.25rem;padding-bottom:1.5rem;">
+    <div id="world-controls" style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;">
+      <select id="layer-select" class="reassign" title="Progress layer"></select>
+      <label style="font-size:.8rem;color:var(--muted);display:flex;gap:.3rem;align-items:center;cursor:pointer;"><input type="checkbox" id="fog-toggle"/> Fog of war</label>
+      <span id="world-summary" style="font-size:.8rem;color:var(--muted);margin-left:auto;"></span>
+    </div>
     <input id="home-search" class="map-search" type="text" placeholder="🔍 Search all quizzes…" autocomplete="off"/>
     <div id="home-results" class="map-list" style="display:none;"></div>
     <div id="home-default" style="display:flex;flex-direction:column;gap:1.25rem;">
@@ -751,7 +759,7 @@ function showScreen(id, isBack){
     wb.classList.add('show');
     wb.classList.toggle('dim',!full);   // low opacity behind gameplay, full on home/browse
   }
-  if(id==='home')setBgContinent('World');
+  if(id==='home'){setBgContinent('World');if(typeof WorldMap!=='undefined')WorldMap.paint();}
 }
 function goBack(){ showScreen(screenHistory.pop()||'home', true); }
 const CONT_FOCUS={'North America':[18,30],'South America':[30,66],'Europe':[52,26],'Asia':[70,30],'Africa':[55,56],'Oceania':[85,70],'Antarctica':[50,95],'World':[50,50]};
@@ -768,12 +776,104 @@ function setBgContinent(c){
 // Startup registers metadata only ({id,name,continent,country,regionCount}); SVG + JSON load on first open.
 const BUILTIN_META={'belgium-provinces':['Europe','BEL'],'afghanistan-provinces':['Asia','AFG'],'albania-counties':['Europe','ALB'],'switzerland-counties':['Europe','CHE'],'andorra-parishes':['Europe','AND'],'angola-provinces':['Africa','AGO'],'antiguabarbuda-parishes':['North America','ATG'],'argentina-provinces':['South America','ARG'],'liechtenstein-municipalities':['Europe','LIE'],'sanmarino-castelli':['Europe','SMR'],'luxembourg-cantons':['Europe','LUX'],'georgia-regions':['Asia','GEO'],'georgia-municipalities':['Asia','GEO'],'guyana-regions':['South America','GUY'],'mexico-states':['North America','MEX'],'austria-states':['Europe','AUT'],'barbados-parishes':['North America','BRB'],'mongolia-provinces':['Asia','MNG']};
 const LS_COUNTS='gq:counts';   // region counts learned on first open, so lists show them without loading maps
-function registerBuiltIns(){
-  const counts=lsGet(LS_COUNTS);
-  BUILT_IN_MAPS.forEach(b=>{const x=BUILTIN_META[b.id]||[];
-    maps.push({id:b.id,name:b.name,svgFile:b.svgFile,jsonFile:b.jsonFile,continent:x[0],country:x[1],regionCount:counts[b.id]||null,builtin:true,regions:null});});
+let COUNTRY_META={};   // optional "countries" block of maps/index.json: {ISO3:{default_variant,variants:[...]}}
+const LAYER_FALLBACK={'belgium-provinces':'sls','luxembourg-cantons':'sls','georgia-municipalities':'sls'};
+// maps/index.json drives the built-in list: a new map = SVG + JSON + one index entry, no JS edits.
+// The embedded list is only a fallback for when index.json is missing.
+async function registerBuiltIns(){
+  let list=null;
+  try{const r=await fetch('maps/index.json');
+    if(r.ok){const j=await r.json();list=Array.isArray(j)?j:j.maps;COUNTRY_META=(!Array.isArray(j)&&j.countries)||{};}
+    else console.warn('[GeoQuiz] maps/index.json: HTTP '+r.status+' — using the embedded fallback list');}
+  catch(e){console.warn('[GeoQuiz] maps/index.json unavailable — using the embedded fallback list',e);}
+  if(!Array.isArray(list))list=BUILT_IN_MAPS.map(b=>{const x=BUILTIN_META[b.id]||[];return {id:b.id,name:b.name,svg:b.svgFile,json:b.jsonFile,continent:x[0],country:x[1]};});
+  const counts=lsGet(LS_COUNTS), have=new Set(maps.map(m=>m.id));
+  list.forEach(b=>{ if(!b||!b.id||have.has(b.id))return; have.add(b.id);
+    maps.push({id:b.id,name:b.name||b.id,svgFile:b.svg||b.svgFile,jsonFile:b.json||b.jsonFile,continent:b.continent,country:b.country||null,
+      layer:b.layer||LAYER_FALLBACK[b.id]||'fls',variant:b.variant||null,regionCount:b.regionCount||counts[b.id]||null,builtin:true,regions:null});});
   renderMapList();
 }
+// ═══ KHREITI FOUNDATIONS: dataset adapter · mastery · layers · countries/variants · world map ═══
+// Dataset repo layout: dataset/{countries,fls,sls,tls,cities,rivers,languages,biomes}/index.json (lazy, never loaded at startup).
+// Entity: {id,name,aliases,parent,children,properties,links,sources}. Country: {default_variant,variants}.
+const DATASET={root:'dataset/',layers:['countries','fls','sls','tls','cities','rivers','languages','biomes']};
+const Dataset={
+  _p:new Map(),
+  entity(r){return {id:String(r.id),name:r.name||String(r.id),aliases:r.aliases||[],parent:r.parent||r.parent_id||null,children:r.children||[],properties:r.properties||{},links:r.links||{},sources:r.sources||[]};},
+  // Accepts the legacy {regions:{id:name},groups,aliases} shape AND entity arrays ({regions|entities:[...]} or a bare array).
+  toMapData(jd){
+    const arr=Array.isArray(jd)?jd:jd&&Array.isArray(jd.entities)?jd.entities:jd&&Array.isArray(jd.regions)?jd.regions:null;
+    if(!arr){if(!jd||!jd.regions||typeof jd.regions!=='object')return null;return {regions:jd.regions,groups:jd.groups||null,aliases:jd.aliases||null,parents:null};}
+    const regions={},aliases={},parents={};
+    arr.forEach(r=>{const e=Dataset.entity(r);regions[e.id]=e.name;if(e.aliases.length)aliases[e.id]=e.aliases;if(e.parent)parents[e.id]=e.parent;});
+    return {regions,groups:jd.groups||null,aliases:Object.keys(aliases).length?aliases:(jd.aliases||null),parents};
+  },
+  loadLayer(id){
+    if(!this._p.has(id))this._p.set(id,fetch(DATASET.root+id+'/index.json').then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+      .then(j=>(Array.isArray(j)?j:j.entities||[]).map(Dataset.entity)).catch(e=>{this._p.delete(id);throw e;}));
+    return this._p.get(id);
+  }
+};
+// Progress: Unknown / Learned per entity, stored locally (key = mapId:regionId; becomes the entity id once layers are datasets).
+const LS_LEARNED='gq:learned';
+const Mastery={
+  _c:null,_t:null,
+  get all(){return this._c||(this._c=lsGet(LS_LEARNED));},
+  key:(mapId,rid)=>mapId+':'+rid,
+  get(mapId,rid){return this.all[this.key(mapId,rid)]||{learned:false,firstLearned:null,lastReviewed:null,reviews:0,correct:0,wrong:0};},
+  record(mapId,rid,score){          // score: '0' first try · '1','2' with mistakes · 'giveup'
+    if(!mapId||String(mapId).startsWith('editor-'))return;
+    const all=this.all,k=this.key(mapId,rid),now=Date.now();
+    const e=all[k]||(all[k]={learned:false,firstLearned:null,lastReviewed:null,reviews:0,correct:0,wrong:0});
+    e.reviews++;e.lastReviewed=now;
+    if(score==='giveup'){e.wrong++;e.learned=false;}
+    else{e.correct++;e.wrong+=(+score)||0;if(score==='0'){if(!e.firstLearned)e.firstLearned=now;e.learned=true;}}
+    clearTimeout(this._t);this._t=setTimeout(()=>lsSet(LS_LEARNED,all),400);   // batched write
+  },
+  summary(mapId,total){const p=mapId+':';let n=0;for(const k in this.all)if(k.startsWith(p)&&this.all[k].learned)n++;return {learned:n,total:total||null};}
+};
+// Layers + country variants (generic: variants come from maps/index.json, nothing is hard-coded per country).
+const LAYERS=[{id:'countries',label:'Countries'},{id:'fls',label:'First-level (FLS)'},{id:'sls',label:'Second-level (SLS)'},{id:'tls',label:'Third-level (TLS)'}];   // future: cities, rivers, languages, biomes
+const LS_VIEW='gq:view';
+const view=Object.assign({layer:'fls',fog:false,variants:{}},lsGet(LS_VIEW));
+function saveView(){lsSet(LS_VIEW,view);}
+const Countries={
+  variants(iso){const set=new Set((COUNTRY_META[iso]||{}).variants||[]);maps.forEach(m=>{if(m.country===iso&&m.variant)set.add(m.variant);});return [...set];},
+  defaultVariant(iso){return (COUNTRY_META[iso]||{}).default_variant||this.variants(iso)[0]||null;},
+  active(iso){return view.variants[iso]||this.defaultVariant(iso);},
+  setVariant(iso,v){view.variants[iso]=v;saveView();renderMapList();WorldMap.paint();},
+  visible(m){return !m.variant||!m.country||m.variant===this.active(m.country);},
+  progress(iso,layer){let learned=0,total=0,known=true,n=0;
+    maps.forEach(m=>{if(m.country!==iso||(m.layer||'fls')!==layer||!this.visible(m))return;n++;
+      const c=regionCount(m);if(c==null)known=false;else{total+=c;learned+=Mastery.summary(m.id,c).learned;}});
+    return {learned,total,maps:n,complete:known};},
+  page(iso,variant){   // e.g. {GEO, variant, fls:{learned,total}, sls:{...}, tls:{...}} — data only; UI comes later
+    if(variant)view.variants[iso]=variant;
+    return {iso,variant:this.active(iso),variants:this.variants(iso),layers:Object.fromEntries(LAYERS.slice(1).map(l=>[l.id,this.progress(iso,l.id)]))};}
+};
+// World overview: the blurred world background now shows progress (learned = lit); fog of war darkens unknown areas.
+const WorldMap={
+  progress(){const out={};maps.forEach(m=>{if(!Countries.visible(m)||(m.layer||'fls')!==view.layer)return;
+    const n=regionCount(m)||0,o=out[getContinent(m)]||(out[getContinent(m)]={learned:0,total:0});o.learned+=Mastery.summary(m.id,n).learned;o.total+=n;});return out;},
+  paint(){
+    const wb=document.getElementById('world-bg'); if(!wb)return;
+    const prog=this.progress(); let L=0,T=0;
+    wb.classList.toggle('fog',view.fog);
+    wb.querySelectorAll('[data-continent]').forEach(el=>{const p=prog[el.dataset.continent],f=p&&p.total?p.learned/p.total:0;
+      el.style.fill=f>0?'hsl('+(40+f*80)+' 60% '+(view.fog?35+f*25:45)+'%)':'';
+      el.style.opacity=view.fog?String(.12+.88*f):'';});
+    for(const c in prog){L+=prog[c].learned;T+=prog[c].total;}
+    const sum=document.getElementById('world-summary'); if(sum)sum.textContent=T?L+'/'+T+' learned':'';
+  }
+};
+function initWorldControls(){
+  const sel=document.getElementById('layer-select'),fog=document.getElementById('fog-toggle');
+  sel.innerHTML=LAYERS.map(l=>'<option value="'+l.id+'"'+(l.id===view.layer?' selected':'')+'>'+l.label+'</option>').join('');
+  sel.addEventListener('change',()=>{view.layer=sel.value;saveView();WorldMap.paint();});
+  fog.checked=!!view.fog;
+  fog.addEventListener('change',()=>{view.fog=fog.checked;saveView();WorldMap.paint();});
+}
+window.KHREITI={Dataset,Mastery,Countries,WorldMap,LAYERS,view};
 function regionCount(m){return m.regions?Object.keys(m.regions).length:(m.regionCount||null);}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function timeAgo(iso){
@@ -810,8 +910,8 @@ const MapCache={
         const [sr,jr]=await Promise.all([get(m.svgFile),get(m.jsonFile)]);
         const svgText=await sr.text(); let jd;
         try{jd=await jr.json();}catch(e){throw new Error(m.jsonFile+' is not valid JSON ('+e.message+')');}
-        if(!jd||!jd.regions||typeof jd.regions!=='object'||Array.isArray(jd.regions))throw new Error(m.jsonFile+' has no "regions" object');
-        Object.assign(m,{svgText,regions:jd.regions,groups:jd.groups||null,aliases:jd.aliases||null});
+        const md=Dataset.toMapData(jd); if(!md)throw new Error(m.jsonFile+' has no "regions" or "entities"');
+        Object.assign(m,{svgText,regions:md.regions,groups:md.groups,aliases:md.aliases,parents:md.parents});
         m.regionCount=Object.keys(m.regions).length;
         const c=lsGet(LS_COUNTS); c[m.id]=m.regionCount; lsSet(LS_COUNTS,c);
       })().finally(()=>this.pending.delete(m.id));
@@ -825,6 +925,8 @@ const MapCache={
       const ids=new Set([...t.querySelectorAll('[id]')].map(e=>e.id));
       const miss=Object.keys(m.regions).flatMap(r=>(m.groups&&m.groups[r])||[r]).filter(i=>!ids.has(i));
       if(miss.length)console.warn('[GeoQuiz] '+m.id+': '+miss.length+' JSON id(s) not found in the SVG:',miss.slice(0,20));
+      const ent=new Set(); Object.keys(m.regions).forEach(r=>((m.groups&&m.groups[r])||[r]).forEach(i=>ent.add(i)));
+      t.querySelectorAll(EDIT_SHAPES).forEach(el=>{if(!ent.has(el.id))el.classList.add('bg-shape');});   // non-entities are not clickable
       m._tpl=t;
     }
     return m._tpl;
@@ -841,7 +943,7 @@ function renderMapList(){
   const grid=document.getElementById('map-list');
   grid.innerHTML='';
   const counts={};
-  maps.forEach(m=>{const c=getContinent(m);counts[c]=(counts[c]||0)+1;});
+  maps.forEach(m=>{if(!Countries.visible(m))return;const c=getContinent(m);counts[c]=(counts[c]||0)+1;});
   const present=CONTINENTS.filter(c=>counts[c]);
   if(!present.length){grid.innerHTML='<p style="color:var(--muted);font-size:.85rem;text-align:center;padding:.75rem 0">No maps yet. Use “All maps / import” below.</p>';return;}
   present.forEach(c=>{
@@ -901,7 +1003,7 @@ function openContinent(c){
 function renderPickMap(){
   const list=document.getElementById('pickmap-list');
   const q=normalize(document.getElementById('map-search').value||'');
-  const items=maps.filter(m=>(selectedContinent?getContinent(m)===selectedContinent:true)&&(!q||normalize(m.name).includes(q)));
+  const items=maps.filter(m=>Countries.visible(m)&&(selectedContinent?getContinent(m)===selectedContinent:true)&&(!q||normalize(m.name).includes(q)));
   list.innerHTML='';
   if(!items.length){list.innerHTML='<p style="color:var(--muted);font-size:.85rem;text-align:center;padding:.75rem 0">No maps here.</p>';return;}
   items.forEach(m=>list.appendChild(makePickRow(m)));
@@ -977,7 +1079,7 @@ function runHomeSearch(){
   const results=document.getElementById('home-results'), def=document.getElementById('home-default');
   if(!q){results.style.display='none';results.innerHTML='';def.style.display='';return;}
   def.style.display='none'; results.style.display='';
-  const items=maps.filter(m=>normalize(m.name).includes(q));
+  const items=maps.filter(m=>Countries.visible(m)&&normalize(m.name).includes(q));
   results.innerHTML='';
   if(!items.length){results.innerHTML=`<p style="color:var(--muted);font-size:.85rem;text-align:center;padding:1rem 0">No quizzes match “${esc(raw)}”.</p>`;return;}
   items.forEach(m=>results.appendChild(makeMapItem(m)));
@@ -1100,6 +1202,7 @@ function stripStyles(svg){
 
 function regionShapes(rid){return (activeMap&&activeMap.groups&&activeMap.groups[rid])||[rid];}
 function applyScore(regionId,score){
+  Mastery.record(activeMap&&activeMap.id,regionId,score);
   regionShapes(regionId).forEach(sid=>{const el=getEl(sid);if(!el)return;el.classList.remove('region-wrong-flash','region-flashing');el.setAttribute('data-score',score);});
 }
 
@@ -1173,6 +1276,9 @@ function handleClick(cid){
   const rid=shapeRegion[cid]||cid;            // resolve multi-part region
   const correctId=quizQueue[quizIndex];
   const fb=document.getElementById('quiz-feedback');
+  if(rid!==correctId&&scoreMap[rid]!==undefined){   // already solved: no mistake, no score, no stats
+    fb.textContent='Already identified: '+(activeMap.regions[rid]||rid);fb.className='quiz-feedback feedback-warn';return;
+  }
   if(rid===correctId){
     const score=mistakeCount===0?'0':mistakeCount===1?'1':mistakeCount===2?'2':'giveup';
     scoreMap[correctId]=score;correctClicks++;stopFlash();applyScore(correctId,score);setProgress(clickCompletionPct());
@@ -1472,7 +1578,7 @@ function attachZoom(wrap, isInactive){
   function isZoomed(){return vb&&vb0&&vb.w<vb0.w-0.001;}
   function clientToSvg(cx,cy){
     if(!vb)return null;
-    const r=wrap.getBoundingClientRect();
+    const r=(svgEl()||wrap).getBoundingClientRect();
     if(r.width<1||r.height<1)return null;
     return {x:vb.x+(cx-r.left)/r.width*vb.w, y:vb.y+(cy-r.top)/r.height*vb.h};
   }
@@ -1481,7 +1587,7 @@ function attachZoom(wrap, isInactive){
     const minW=vb0.w/12, maxW=vb0.w;
     let nw=Math.max(minW,Math.min(maxW,vb.w/factor));
     let nh=vb.h*(nw/vb.w);
-    const r=wrap.getBoundingClientRect();
+    const r=(svgEl()||wrap).getBoundingClientRect();
     const p=clientToSvg(cx,cy); if(!p)return;
     let nx=p.x-(cx-r.left)/r.width*nw, ny=p.y-(cy-r.top)/r.height*nh;
     if(Math.abs(nw-vb0.w)<.001){nx=vb0.x; ny=vb0.y; nw=vb0.w; nh=vb0.h;}
@@ -1489,7 +1595,7 @@ function attachZoom(wrap, isInactive){
   }
   function panBy(dxPx,dyPx){
     if(!vb)return;
-    const r=wrap.getBoundingClientRect();
+    const r=(svgEl()||wrap).getBoundingClientRect();
     if(r.width<1||r.height<1)return;
     setVB({x:vb.x-dxPx*(vb.w/r.width), y:vb.y-dyPx*(vb.h/r.height), w:vb.w, h:vb.h});
   }
@@ -1546,7 +1652,7 @@ document.getElementById('editor-zoom-reset')?.addEventListener('click',()=>edito
   const wrap=document.getElementById('quiz-map-wrap'); if(!wrap)return;
   wrap.addEventListener('click',e=>{
     const shape=e.target.closest('path,polygon,polyline,circle,ellipse,rect');
-    if(!shape||!shape.id)return;
+    if(!shape||!shape.id||!shapeRegion[shape.id])return;   // only dataset entities are clickable
     if(quizMode==='click')handleClick(shape.id);
     else if(quizMode==='learn')learnSelect(shapeRegion[shape.id]||shape.id);
   });
@@ -1955,7 +2061,9 @@ async function init(){
     const saved=await dbAll();
     saved.forEach(m=>{savedIds.add(m.id);maps.push(m);});
   }catch(e){console.warn('IndexedDB unavailable:',e);}
-  registerBuiltIns();
+  await registerBuiltIns();
+  initWorldControls();
+  WorldMap.paint();
 }
 init();
 </script>
