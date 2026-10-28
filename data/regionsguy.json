@@ -14,37 +14,58 @@
   },
   "aliases": {
     "EIWD": [
-      "Essequibo Islands",
-      "EIWD"
+      "Essequibo Islands West Demerara",
+      "EIWD",
+      "Essequibo"
     ],
     "PomeroonSupenaam": [
-      "Pomeroon"
+      "Pomeroon",
+      "Supenaam",
+      "Pomeroon Supenaam"
     ],
     "BarmaWaini": [
-      "Warima"
+      "Barima",
+      "Waini",
+      "Barima Waini"
     ],
     "CuyuniMazaruni": [
-      "Cuyuni"
+      "Cuyuni",
+      "Mazaruni",
+      "Cuyuni Mazaruni"
     ],
     "PotaroSiparuni": [
-      "Potaro"
+      "Potaro",
+      "Siparuni",
+      "Potaro Siparuni"
     ],
     "UTUE": [
       "UTUE",
-      "Takutu"
+      "Takutu",
+      "Upper Essequbo",
+      "Upper Takutu",
+      "Upper Takutu Upper Essequibo"
     ],
     "EBC": [
       "EBC",
-      "Corentyne"
+      "Corentyne",
+      "East Berbice",
+      "East Berbice Corentyne"
     ],
     "UDB": [
-      "UDB"
+      "UDB",
+      "Upper Demerara",
+      "Demerara",
+      "Upper Demerara Berbice"
     ],
     "MahaicaBerbice": [
-      "Mahaica Berbice"
+      "Mahaica Berbice",
+      "Berbice",
+      "Mahaica"
     ],
     "DemeraraMahaica": [
-      "Demerara Mahaica"
+      "Demerara Mahaica",
+      "Demerara",
+      "Mahaica"
     ]
   }
 }
