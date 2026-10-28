@@ -1,0 +1,167 @@
+{
+  "maps": [
+    {
+      "id": "belgium-provinces",
+      "name": "Belgium: Provinces",
+      "continent": "Europe",
+      "country": "BEL",
+      "layer": "sls",
+      "svg": "maps/belgium-provinces.svg",
+      "json": "data/belgium-provinces.json"
+    },
+    {
+      "id": "afghanistan-provinces",
+      "name": "Afghanistan: Provinces",
+      "continent": "Asia",
+      "country": "AFG",
+      "layer": "fls",
+      "svg": "maps/provincesafg.svg",
+      "json": "data/provincesafg.json"
+    },
+    {
+      "id": "albania-counties",
+      "name": "Albania: Counties",
+      "continent": "Europe",
+      "country": "ALB",
+      "layer": "fls",
+      "svg": "maps/countiesalb.svg",
+      "json": "data/countiesalb.json"
+    },
+    {
+      "id": "switzerland-counties",
+      "name": "Switzerland: Cantons",
+      "continent": "Europe",
+      "country": "CHE",
+      "layer": "fls",
+      "svg": "maps/cantonsswz.svg",
+      "json": "data/cantonsswz.json"
+    },
+    {
+      "id": "andorra-parishes",
+      "name": "Andorra: Parishes",
+      "continent": "Europe",
+      "country": "AND",
+      "layer": "fls",
+      "svg": "maps/parishesand.svg",
+      "json": "data/parishesand.json"
+    },
+    {
+      "id": "angola-provinces",
+      "name": "Angola: Provinces",
+      "continent": "Africa",
+      "country": "AGO",
+      "layer": "fls",
+      "svg": "maps/provincesang.svg",
+      "json": "data/provincesang.json"
+    },
+    {
+      "id": "antiguabarbuda-parishes",
+      "name": "Antigua and Barbuda: Parishes and Dependencies",
+      "continent": "North America",
+      "country": "ATG",
+      "layer": "fls",
+      "svg": "maps/parishesaab.svg",
+      "json": "data/parishesaab.json"
+    },
+    {
+      "id": "argentina-provinces",
+      "name": "Argentina: Provinces",
+      "continent": "South America",
+      "country": "ARG",
+      "layer": "fls",
+      "svg": "maps/provincesarg.svg",
+      "json": "data/provincesarg.json"
+    },
+    {
+      "id": "liechtenstein-municipalities",
+      "name": "Liechtenstein: Municipalities",
+      "continent": "Europe",
+      "country": "LIE",
+      "layer": "fls",
+      "svg": "maps/municipalitieslie.svg",
+      "json": "data/municipalitieslie.json"
+    },
+    {
+      "id": "sanmarino-castelli",
+      "name": "San Marino: Castelli",
+      "continent": "Europe",
+      "country": "SMR",
+      "layer": "fls",
+      "svg": "maps/castellisam.svg",
+      "json": "data/castellisam.json"
+    },
+    {
+      "id": "luxembourg-cantons",
+      "name": "Luxembourg: Cantons",
+      "continent": "Europe",
+      "country": "LUX",
+      "layer": "sls",
+      "svg": "maps/cantonslux.svg",
+      "json": "data/cantonslux.json"
+    },
+    {
+      "id": "georgia-regions",
+      "name": "Georgia: Regions",
+      "continent": "Asia",
+      "country": "GEO",
+      "layer": "fls",
+      "svg": "maps/regionsgeo.svg",
+      "json": "data/regionsgeo.json"
+    },
+    {
+      "id": "georgia-municipalities",
+      "name": "Georgia: Municipalities",
+      "continent": "Asia",
+      "country": "GEO",
+      "layer": "sls",
+      "svg": "maps/municipalitiesgeo.svg",
+      "json": "data/municipalitiesgeo.json"
+    },
+    {
+      "id": "guyana-regions",
+      "name": "Guyana: Regions",
+      "continent": "South America",
+      "country": "GUY",
+      "layer": "fls",
+      "svg": "maps/regionsguy.svg",
+      "json": "data/regionsguy.json"
+    },
+    {
+      "id": "mexico-states",
+      "name": "Mexico: States",
+      "continent": "North America",
+      "country": "MEX",
+      "layer": "fls",
+      "svg": "maps/statesmex.svg",
+      "json": "data/statesmex.json"
+    },
+    {
+      "id": "austria-states",
+      "name": "Austria: States",
+      "continent": "Europe",
+      "country": "AUT",
+      "layer": "fls",
+      "svg": "maps/statesaut.svg",
+      "json": "data/statesaut.json"
+    },
+    {
+      "id": "barbados-parishes",
+      "name": "Barbados: Parishes",
+      "continent": "North America",
+      "country": "BRB",
+      "layer": "fls",
+      "svg": "maps/parishesbar.svg",
+      "json": "data/parishesbar.json"
+    },
+    {
+      "id": "mongolia-provinces",
+      "name": "Mongolia: Provinces",
+      "continent": "Asia",
+      "country": "MNG",
+      "layer": "fls",
+      "svg": "maps/provincesmog.svg",
+      "json": "data/provincesmog.json"
+    }
+  ],
+  "countries": {}
+}
