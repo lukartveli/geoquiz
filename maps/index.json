@@ -161,6 +161,15 @@
       "layer": "fls",
       "svg": "maps/provincesmog.svg",
       "json": "data/provincesmog.json"
+    },
+    {
+      "id": "sintmaarten-districts",
+      "name": "Sint Maarten: Districts",
+      "continent": "North America",
+      "country": "NED",
+      "layer": "sls",
+      "svg": "maps/sxmdistricts.svg",
+      "json": "data/districtssxm.json"
     }
   ],
   "countries": {}
