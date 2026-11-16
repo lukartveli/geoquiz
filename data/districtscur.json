@@ -1,0 +1,13 @@
+{
+"name": "districtscur",
+"regions": {
+  "NED-CUR-WIL": "Willemstad en Central",
+  "NED-CUR-BAU": "Bandabou",
+  "NED-CUR-BAI": "Bandariba"
+},
+  "aliases": {
+    "NED-CUR-WIL": [
+      "Willemstad"
+    ]
+  }
+}
