@@ -170,6 +170,15 @@
       "layer": "sls",
       "svg": "maps/sxmdistricts.svg",
       "json": "data/districtssxm.json"
+    },
+    {
+      "id": "curacao-districts",
+      "name": "Curaçao: Districts",
+      "continent": "North America",
+      "country": "NED",
+      "layer": "sls",
+      "svg": "maps/districtscur.svg",
+      "json": "data/districtscur.json"
     }
   ],
   "countries": {}
