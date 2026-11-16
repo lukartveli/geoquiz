@@ -1,0 +1,24 @@
+{
+  "name": "Districts of Sint Maarten",
+  "regions": {
+    "colebay": "Cole Bay",
+    "philipsburg": "Philipsburg",
+    "lowlands": "Lowlands",
+    "littlebay": "Little Bay",
+    "culdesac": "Cul de Sac",
+    "lower_princes_quarter": "Lower Prince's Quarter",
+    "upperprincesquarter": "Upper Prince's Quarter",
+    "simpsonbay": "Simpson Bay"
+  },
+  "aliases": {
+    "philipsburg": [
+      "Philipsberg"
+    ],
+    "lower_princes_quarter": [
+      "LPQ"
+    ],
+    "upperprincesquarter": [
+      "UPQ"
+    ]
+  }
+}
