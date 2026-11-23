@@ -1,0 +1,291 @@
+[{
+    "id": "MLI-KAY",
+    "name": "Kayes",
+    "aliases": [],
+    "parent": "MLI",
+    "children": [],
+    "properties": {
+      "level": 1,
+      "type": "region",
+      "country_code": "MLI"
+    },
+    "links": [],
+    "sources": ["Mali Institut Géographique (IGM)"]
+  },
+  {
+    "id": "MLI-KOL",
+    "name": "Koulikoro",
+    "aliases": [],
+    "parent": "MLI",
+    "children": [],
+    "properties": {
+      "level": 1,
+      "type": "region",
+      "country_code": "MLI"
+    },
+    "links": [],
+    "sources": ["Mali Institut Géographique (IGM)"]
+  },
+  {
+    "id": "MLI-SIK",
+    "name": "Sikasso",
+    "aliases": [],
+    "parent": "MLI",
+    "children": [],
+    "properties": {
+      "level": 1,
+      "type": "region",
+      "country_code": "MLI"
+    },
+    "links": [],
+    "sources": ["Mali Institut Géographique (IGM)"]
+  },
+  {
+    "id": "MLI-SEG",
+    "name": "Ségou",
+    "aliases": [
+      "Segou"
+    ],
+    "parent": "MLI",
+    "children": [],
+    "properties": {
+      "level": 1,
+      "type": "region",
+      "country_code": "MLI"
+    },
+    "links": [],
+    "sources": ["Mali Institut Géographique (IGM)"]
+  },
+  {
+    "id": "MLI-MOP",
+    "name": "Mopti",
+    "aliases": [],
+    "parent": "MLI",
+    "children": [],
+    "properties": {
+      "level": 1,
+      "type": "region",
+      "country_code": "MLI"
+    },
+    "links": [],
+    "sources": ["Mali Institut Géographique (IGM)"]
+  },
+  {
+    "id": "MLI-TOM",
+    "name": "Tombouctou",
+    "aliases": [
+      "Timbuktu"
+    ],
+    "parent": "MLI",
+    "children": [],
+    "properties": {
+      "level": 1,
+      "type": "region",
+      "country_code": "MLI"
+    },
+    "links": [],
+    "sources": ["Mali Institut Géographique (IGM)"]
+  },
+  {
+    "id": "MLI-GAO",
+    "name": "Gao",
+    "aliases": [],
+    "parent": "MLI",
+    "children": [],
+    "properties": {
+      "level": 1,
+      "type": "region",
+      "country_code": "MLI"
+    },
+    "links": [],
+    "sources": ["Mali Institut Géographique (IGM)"]
+  },
+  {
+    "id": "MLI-KID",
+    "name": "Kidal",
+    "aliases": [],
+    "parent": "MLI",
+    "children": [],
+    "properties": {
+      "level": 1,
+      "type": "region",
+      "country_code": "MLI"
+    },
+    "links": [],
+    "sources": ["Mali Institut Géographique (IGM)"]
+  },
+  {
+    "id": "MLI-TAO",
+    "name": "Taoudénit",
+    "aliases": [
+      "Taoudenit"
+    ],
+    "parent": "MLI",
+    "children": [],
+    "properties": {
+      "level": 1,
+      "type": "region",
+      "country_code": "MLI"
+    },
+    "links": [],
+    "sources": ["Mali Institut Géographique (IGM)"]
+  },
+  {
+    "id": "MLI-MEN",
+    "name": "Ménaka",
+    "aliases": [
+      "Menaka"
+    ],
+    "parent": "MLI",
+    "children": [],
+    "properties": {
+      "level": 1,
+      "type": "region",
+      "country_code": "MLI"
+    },
+    "links": [],
+    "sources": ["Mali Institut Géographique (IGM)"]
+  },
+  {
+    "id": "MLI-NIO",
+    "name": "Nioro",
+    "aliases": [],
+    "parent": "MLI",
+    "children": [],
+    "properties": {
+      "level": 1,
+      "type": "region",
+      "country_code": "MLI"
+    },
+    "links": [],
+    "sources": ["Mali Institut Géographique (IGM)"]
+  },
+  {
+    "id": "MLI-KIT",
+    "name": "Kita",
+    "aliases": [],
+    "parent": "MLI",
+    "children": [],
+    "properties": {
+      "level": 1,
+      "type": "region",
+      "country_code": "MLI"
+    },
+    "links": [],
+    "sources": ["Mali Institut Géographique (IGM)"]
+  },
+  {
+    "id": "MLI-DIO",
+    "name": "Dioïla",
+    "aliases": [
+      "Dioila"
+    ],
+    "parent": "MLI",
+    "children": [],
+    "properties": {
+      "level": 1,
+      "type": "region",
+      "country_code": "MLI"
+    },
+    "links": [],
+    "sources": ["Mali Institut Géographique (IGM)"]
+  },
+  {
+    "id": "MLI-NAR",
+    "name": "Nara",
+    "aliases": [],
+    "parent": "MLI",
+    "children": [],
+    "properties": {
+      "level": 1,
+      "type": "region",
+      "country_code": "MLI"
+    },
+    "links": [],
+    "sources": ["Mali Institut Géographique (IGM)"]
+  },
+  {
+    "id": "MLI-BOU",
+    "name": "Bougouni",
+    "aliases": [],
+    "parent": "MLI",
+    "children": [],
+    "properties": {
+      "level": 1,
+      "type": "region",
+      "country_code": "MLI"
+    },
+    "links": [],
+    "sources": ["Mali Institut Géographique (IGM)"]
+  },
+  {
+    "id": "MLI-KOT",
+    "name": "Koutiala",
+    "aliases": [],
+    "parent": "MLI",
+    "children": [],
+    "properties": {
+      "level": 1,
+      "type": "region",
+      "country_code": "MLI"
+    },
+    "links": [],
+    "sources": ["Mali Institut Géographique (IGM)"]
+  },
+  {
+    "id": "MLI-SAN",
+    "name": "San",
+    "aliases": [],
+    "parent": "MLI",
+    "children": [],
+    "properties": {
+      "level": 1,
+      "type": "region",
+      "country_code": "MLI"
+    },
+    "links": [],
+    "sources": ["Mali Institut Géographique (IGM)"]
+  },
+  {
+    "id": "MLI-DOU",
+    "name": "Douentza",
+    "aliases": [],
+    "parent": "MLI",
+    "children": [],
+    "properties": {
+      "level": 1,
+      "type": "region",
+      "country_code": "MLI"
+    },
+    "links": [],
+    "sources": ["Mali Institut Géographique (IGM)"]
+  },
+  {
+    "id": "MLI-BAN",
+    "name": "Bandiagara",
+    "aliases": [],
+    "parent": "MLI",
+    "children": [],
+    "properties": {
+      "level": 1,
+      "type": "region",
+      "country_code": "MLI"
+    },
+    "links": [],
+    "sources": ["Mali Institut Géographique (IGM)"]
+  },
+  {
+    "id": "MLI-BAM",
+    "name": "Bamako",
+    "aliases": [],
+    "parent": "MLI",
+    "children": [],
+    "properties": {
+      "level": 1,
+      "type": "district",
+      "country_code": "MLI"
+    },
+    "links": [],
+    "sources": ["Mali Institut Géographique (IGM)"]
+  }
+]
