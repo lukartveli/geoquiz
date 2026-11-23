@@ -179,6 +179,15 @@
       "layer": "sls",
       "svg": "maps/districtscur.svg",
       "json": "data/districtscur.json"
+    },
+    {
+      "id": "mali-regions",
+      "name": "Mali:Regions",
+      "continent": "Africa",
+      "country": "MLI",
+      "layer": "fls",
+      "svg": "maps/regionsmali.svg",
+      "json": "data/regionsmali.json"
     }
   ],
   "countries": {}
